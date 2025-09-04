@@ -30,7 +30,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -40,7 +40,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_BEAST
+                materialType: MaterialType.MATERIAL_TYPE_BEAST,
+                description: "",
             },
             StrRate: {
                 id: "StrRate",
@@ -51,7 +52,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: null,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 10,
@@ -61,7 +62,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_BEAST
+                materialType: MaterialType.MATERIAL_TYPE_BEAST,
+                description: "",
             },
             Int: {
                 id: "Int",
@@ -72,7 +74,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -82,7 +84,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_WOOD
+                materialType: MaterialType.MATERIAL_TYPE_WOOD,
+                description: "",
             },
             IntRate: {
                 id: "IntRate",
@@ -93,7 +96,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: null,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 10,
@@ -103,7 +106,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_WOOD
+                materialType: MaterialType.MATERIAL_TYPE_WOOD,
+                description: "",
             },
             Vit: {
                 id: "Vit",
@@ -114,7 +118,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -124,7 +128,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             VitRate: {
                 id: "VitRate",
@@ -135,7 +140,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: null,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 10,
@@ -145,7 +150,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             Agi: {
                 id: "Agi",
@@ -156,7 +162,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -166,7 +172,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_CLOTH
+                materialType: MaterialType.MATERIAL_TYPE_CLOTH,
+                description: "",
             },
             AgiRate: {
                 id: "AgiRate",
@@ -177,7 +184,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: null,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 10,
@@ -187,7 +194,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_CLOTH
+                materialType: MaterialType.MATERIAL_TYPE_CLOTH,
+                description: "",
             },
             Dex: {
                 id: "Dex",
@@ -198,7 +206,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -208,7 +216,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MEDICINE
+                materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
+                description: "",
             },
             DexRate: {
                 id: "DexRate",
@@ -219,7 +228,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: null,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 10,
@@ -229,7 +238,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_MEDICINE
+                materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
+                description: "",
             },
             HpRecovery: {
                 id: "HpRecovery",
@@ -240,7 +250,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -250,7 +260,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             HpRecoveryRate: {
                 id: "HpRecoveryRate",
@@ -261,7 +272,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: null,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 10,
@@ -271,7 +282,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             MpRecovery: {
                 id: "MpRecovery",
@@ -282,7 +294,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 20,
                 lowerLimitIncreaseInterval: 20,
                 attenuationThreshold: 10,
@@ -292,7 +304,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_WOOD
+                materialType: MaterialType.MATERIAL_TYPE_WOOD,
+                description: "",
             },
             MpRecoveryRate: {
                 id: "MpRecoveryRate",
@@ -303,17 +316,18 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: null,
                 lowerLimitIncreaseInterval: null,
-                attenuationThreshold: 20,
+                attenuationThreshold: 5,
                 basePotentialCost: 20,
                 isWeaponDoublePotential: true,
                 isArmorDoublePotential: false,
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 100,
-                materialType: MaterialType.MATERIAL_TYPE_WOOD
+                materialType: MaterialType.MATERIAL_TYPE_WOOD,
+                description: "",
             },
             MaxHp: {
                 id: "MaxHp",
@@ -324,7 +338,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -332,9 +346,10 @@ export default class EnchantProperties {
                 isWeaponDoublePotential: false,
                 isArmorDoublePotential: false,
                 preAttenuationIncrement: 10,
-                postAttenuationIncrement: 10,
+                postAttenuationIncrement: 160,
                 baseMaterial: 160,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             MaxHpRate: {
                 id: "MaxHpRate",
@@ -345,7 +360,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 10,
@@ -355,7 +370,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             MaxMp: {
                 id: "MaxMp",
@@ -366,7 +382,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 20,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 15,
@@ -376,7 +392,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 10,
                 postAttenuationIncrement: 10,
                 baseMaterial: 33.5,
-                materialType: MaterialType.MATERIAL_TYPE_WOOD
+                materialType: MaterialType.MATERIAL_TYPE_WOOD,
+                description: "",
             },
             Atk: {
                 id: "Atk",
@@ -387,7 +404,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -397,7 +414,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 16.5,
-                materialType: MaterialType.MATERIAL_TYPE_BEAST
+                materialType: MaterialType.MATERIAL_TYPE_BEAST,
+                description: "攻击力, 攻击加成, 攻击力加成",
             },
             AtkRate: {
                 id: "AtkRate",
@@ -408,7 +426,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 20,
                 lowerLimitIncreaseInterval: 20,
                 attenuationThreshold: 10,
@@ -418,7 +436,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_BEAST
+                materialType: MaterialType.MATERIAL_TYPE_BEAST,
+                description: "",
             },
             Matk: {
                 id: "Matk",
@@ -429,7 +448,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -439,7 +458,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 16.5,
-                materialType: MaterialType.MATERIAL_TYPE_WOOD
+                materialType: MaterialType.MATERIAL_TYPE_WOOD,
+                description: "",
             },
             MatkRate: {
                 id: "MatkRate",
@@ -450,7 +470,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 20,
                 lowerLimitIncreaseInterval: 20,
                 attenuationThreshold: 10,
@@ -460,7 +480,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_WOOD
+                materialType: MaterialType.MATERIAL_TYPE_WOOD,
+                description: "",
             },
             Sta: {
                 id: "Sta",
@@ -471,7 +492,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 60,
                 lowerLimitIncreaseInterval: 60,
                 attenuationThreshold: 5,
@@ -481,7 +502,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 100,
-                materialType: MaterialType.MATERIAL_TYPE_MEDICINE
+                materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
+                description: "",
             },
             DefBreaker: {
                 id: "DefBreaker",
@@ -492,7 +514,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 25,
                 lowerLimitIncreaseInterval: 25,
                 attenuationThreshold: 5,
@@ -502,7 +524,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 100,
-                materialType: MaterialType.MATERIAL_TYPE_BEAST
+                materialType: MaterialType.MATERIAL_TYPE_BEAST,
+                description: "",
             },
             MdefBreaker: {
                 id: "MdefBreaker",
@@ -513,7 +536,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 25,
                 lowerLimitIncreaseInterval: 25,
                 attenuationThreshold: 5,
@@ -523,7 +546,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 100,
-                materialType: MaterialType.MATERIAL_TYPE_WOOD
+                materialType: MaterialType.MATERIAL_TYPE_WOOD,
+                description: "",
             },
             Def: {
                 id: "Def",
@@ -534,7 +558,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -544,7 +568,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 10,
                 baseMaterial: 16.5,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             DefRate: {
                 id: "DefRate",
@@ -555,7 +580,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 10,
@@ -565,7 +590,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             Mdef: {
                 id: "Mdef",
@@ -576,7 +602,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -586,7 +612,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 10,
                 baseMaterial: 16.5,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             MdefRate: {
                 id: "MdefRate",
@@ -597,7 +624,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 10,
@@ -607,7 +634,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             PowerResist: {
                 id: "PowerResist",
@@ -618,7 +646,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 10,
@@ -628,7 +656,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             MagicResist: {
                 id: "MagicResist",
@@ -639,7 +668,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 10,
@@ -649,7 +678,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_WOOD
+                materialType: MaterialType.MATERIAL_TYPE_WOOD,
+                description: "",
             },
             SurroundingsResist: {
                 id: "SurroundingsResist",
@@ -660,7 +690,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: true,
+                isNegativePossible: false,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: null,
@@ -670,7 +700,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 15,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             RangeResist: {
                 id: "RangeResist",
@@ -681,7 +712,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: true,
+                isNegativePossible: false,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: null,
@@ -691,7 +722,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 15,
-                materialType: MaterialType.MATERIAL_TYPE_METAL
+                materialType: MaterialType.MATERIAL_TYPE_METAL,
+                description: "",
             },
             LineResist: {
                 id: "LineResist",
@@ -702,7 +734,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: true,
+                isNegativePossible: false,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: null,
@@ -712,7 +744,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 15,
-                materialType: MaterialType.MATERIAL_TYPE_BEAST
+                materialType: MaterialType.MATERIAL_TYPE_BEAST,
+                description: "",
             },
             MoveAttackResist: {
                 id: "MoveAttackResist",
@@ -723,7 +756,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: true,
+                isNegativePossible: false,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: null,
@@ -733,7 +766,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 15,
-                materialType: MaterialType.MATERIAL_TYPE_BEAST
+                materialType: MaterialType.MATERIAL_TYPE_BEAST,
+                description: "",
             },
             VerticalResist: {
                 id: "VerticalResist",
@@ -744,7 +778,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: true,
+                isNegativePossible: false,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: null,
@@ -754,7 +788,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 10,
-                materialType: MaterialType.MATERIAL_TYPE_MEDICINE
+                materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
+                description: "",
             },
             BreathResist: {
                 id: "BreathResist",
@@ -765,7 +800,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: true,
+                isNegativePossible: false,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: null,
@@ -775,7 +810,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 10,
-                materialType: MaterialType.MATERIAL_TYPE_MEDICINE
+                materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
+                description: "",
             },
             TranslationResist: {
                 id: "TranslationResist",
@@ -786,7 +822,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: true,
+                isNegativePossible: false,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: null,
@@ -796,7 +832,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 10,
-                materialType: MaterialType.MATERIAL_TYPE_WOOD
+                materialType: MaterialType.MATERIAL_TYPE_WOOD,
+                description: "",
             },
             WallResist: {
                 id: "WallResist",
@@ -807,7 +844,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: true,
+                isNegativePossible: false,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: null,
@@ -817,7 +854,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 10,
-                materialType: MaterialType.MATERIAL_TYPE_WOOD
+                materialType: MaterialType.MATERIAL_TYPE_WOOD,
+                description: "",
             },
             Hit: {
                 id: "Hit",
@@ -828,7 +866,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 15,
                 lowerLimitIncreaseInterval: 15,
                 attenuationThreshold: 10,
@@ -838,7 +876,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 2,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_MEDICINE
+                materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
+                description: "",
             },
             HitRate: {
                 id: "HitRate",
@@ -849,7 +888,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 60,
                 lowerLimitIncreaseInterval: 60,
                 attenuationThreshold: 5,
@@ -859,7 +898,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 100,
-                materialType: MaterialType.MATERIAL_TYPE_MEDICINE
+                materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
+                description: "",
             },
             Flee: {
                 id: "Flee",
@@ -870,7 +910,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 15,
                 lowerLimitIncreaseInterval: 15,
                 attenuationThreshold: 10,
@@ -880,7 +920,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 2,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_CLOTH
+                materialType: MaterialType.MATERIAL_TYPE_CLOTH,
+                description: "",
             },
             FleeRate: {
                 id: "FleeRate",
@@ -891,7 +932,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 60,
                 lowerLimitIncreaseInterval: 60,
                 attenuationThreshold: 5,
@@ -901,7 +942,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 100,
-                materialType: MaterialType.MATERIAL_TYPE_CLOTH
+                materialType: MaterialType.MATERIAL_TYPE_CLOTH,
+                description: "",
             },
             Aspd: {
                 id: "Aspd",
@@ -912,7 +954,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -922,7 +964,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 16,
                 baseMaterial: 1.5,
-                materialType: MaterialType.MATERIAL_TYPE_CLOTH
+                materialType: MaterialType.MATERIAL_TYPE_CLOTH,
+                description: "",
             },
             AspdRate: {
                 id: "AspdRate",
@@ -933,17 +976,18 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 60,
                 lowerLimitIncreaseInterval: 60,
-                attenuationThreshold: 5,
+                attenuationThreshold: 20,
                 basePotentialCost: 1,
                 isWeaponDoublePotential: false,
                 isArmorDoublePotential: false,
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 5,
-                materialType: MaterialType.MATERIAL_TYPE_CLOTH
+                materialType: MaterialType.MATERIAL_TYPE_CLOTH,
+                description: "",
             },
             Cspd: {
                 id: "Cspd",
@@ -954,7 +998,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: 10,
                 attenuationThreshold: 20,
@@ -964,7 +1008,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 16,
                 baseMaterial: 1.5,
-                materialType: MaterialType.MATERIAL_TYPE_MEDICINE
+                materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
+                description: "",
             },
             CspdRate: {
                 id: "CspdRate",
@@ -975,17 +1020,18 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 60,
                 lowerLimitIncreaseInterval: 60,
-                attenuationThreshold: 5,
+                attenuationThreshold: 20,
                 basePotentialCost: 1,
                 isWeaponDoublePotential: false,
                 isArmorDoublePotential: false,
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 5,
-                materialType: MaterialType.MATERIAL_TYPE_MEDICINE
+                materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
+                description: "",
             },
             Critical: {
                 id: "Critical",
@@ -996,7 +1042,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 20,
@@ -1006,7 +1052,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 5,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             CriticalRate: {
                 id: "CriticalRate",
@@ -1017,7 +1064,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 10,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 20,
@@ -1027,7 +1074,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 5,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             CriticalDmg: {
                 id: "CriticalDmg",
@@ -1038,7 +1086,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: false,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 20,
@@ -1048,7 +1096,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 16.5,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             CriticalDmgRate: {
                 id: "CriticalDmgRate",
@@ -1059,7 +1108,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 60,
                 lowerLimitIncreaseInterval: 60,
                 attenuationThreshold: 10,
@@ -1069,7 +1118,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 50,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             FireKiller: {
                 id: "FireKiller",
@@ -1080,7 +1130,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 20,
@@ -1090,7 +1140,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             EarthKiller: {
                 id: "EarthKiller",
@@ -1101,7 +1152,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 20,
@@ -1111,7 +1162,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             WindKiller: {
                 id: "WindKiller",
@@ -1122,7 +1174,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 20,
@@ -1132,7 +1184,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             WaterKiller: {
                 id: "WaterKiller",
@@ -1143,7 +1196,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 20,
@@ -1153,7 +1206,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             LightKiller: {
                 id: "LightKiller",
@@ -1164,7 +1218,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 20,
@@ -1174,7 +1228,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             DarkKiller: {
                 id: "DarkKiller",
@@ -1185,7 +1240,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 30,
                 lowerLimitIncreaseInterval: 30,
                 attenuationThreshold: 20,
@@ -1195,7 +1250,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             FireShield: {
                 id: "FireShield",
@@ -1206,7 +1262,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 15,
                 lowerLimitIncreaseInterval: 15,
                 attenuationThreshold: 20,
@@ -1216,7 +1272,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             EarthShield: {
                 id: "EarthShield",
@@ -1227,7 +1284,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 15,
                 lowerLimitIncreaseInterval: 15,
                 attenuationThreshold: 20,
@@ -1237,7 +1294,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             WindShield: {
                 id: "WindShield",
@@ -1248,7 +1306,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 15,
                 lowerLimitIncreaseInterval: 15,
                 attenuationThreshold: 20,
@@ -1258,7 +1316,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             WaterShield: {
                 id: "WaterShield",
@@ -1269,7 +1328,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 15,
                 lowerLimitIncreaseInterval: 15,
                 attenuationThreshold: 20,
@@ -1279,7 +1338,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             LightShield: {
                 id: "LightShield",
@@ -1290,7 +1350,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 15,
                 lowerLimitIncreaseInterval: 15,
                 attenuationThreshold: 20,
@@ -1300,7 +1360,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             DarkShield: {
                 id: "DarkShield",
@@ -1311,7 +1372,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 15,
                 lowerLimitIncreaseInterval: 15,
                 attenuationThreshold: 20,
@@ -1321,7 +1382,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 25,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             AntiVirus: {
                 id: "AntiVirus",
@@ -1332,7 +1394,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 60,
                 lowerLimitIncreaseInterval: 60,
                 attenuationThreshold: 5,
@@ -1342,7 +1404,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 100,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             Guard: {
                 id: "Guard",
@@ -1353,7 +1416,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 60,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 5,
@@ -1363,7 +1426,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 100,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             GardPower: {
                 id: "GardPower",
@@ -1374,7 +1438,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 60,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 5,
@@ -1384,7 +1448,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 100,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             Avoid: {
                 id: "Avoid",
@@ -1395,7 +1460,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 60,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 5,
@@ -1405,7 +1470,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 100,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             Hate: {
                 id: "Hate",
@@ -1416,7 +1482,7 @@ export default class EnchantProperties {
                 nameEnFull: "",
                 nameEnAbbr: "",
                 isPercentage: true,
-                isNegativePossible: false,
+                isNegativePossible: true,
                 upperLimitIncreaseInterval: 20,
                 lowerLimitIncreaseInterval: null,
                 attenuationThreshold: 15,
@@ -1426,7 +1492,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: 1,
                 baseMaterial: 33.5,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             OriginalElement: {
                 id: "OriginalElement",
@@ -1447,7 +1514,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 150,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             },
             OtherElement: {
                 id: "OtherElement",
@@ -1468,7 +1536,8 @@ export default class EnchantProperties {
                 preAttenuationIncrement: 1,
                 postAttenuationIncrement: null,
                 baseMaterial: 150,
-                materialType: MaterialType.MATERIAL_TYPE_MANA
+                materialType: MaterialType.MATERIAL_TYPE_MANA,
+                description: "",
             }
         };
     }

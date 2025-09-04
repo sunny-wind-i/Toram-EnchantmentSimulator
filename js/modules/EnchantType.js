@@ -13,7 +13,9 @@ export default class EnchantType {
 
     constructor(id, nameChsFull, nameEnFull) {
         this.id = id
+        // 中文全名
         this.nameChsFull = nameChsFull
+        // 英文全名
         this.nameEnFull = nameEnFull
     }
 
