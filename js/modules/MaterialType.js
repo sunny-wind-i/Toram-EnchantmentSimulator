@@ -1,4 +1,4 @@
-export class MaterialType {
+export default class MaterialType {
     static MATERIAL_TYPE_METAL = new MaterialType(0, "金属", "")
     static MATERIAL_TYPE_CLOTH = new MaterialType(1, "布料", "")
     static MATERIAL_TYPE_BEAST = new MaterialType(2, "兽品", "")

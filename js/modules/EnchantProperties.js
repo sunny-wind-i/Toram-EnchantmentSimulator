@@ -1,11 +1,11 @@
 import EnchantType from "./EnchantType.js";
-import { MaterialType } from "./MaterialType.js";
+import MaterialType from "./MaterialType.js";
 
 export default class EnchantProperties {
     static getProperties() {
         return {
-            STRENGTH: {
-                id: 0,
+            Str: {
+                id: "Str",
                 idx: 0,
                 enchantType: EnchantType.ENCHANT_TYPE_ABILITY,
                 nameChsFull: '力量',
@@ -25,8 +25,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST
             },
-            STRENGTH_PER: {
-                id: 1,
+            StrRate: {
+                id: "StrRate",
                 idx: 1,
                 enchantType: EnchantType.ENCHANT_TYPE_ABILITY,
                 nameChsFull: '力量',
@@ -46,8 +46,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST
             },
-            INTELLIGENCE: {
-                id: 2,
+            Int: {
+                id: "Int",
                 idx: 2,
                 enchantType: EnchantType.ENCHANT_TYPE_ABILITY,
                 nameChsFull: '智力',
@@ -67,8 +67,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD
             },
-            INTELLIGENCE_PER: {
-                id: 3,
+            IntRate: {
+                id: "IntRate",
                 idx: 3,
                 enchantType: EnchantType.ENCHANT_TYPE_ABILITY,
                 nameChsFull: '智力',
@@ -88,8 +88,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD
             },
-            VITALITY: {
-                id: 4,
+            Vit: {
+                id: "Vit",
                 idx: 4,
                 enchantType: EnchantType.ENCHANT_TYPE_ABILITY,
                 nameChsFull: '耐力',
@@ -109,8 +109,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            VITALITY_PER: {
-                id: 5,
+            VitRate: {
+                id: "VitRate",
                 idx: 5,
                 enchantType: EnchantType.ENCHANT_TYPE_ABILITY,
                 nameChsFull: '耐力',
@@ -130,8 +130,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            AGILITY: {
-                id: 6,
+            Agi: {
+                id: "Agi",
                 idx: 6,
                 enchantType: EnchantType.ENCHANT_TYPE_ABILITY,
                 nameChsFull: '敏捷',
@@ -151,8 +151,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH
             },
-            AGILITY_PER: {
-                id: 7,
+            AgiRate: {
+                id: "AgiRate",
                 idx: 7,
                 enchantType: EnchantType.ENCHANT_TYPE_ABILITY,
                 nameChsFull: '敏捷',
@@ -172,8 +172,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH
             },
-            DEXTERITY: {
-                id: 8,
+            Dex: {
+                id: "Dex",
                 idx: 8,
                 enchantType: EnchantType.ENCHANT_TYPE_ABILITY,
                 nameChsFull: '灵巧',
@@ -193,8 +193,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE
             },
-            DEXTERITY_PER: {
-                id: 9,
+            DexRate: {
+                id: "DexRate",
                 idx: 9,
                 enchantType: EnchantType.ENCHANT_TYPE_ABILITY,
                 nameChsFull: '灵巧',
@@ -214,8 +214,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE
             },
-            HP_RECOVER: {
-                id: 10,
+            HpRecovery: {
+                id: "HpRecovery",
                 idx: 10,
                 enchantType: EnchantType.ENCHANT_TYPE_HPMP,
                 nameChsFull: '体力自然回复',
@@ -235,8 +235,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            HP_RECOVER_PER: {
-                id: 11,
+            HpRecoveryRate: {
+                id: "HpRecoveryRate",
                 idx: 11,
                 enchantType: EnchantType.ENCHANT_TYPE_HPMP,
                 nameChsFull: '体力自然回复',
@@ -256,8 +256,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            MP_RECOVER: {
-                id: 12,
+            MpRecovery: {
+                id: "MpRecovery",
                 idx: 12,
                 enchantType: EnchantType.ENCHANT_TYPE_HPMP,
                 nameChsFull: '魔法自然回复',
@@ -277,8 +277,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD
             },
-            MP_RECOVER_PER: {
-                id: 13,
+            MpRecoveryRate: {
+                id: "MpRecoveryRate",
                 idx: 13,
                 enchantType: EnchantType.ENCHANT_TYPE_HPMP,
                 nameChsFull: '魔法自然回复',
@@ -298,8 +298,8 @@ export default class EnchantProperties {
                 basicMaterial: 100,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD
             },
-            MAX_HP: {
-                id: 14,
+            MaxHp: {
+                id: "MaxHp",
                 idx: 14,
                 enchantType: EnchantType.ENCHANT_TYPE_HPMP,
                 nameChsFull: '体力值上限',
@@ -319,8 +319,8 @@ export default class EnchantProperties {
                 basicMaterial: 160,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            MAX_HP_PER: {
-                id: 15,
+            MaxHpRate: {
+                id: "MaxHpRate",
                 idx: 15,
                 enchantType: EnchantType.ENCHANT_TYPE_HPMP,
                 nameChsFull: '体力值上限',
@@ -340,8 +340,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            MAX_MP: {
-                id: 16,
+            MaxMp: {
+                id: "MaxMp",
                 idx: 16,
                 enchantType: EnchantType.ENCHANT_TYPE_HPMP,
                 nameChsFull: '魔法值上限',
@@ -361,8 +361,8 @@ export default class EnchantProperties {
                 basicMaterial: 33.5,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD
             },
-            ATK: {
-                id: 17,
+            Atk: {
+                id: "Atk",
                 idx: 17,
                 enchantType: EnchantType.ENCHANT_TYPE_ATK,
                 nameChsFull: '物理攻击',
@@ -382,8 +382,8 @@ export default class EnchantProperties {
                 basicMaterial: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST
             },
-            ATK_PER: {
-                id: 18,
+            AtkRate: {
+                id: "AtkRate",
                 idx: 18,
                 enchantType: EnchantType.ENCHANT_TYPE_ATK,
                 nameChsFull: '物理攻击',
@@ -403,8 +403,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST
             },
-            MATK: {
-                id: 19,
+            Matk: {
+                id: "Matk",
                 idx: 19,
                 enchantType: EnchantType.ENCHANT_TYPE_ATK,
                 nameChsFull: '魔法攻击',
@@ -424,8 +424,8 @@ export default class EnchantProperties {
                 basicMaterial: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD
             },
-            MATK_PER: {
-                id: 20,
+            MatkRate: {
+                id: "MatkRate",
                 idx: 20,
                 enchantType: EnchantType.ENCHANT_TYPE_ATK,
                 nameChsFull: '魔法攻击',
@@ -445,8 +445,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD
             },
-            STABILITY_PER: {
-                id: 21,
+            Sta: {
+                id: "Sta",
                 idx: 21,
                 enchantType: EnchantType.ENCHANT_TYPE_ATK,
                 nameChsFull: '稳定率',
@@ -466,8 +466,8 @@ export default class EnchantProperties {
                 basicMaterial: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE
             },
-            ATK_PIERCCE_PER: {
-                id: 22,
+            DefBreaker: {
+                id: "DefBreaker",
                 idx: 22,
                 enchantType: EnchantType.ENCHANT_TYPE_ATK,
                 nameChsFull: '物理贯穿',
@@ -487,8 +487,8 @@ export default class EnchantProperties {
                 basicMaterial: 100,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST
             },
-            MATK_PIERCCE_PER: {
-                id: 23,
+            MdefBreaker: {
+                id: "MdefBreaker",
                 idx: 23,
                 enchantType: EnchantType.ENCHANT_TYPE_ATK,
                 nameChsFull: '魔法贯穿',
@@ -508,8 +508,8 @@ export default class EnchantProperties {
                 basicMaterial: 100,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD
             },
-            DEF: {
-                id: 24,
+            Def: {
+                id: "Def",
                 idx: 24,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '物理防御',
@@ -529,8 +529,8 @@ export default class EnchantProperties {
                 basicMaterial: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            DEF_PER: {
-                id: 25,
+            DefRate: {
+                id: "DefRate",
                 idx: 25,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '物理防御',
@@ -550,8 +550,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            MDEF: {
-                id: 26,
+            Mdef: {
+                id: "Mdef",
                 idx: 26,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '魔法防御',
@@ -571,8 +571,8 @@ export default class EnchantProperties {
                 basicMaterial: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            MDEF_PER: {
-                id: 27,
+            MdefRate: {
+                id: "MdefRate",
                 idx: 27,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '魔法防御',
@@ -592,8 +592,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            PHY_RESIST_PER: {
-                id: 28,
+            PowerResist: {
+                id: "PowerResist",
                 idx: 28,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '物理抗性',
@@ -613,8 +613,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            MAG_RESIST_PER: {
-                id: 29,
+            MagicResist: {
+                id: "MagicResist",
                 idx: 29,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '魔法抗性',
@@ -634,8 +634,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD
             },
-            REDUCE_ENEMYAROUND_PER: {
-                id: 30,
+            SurroundingsResist: {
+                id: "SurroundingsResist",
                 idx: 30,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '敌方周围伤害减轻',
@@ -655,8 +655,8 @@ export default class EnchantProperties {
                 basicMaterial: 15,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            REDUCE_PLAYERAROUND_PER: {
-                id: 31,
+            RangeResist: {
+                id: "RangeResist",
                 idx: 31,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '范围伤害减轻',
@@ -676,8 +676,8 @@ export default class EnchantProperties {
                 basicMaterial: 15,
                 materialType: MaterialType.MATERIAL_TYPE_METAL
             },
-            REDUCE_LINE_PER: {
-                id: 32,
+            LineResist: {
+                id: "LineResist",
                 idx: 32,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '直线伤害减轻',
@@ -697,8 +697,8 @@ export default class EnchantProperties {
                 basicMaterial: 15,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST
             },
-            REDUCE_COLLISION_PER: {
-                id: 33,
+            MoveAttackResist: {
+                id: "MoveAttackResist",
                 idx: 33,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '冲撞伤害减轻',
@@ -718,8 +718,8 @@ export default class EnchantProperties {
                 basicMaterial: 15,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST
             },
-            REDUCE_METEORITE_PER: {
-                id: 34,
+            VerticalResist: {
+                id: "VerticalResist",
                 idx: 34,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '陨石伤害减轻',
@@ -739,8 +739,8 @@ export default class EnchantProperties {
                 basicMaterial: 10,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE
             },
-            REDUCE_GROUND_PER: {
-                id: 35,
+            BreathResist: {
+                id: "BreathResist",
                 idx: 35,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '地面伤害减轻',
@@ -760,8 +760,8 @@ export default class EnchantProperties {
                 basicMaterial: 10,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE
             },
-            REDUCE_BULLLET_PER: {
-                id: 36,
+            TranslationResist: {
+                id: "TranslationResist",
                 idx: 36,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '子弹伤害减轻',
@@ -781,8 +781,8 @@ export default class EnchantProperties {
                 basicMaterial: 10,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD
             },
-            REDUCE_BLADE_PER: {
-                id: 37,
+            WallResist: {
+                id: "WallResist",
                 idx: 37,
                 enchantType: EnchantType.ENCHANT_TYPE_DEF,
                 nameChsFull: '贴地伤害减轻',
@@ -802,8 +802,8 @@ export default class EnchantProperties {
                 basicMaterial: 10,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD
             },
-            HIT: {
-                id: 38,
+            Hit: {
+                id: "Hit",
                 idx: 38,
                 enchantType: EnchantType.ENCHANT_TYPE_HIT,
                 nameChsFull: '命中',
@@ -823,8 +823,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE
             },
-            HIT_PER: {
-                id: 39,
+            HitRate: {
+                id: "HitRate",
                 idx: 39,
                 enchantType: EnchantType.ENCHANT_TYPE_HIT,
                 nameChsFull: '命中',
@@ -844,8 +844,8 @@ export default class EnchantProperties {
                 basicMaterial: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE
             },
-            FLEE: {
-                id: 40,
+            Flee: {
+                id: "Flee",
                 idx: 40,
                 enchantType: EnchantType.ENCHANT_TYPE_FLEE,
                 nameChsFull: '回避',
@@ -865,8 +865,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH
             },
-            FLEE_PER: {
-                id: 41,
+            FleeRate: {
+                id: "FleeRate",
                 idx: 41,
                 enchantType: EnchantType.ENCHANT_TYPE_FLEE,
                 nameChsFull: '回避',
@@ -886,8 +886,8 @@ export default class EnchantProperties {
                 basicMaterial: 100,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH
             },
-            ASPD: {
-                id: 42,
+            Aspd: {
+                id: "Aspd",
                 idx: 42,
                 enchantType: EnchantType.ENCHANT_TYPE_SPEED,
                 nameChsFull: '攻击速度',
@@ -907,8 +907,8 @@ export default class EnchantProperties {
                 basicMaterial: 1.5,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH
             },
-            ASPD_PER: {
-                id: 43,
+            AspdRate: {
+                id: "AspdRate",
                 idx: 43,
                 enchantType: EnchantType.ENCHANT_TYPE_SPEED,
                 nameChsFull: '攻击速度',
@@ -928,8 +928,8 @@ export default class EnchantProperties {
                 basicMaterial: 5,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH
             },
-            CSPD: {
-                id: 44,
+            Cspd: {
+                id: "Cspd",
                 idx: 44,
                 enchantType: EnchantType.ENCHANT_TYPE_SPEED,
                 nameChsFull: '咏唱速度',
@@ -949,8 +949,8 @@ export default class EnchantProperties {
                 basicMaterial: 1.5,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE
             },
-            CSPD_PER: {
-                id: 45,
+            CspdRate: {
+                id: "CspdRate",
                 idx: 45,
                 enchantType: EnchantType.ENCHANT_TYPE_SPEED,
                 nameChsFull: '咏唱速度',
@@ -970,8 +970,8 @@ export default class EnchantProperties {
                 basicMaterial: 5,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE
             },
-            CRITICAL: {
-                id: 46,
+            Critical: {
+                id: "Critical",
                 idx: 46,
                 enchantType: EnchantType.ENCHANT_TYPE_CRITICAL,
                 nameChsFull: '暴击率',
@@ -991,8 +991,8 @@ export default class EnchantProperties {
                 basicMaterial: 5,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            CRITICAL_PER: {
-                id: 47,
+            CriticalRate: {
+                id: "CriticalRate",
                 idx: 47,
                 enchantType: EnchantType.ENCHANT_TYPE_CRITICAL,
                 nameChsFull: '暴击率',
@@ -1012,8 +1012,8 @@ export default class EnchantProperties {
                 basicMaterial: 5,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            CRITICAL_DAMAGE: {
-                id: 48,
+            CriticalDmg: {
+                id: "CriticalDmg",
                 idx: 48,
                 enchantType: EnchantType.ENCHANT_TYPE_CRITICAL,
                 nameChsFull: '暴击伤害',
@@ -1033,8 +1033,8 @@ export default class EnchantProperties {
                 basicMaterial: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            CRITICAL_DAMAGE_PER: {
-                id: 49,
+            CriticalDmgRate: {
+                id: "CriticalDmgRate",
                 idx: 49,
                 enchantType: EnchantType.ENCHANT_TYPE_CRITICAL,
                 nameChsFull: '暴击伤害',
@@ -1054,8 +1054,8 @@ export default class EnchantProperties {
                 basicMaterial: 50,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            AGAINST_FIRE_PER: {
-                id: 50,
+            FireKiller: {
+                id: "FireKiller",
                 idx: 50,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '对火属性伤害',
@@ -1075,8 +1075,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            AGAINST_EARTH_PER: {
-                id: 51,
+            EarthKiller: {
+                id: "EarthKiller",
                 idx: 51,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '对地属性伤害',
@@ -1096,8 +1096,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            AGAINST_WIND_PER: {
-                id: 52,
+            WindKiller: {
+                id: "WindKiller",
                 idx: 52,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '对风属性伤害',
@@ -1117,8 +1117,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            AGAINST_WATER_PER: {
-                id: 53,
+            WaterKiller: {
+                id: "WaterKiller",
                 idx: 53,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '对水属性伤害',
@@ -1138,8 +1138,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            AGAINST_LIGHT_PER: {
-                id: 54,
+            LightKiller: {
+                id: "LightKiller",
                 idx: 54,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '对光属性伤害',
@@ -1159,8 +1159,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            AGAINST_DARK_PER: {
-                id: 55,
+            DarkKiller: {
+                id: "DarkKiller",
                 idx: 55,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '对暗属性伤害',
@@ -1180,8 +1180,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            RESIST_FIRE_PER: {
-                id: 56,
+            FireShield: {
+                id: "FireShield",
                 idx: 56,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '抗火属性',
@@ -1201,8 +1201,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            RESIST_EARTH_PER: {
-                id: 57,
+            EarthShield: {
+                id: "EarthShield",
                 idx: 57,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '抗地属性',
@@ -1222,8 +1222,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            RESIST_WIND_PER: {
-                id: 58,
+            WindShield: {
+                id: "WindShield",
                 idx: 58,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '抗风属性',
@@ -1243,8 +1243,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            RESIST_WATER_PER: {
-                id: 59,
+            WaterShield: {
+                id: "WaterShield",
                 idx: 59,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '抗水属性',
@@ -1264,8 +1264,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            RESIST_LIGHT_PER: {
-                id: 60,
+            LightShield: {
+                id: "LightShield",
                 idx: 60,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '抗光属性',
@@ -1285,8 +1285,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            RESIST_DARK_PER: {
-                id: 61,
+            DarkShield: {
+                id: "DarkShield",
                 idx: 61,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT,
                 nameChsFull: '抗暗属性',
@@ -1306,8 +1306,8 @@ export default class EnchantProperties {
                 basicMaterial: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            AILMENT_RESIST_PER: {
-                id: 62,
+            AntiVirus: {
+                id: "AntiVirus",
                 idx: 62,
                 enchantType: EnchantType.ENCHANT_TYPE_SPECIAL,
                 nameChsFull: '异常抗性',
@@ -1327,8 +1327,8 @@ export default class EnchantProperties {
                 basicMaterial: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            GUARD_RECOVER_PER: {
-                id: 63,
+            Guard: {
+                id: "Guard",
                 idx: 63,
                 enchantType: EnchantType.ENCHANT_TYPE_SPECIAL,
                 nameChsFull: '格挡回复',
@@ -1348,8 +1348,8 @@ export default class EnchantProperties {
                 basicMaterial: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            GUARD_POWER_PER: {
-                id: 64,
+            GardPower: {
+                id: "GardPower",
                 idx: 64,
                 enchantType: EnchantType.ENCHANT_TYPE_SPECIAL,
                 nameChsFull: '格挡力',
@@ -1369,8 +1369,8 @@ export default class EnchantProperties {
                 basicMaterial: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            EVADE_RECOVER_PER: {
-                id: 65,
+            Avoid: {
+                id: "Avoid",
                 idx: 65,
                 enchantType: EnchantType.ENCHANT_TYPE_SPECIAL,
                 nameChsFull: '闪躲回复',
@@ -1390,8 +1390,8 @@ export default class EnchantProperties {
                 basicMaterial: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            AGGRO_PER: {
-                id: 66,
+            Hate: {
+                id: "Hate",
                 idx: 66,
                 enchantType: EnchantType.ENCHANT_TYPE_SPECIAL,
                 nameChsFull: '仇恨值',
@@ -1411,8 +1411,8 @@ export default class EnchantProperties {
                 basicMaterial: 33.5,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            ELEMENT_ORIGINAL: {
-                id: 67,
+            OriginalElement: {
+                id: "OriginalElement",
                 idx: 67,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION,
                 nameChsFull: '原属性',
@@ -1432,8 +1432,8 @@ export default class EnchantProperties {
                 basicMaterial: 150,
                 materialType: MaterialType.MATERIAL_TYPE_MANA
             },
-            ELEMENT_NOT_ORIGINAL: {
-                id: 68,
+            OtherElement: {
+                id: "OtherElement",
                 idx: 68,
                 enchantType: EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION,
                 nameChsFull: '非原属性',
