@@ -1,23 +1,27 @@
 import EnchantType from "./EnchantType.js";
 import MaterialType from "./MaterialType.js";
 
-// enchantType: 附魔类型
-// nameChsFull: 中文全名
-// nameChsAbbr: 中文简称
-// nameEnFull: 英文全名
-// nameEnAbbr: 英文简称
-// isPercentage: 是否带百分号
-// isNegativePossible: 是否允许负数
-// upperLimitIncreaseInterval: 超过200版本多少级增长一次，如果不增长填null
-// lowerLimitIncreaseInterval: 同上，负方向
-// attenuationThreshold: 衰减阈值
-// basePotentialCost: 基础耗潜
-// isWeaponDoublePotential: 是否武器双倍耗潜
-// isArmorDoublePotential: 是否防具双倍耗潜
-// preAttenuationIncrement: 衰减阈值前增长
-// postAttenuationIncrement: 衰减阈值后增长
-// baseMaterial: 基础耗材
-// materialType: 消耗材料类型
+// /**
+//  * xxx
+//  * @param {Object} enchantProperty - 属性配置对象
+//  * @param {Object} enchantProperty.enchantType - 属性类型
+//  * @param {string} enchantProperty.nameChsFull - 中文全名
+//  * @param {string} enchantProperty.nameChsAbbr - 中文简称
+//  * @param {string} enchantProperty.nameEnFull - 英文全名
+//  * @param {string} enchantProperty.nameEnAbbr - 英文简称
+//  * @param {number} enchantProperty.isPercentage - 是否有百分号
+//  * @param {number} enchantProperty.isNegativePossible - 是否允许负数
+//  * @param {number} enchantProperty.upperLimitIncreaseInterval - 超过200版本多少级增长一次，如果不增长填null
+//  * @param {number} enchantProperty.lowerLimitIncreaseInterval - 同上，负方向
+//  * @param {number} enchantProperty.attenuationThreshold - 衰减阈值
+//  * @param {number} enchantProperty.basePotentialCost - 基础耗潜
+//  * @param {boolean} enchantProperty.isWeaponDoublePotential - 是否武器双倍耗潜
+//  * @param {boolean} enchantProperty.isArmorDoublePotential - 是否防具双倍耗潜
+//  * @param {number} enchantProperty.preAttenuationIncrement - 衰减阈值前增长
+//  * @param {number} enchantProperty.postAttenuationIncrement - 衰减阈值后增长
+//  * @param {number} enchantProperty.baseMaterial - 基础耗材
+//  * @param {Object} enchantProperty.materialType - 消耗材料类型
+//  */
 export default class EnchantProperties {
     static getProperties() {
         return {
@@ -347,7 +351,7 @@ export default class EnchantProperties {
                 isArmorDoublePotential: false,
                 preAttenuationIncrement: 10,
                 postAttenuationIncrement: 160,
-                baseMaterial: 160,
+                baseMaterial: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
             },
