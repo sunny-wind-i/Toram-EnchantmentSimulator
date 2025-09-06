@@ -1,4 +1,9 @@
 import EnchantType from "./EnchantType.js"
+import PropertyManager from "./PropertyManager.js"
+import EquipmentType from "./EquipmentType.js"
+
+const PM = new PropertyManager();
+const PMProperties = PM.properties;
 
 /**
  * 将玩家等级标准化为10的倍数
@@ -177,4 +182,218 @@ export const calDoublePotlAttain = function (enchantProperty, playerLevel) {
         return Math.floor(((enchantProperty.attenuationThreshold * enchantProperty.basePotentialCost +
             (min - enchantProperty.attenuationThreshold) * enchantProperty.basePotentialCost / 2) * 0.305 * 2).toFixed(2))
     }
+}
+
+/**
+ * 计算倍率
+ * @param {Array} allEnchantedProperties - 所有附魔过的属性ID数组
+ * @returns {number} 倍率值
+ */
+export const calculateMultiplier = function (allEnchantedProperties) {
+    // 根据所有附魔属性，按属性类型分组
+    // enchantTypeGroups对象用于存储按enchantType分类的属性ID数组
+    // 键为enchantType（转换为字符串），值为具有相同enchantType的属性ID数组
+    const enchantTypeGroups = {};
+
+    // 遍历所有附魔过的属性ID
+    for (const propId of allEnchantedProperties) {
+        // 获取属性详细信息
+        const property = PMProperties[propId];
+        // 确保属性存在
+        if (property) {
+            // 将属性的enchantType转换为字符串作为分组键
+            const enchantType = property.enchantType.toString();
+            // 如果该enchantType分组还不存在，则初始化为空数组
+            if (!enchantTypeGroups[enchantType]) {
+                enchantTypeGroups[enchantType] = [];
+            }
+            // 将当前属性ID添加到对应enchantType分组中
+            enchantTypeGroups[enchantType].push(propId);
+        }
+    }
+
+    // 计算倍率: 1 + 0.05 × 第1组同类项属性个数^2 + 0.05 × 第2组同类项属性个数^2 + ...
+    // 初始倍率为1（基础值）
+    let multiplier = 1;
+    // 遍历所有enchantType分组
+    for (const enchantType in enchantTypeGroups) {
+        // 获取当前分组中的属性数量
+        const groupSize = enchantTypeGroups[enchantType].length;
+        // 只有当组内属性个数大于1时才计入倍率计算
+        // 单个属性不产生倍率加成，只有相同类型的属性达到2个或以上才会产生倍率效果
+        if (groupSize > 1) {
+            // 倍率计算公式：每组同类型属性贡献 0.05 * (属性个数)^2 的加成
+            multiplier += 0.05 * Math.pow(groupSize, 2);
+        }
+    }
+
+    // console.log('倍率:', multiplier);
+
+    return multiplier;
+}
+
+/**
+ * 计算属性增加值消耗的潜力
+ * @param {Object} property - 属性对象
+ * @param {number} preValue - 附魔前属性值
+ * @param {number} postValue - 附魔后属性值
+ * @param {Object} equipmentType - 装备类型
+ * @returns {number} 消耗的潜力值
+ */
+export const calculateIncreasePotentialCost = function (property, preValue, postValue, equipmentType) {
+    // 确保是增加值的情况
+    if (postValue <= preValue) return 0;
+
+    // 检查是否需要双倍耗潜
+    const isDoublePotential = (equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON && property.isWeaponDoublePotential) ||
+        (equipmentType === EquipmentType.EQUIPMENT_TYPE_ARMOR && property.isArmorDoublePotential);
+
+    let cost = 0;
+
+    // 如果衰减阈值为null，则不考虑衰减
+    if (property.attenuationThreshold === null) {
+        cost = (postValue - preValue) * property.basePotentialCost;
+    } else {
+        // 衰减阈值逻辑：只有超过正的衰减阈值部分，需要额外消耗潜力
+        // 分别计算附魔前和附魔后在衰减阈值内外的部分
+
+        // 附魔前部分消耗
+        if (preValue <= property.attenuationThreshold) {
+            // 附魔前值在衰减阈值内
+            if (postValue <= property.attenuationThreshold) {
+                // 附魔后值也在衰减阈值内，全部是正常消耗
+                cost = (postValue - preValue) * property.basePotentialCost;
+            } else {
+                // 附魔后值超过衰减阈值，分段计算
+                const normalPart = property.attenuationThreshold - preValue;
+                const extraPart = postValue - property.attenuationThreshold;
+                cost = normalPart * property.basePotentialCost + extraPart * property.basePotentialCost * 2;
+            }
+        } else {
+            // 附魔前值已经超过衰减阈值，全部是额外消耗
+            cost = (postValue - preValue) * property.basePotentialCost * 2;
+        }
+    }
+
+    // 应用双倍耗潜
+    if (isDoublePotential) {
+        cost *= 2;
+    }
+
+    // 去除小数部分（直接截断）
+    return Math.trunc(cost);
+}
+
+/**
+ * 计算属性减少值获得的潜力
+ * @param {Object} property - 属性对象
+ * @param {number} preValue - 附魔前属性值
+ * @param {number} postValue - 附魔后属性值
+ * @param {Object} equipmentType - 装备类型
+ * @returns {number} 获得的潜力值
+ */
+export const calculateDecreasePotentialGain = function (property, preValue, postValue, equipmentType) {
+    // 确保是减少值的情况
+    if (postValue >= preValue) return 0;
+
+    // 退潜倍率
+    let gain = 0;
+
+    // 检查是否需要双倍耗潜（负属性获得潜力翻倍）
+    const isDoublePotential = (equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON && property.isWeaponDoublePotential) ||
+        (equipmentType === EquipmentType.EQUIPMENT_TYPE_ARMOR && property.isArmorDoublePotential);
+
+    // 如果衰减阈值为null，则不考虑衰减
+    if (property.attenuationThreshold === null) {
+        gain = (preValue - postValue) * property.basePotentialCost * 0.305;
+    } else {
+        // 衰减阈值逻辑：只有小于负的衰减阈值时，超过部分获得的潜力值减半
+        // 分别计算附魔前和附魔后在衰减阈值内外的部分
+
+        // 附魔前部分获得
+        if (preValue >= -property.attenuationThreshold) {
+            // 附魔前值在衰减阈值内（>= -attenuationThreshold）
+            if (postValue >= -property.attenuationThreshold) {
+                // 附魔后值也在衰减阈值内，全部是正常获得
+                gain = (preValue - postValue) * property.basePotentialCost * 0.305;
+            } else {
+                // 附魔后值小于负的衰减阈值，分段计算
+                const normalPart = preValue - (-property.attenuationThreshold);
+                const extraPart = -property.attenuationThreshold - postValue;
+                gain = normalPart * property.basePotentialCost * 0.305 + extraPart * property.basePotentialCost * 0.305 * 0.5;
+            }
+        } else {
+            // 附魔前值已经小于负的衰减阈值，全部是减半获得
+            gain = (preValue - postValue) * property.basePotentialCost * 0.305 * 0.5;
+        }
+    }
+
+    // 应用双倍耗潜（负属性获得潜力翻倍）
+    if (isDoublePotential) {
+        gain *= 2;
+    }
+
+    // 去除小数部分（直接截断）
+    return Math.trunc(gain);
+}
+
+/**
+ * 计算附魔后的潜力值
+ * @param {Object} enchantmentStep - 本步附魔的内容
+ * @param {Object} preEnchantmentProperties - 附魔前各属性值状态
+ * @param {Object} enchantedProperties - 之前所有附过魔的属性
+ * @param {number} preEnchantmentPotential - 附魔前潜力值
+ * @param {Object} equipmentType - 装备类型
+ * @returns {number} 附魔后潜力值
+ */
+export const calPostEnchantmentPotential = function (enchantmentStep, preEnchantmentProperties, enchantedProperties, preEnchantmentPotential, equipmentType) {
+    // 获取当前步骤中所有附魔的属性ID
+    const currentEnchantedPropertyIds = enchantmentStep.enchantments
+        .filter(enchant => enchant.property && enchant.value !== 0)
+        .map(enchant => enchant.property.id);
+    // console.log("currentEnchantedPropertyIds:", currentEnchantedPropertyIds);
+    // console.log("enchantedProperties:", enchantedProperties);
+
+    // 合并之前附魔过的属性和当前步骤附魔的属性，使用Set去重
+    const allEnchantedPropertyIds = [...new Set([
+        ...enchantedProperties,
+        ...currentEnchantedPropertyIds
+    ])];
+
+    // 计算倍率：根据所有同类项属性计算倍率
+    const multiplier = calculateMultiplier(allEnchantedPropertyIds);
+
+    // 计算总消耗/获得的潜力值
+    let totalPotentialChange = 0;
+
+    // 遍历当前步骤的所有附魔
+    for (const enchantment of enchantmentStep.enchantments) {
+        const { property, value } = enchantment;
+
+        // 跳过无效属性或值为0的属性
+        if (!property || value === 0) continue;
+
+        // 获取附魔前该属性的值
+        const preValue = preEnchantmentProperties[property.id] || 0;
+        // 计算附魔后该属性的值
+        const postValue = preValue + value;
+
+        if (postValue > preValue) {
+            // 属性值增加，消耗潜力
+            const cost = calculateIncreasePotentialCost(property, preValue, postValue, equipmentType);
+            totalPotentialChange -= cost;
+        } else if (postValue < preValue) {
+            // 属性值减少，获得潜力
+            const gain = calculateDecreasePotentialGain(property, preValue, postValue, equipmentType);
+            totalPotentialChange += gain;
+            // console.log(`获得潜力：${gain}`);
+        }
+        // 如果postValue === preValue，则没有变化，不处理
+    }
+
+    // 应用倍率并去除小数部分
+    const finalPotentialChange = Math.trunc(totalPotentialChange * multiplier);
+
+    // 计算最终潜力值 = 附魔前潜力值 + 最终潜力变化值
+    return preEnchantmentPotential + finalPotentialChange;
 }

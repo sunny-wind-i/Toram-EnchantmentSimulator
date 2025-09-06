@@ -2,7 +2,7 @@ import { attrNumToActualNum, calAttrMaxLimit, calAttrMinLimit, calDoublePotlAtta
 import PropertyManager from "./modules/PropertyManager.js";
 
 // 默认玩家等级
-let playerLevel = 260;
+let playerLevel = 290;
 const PM = new PropertyManager();
 
 // 更新表格函数
@@ -83,7 +83,7 @@ function updateTable() {
         $row.append($('<td>').text(doublePotl !== null ? doublePotl : ''));
 
         // 第十一列：基础耗材
-        $row.append($('<td>').text(property.baseMaterial));
+        $row.append($('<td>').text(property.baseMaterialCost));
 
         // 第十二列：素材类型
         $row.append($('<td>').text(property.materialType.nameChsFull));
