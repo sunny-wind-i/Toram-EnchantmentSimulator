@@ -2,6 +2,7 @@ import EnchantRecord from "./modules/EnchantRecord.js";
 import PropertyManager from "./modules/PropertyManager.js";
 import EquipmentType from "./modules/EquipmentType.js";
 import { calPostEnchantmentPotential } from "./modules/PotentialCalculator.js";
+import { calEnchantmentStepMaterialCost } from "./modules/MaterialCalculator.js";
 
 const PM = new PropertyManager();
 const PMProperties = PM.properties;
@@ -11,19 +12,20 @@ const record = new EnchantRecord({
     playerLevel: 290,
     equipmentPotential: 114,
     baseEquipmentPotential: 1,
-    smithingLevel: 75,
+    smithingLevel: 150,
     understandingSkills: {
-        metal: 5,
-        cloth: 3,
-        beast: 8,
-        wood: 2,
-        medicine: 4,
-        mana: 6
+        metal: 0,
+        cloth: 0,
+        beast: 0,
+        wood: 0,
+        medicine: 0,
+        mana: 0
     }
 });
 
 let potential = 114
 
+// 参考公式：https://www.taptap.cn/moment/641960089816665718
 // 暴击伤害+1% 力量+10% 暴击伤害+22 暴击率+28 ATK+14% MP自然回复-14 HP自然回复-28 回避-20
 const steps = [
     // 步骤1: 附暴击伤害+1% 力量+9% =14
@@ -85,10 +87,25 @@ const steps = [
     }
 ];
 
+let totalMeterialCost = {
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+};
 
 steps.forEach((step, index) => {
     potential = cal(record, step, potential);
-    console.log(`Step ${index + 1}:`, potential);
+    console.log(`Step ${index + 1} 潜力:`, potential);
+    let material = calEnchantmentStepMaterialCost(step, record.getCurrentProperties(), record.smithingLevel, record.understandingSkills);
+    console.log(`Step ${index + 1} 材料:`, material);
+    // 修改材料消耗累加方式为按索引相加
+    for (let i = 0; i < 6; i++) {
+        totalMeterialCost[i] += material[i] || 0;
+    }
+    console.log(`Step ${index + 1} 素材总消耗:`, totalMeterialCost);
     record.addEnchantmentStep(step);
 });
 
