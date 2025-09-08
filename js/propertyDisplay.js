@@ -128,7 +128,7 @@ $(document).ready(function () {
     $headerRow.append($('<th>').text('步进2'));
     $headerRow.append($('<th>').text('基础耗潜'));
     $headerRow.append($('<th>').text('双倍潜力'));
-    $headerRow.append($('<th>').text('双倍退潜값'));
+    $headerRow.append($('<th>').text('双倍退潜值'));
     $headerRow.append($('<th>').text('基础耗材'));
     $headerRow.append($('<th>').text('素材类型'));
     $thead.append($headerRow);

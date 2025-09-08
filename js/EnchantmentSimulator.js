@@ -89,12 +89,12 @@ const steps = [
 ];
 
 let totalMeterialCost = {
-    0: 0,
-    1: 0,
-    2: 0,
-    3: 0,
-    4: 0,
-    5: 0,
+    metal: 0,
+    cloth: 0,
+    beast: 0,
+    wood: 0,
+    medicine: 0,
+    mana: 0,
 };
 
 steps.forEach((step, index) => {
@@ -105,9 +105,9 @@ steps.forEach((step, index) => {
     console.log(`Step ${index + 1} 成功率:`, success);
     let material = calEnchantmentStepMaterialCost(step, record.getCurrentProperties(), record.smithingLevel, record.understandingSkills);
     console.log(`Step ${index + 1} 材料:`, material);
-    // 修改材料消耗累加方式为按索引相加
-    for (let i = 0; i < 6; i++) {
-        totalMeterialCost[i] += material[i] || 0;
+    // 修改材料消耗累加方式为按材料名称累加
+    for (const materialType in material) {
+        totalMeterialCost[materialType] += material[materialType];
     }
     console.log(`Step ${index + 1} 素材总消耗:`, totalMeterialCost);
     record.addEnchantmentStep(step);

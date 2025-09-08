@@ -38,7 +38,15 @@ export function calEnchantmentStepMaterialCost(enchantmentStep, preEnchantmentPr
         }
     }
 
-    return materialCosts;
+    // 将返回值从ID键改为材料名称键
+    return {
+        metal: materialCosts[MaterialType.MATERIAL_TYPE_METAL.id],
+        cloth: materialCosts[MaterialType.MATERIAL_TYPE_CLOTH.id],
+        beast: materialCosts[MaterialType.MATERIAL_TYPE_BEAST.id],
+        wood: materialCosts[MaterialType.MATERIAL_TYPE_WOOD.id],
+        medicine: materialCosts[MaterialType.MATERIAL_TYPE_MEDICINE.id],
+        mana: materialCosts[MaterialType.MATERIAL_TYPE_MANA.id]
+    };
 }
 
 /**
