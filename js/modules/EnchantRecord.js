@@ -1,8 +1,9 @@
 import PropertyManager from './PropertyManager.js';
 import EquipmentType from './EquipmentType.js';
 import { calPostEnchantmentPotential } from './PotentialCalculator.js';
+import { calSingleSuccessRate, calExpectedSuccessRate } from './SuccessCalculator.js';
 import { calEnchantmentStepMaterialCost } from './MaterialCalculator.js';
-import { calSingleSuccessRate } from './SuccessCalculator.js';
+
 /**
  * 附魔模拟类，用于管理整个附魔过程的数据结构
  * 包括装备基本信息、玩家信息以及每一步附魔操作记录
@@ -60,8 +61,8 @@ export default class EnchantRecord {
             mana: 0
         };
         this.finalRemainingPotential = this.equipmentPotential;
-        this.finalSingleSuccessRate = -1
-        this.finalExpectedSuccessRate = -1
+        this.finalSingleSuccessRate = -1;
+        this.finalExpectedSuccessRate = this._calculateFinalExpectedSuccessRate();
     }
 
     /**
@@ -139,6 +140,7 @@ export default class EnchantRecord {
 
         const postEnchantmentPotential = potentialResult.postEnchantmentPotential;
         const potentialChange = potentialResult.potentialChange;
+        const multiplier = potentialResult.multiplier; // 从计算结果中获取倍率
 
         // 计算该步骤每条属性对潜力值的变化
         const propertyPotentialChanges = this._calculatePropertyPotentialChanges(
@@ -146,9 +148,6 @@ export default class EnchantRecord {
             preEnchantmentPotential,
             this.equipmentType
         );
-
-        // 计算倍率
-        const multiplier = this._calculateMultiplier(enchantmentStep);
 
         // 计算成功率
         const singleSuccessRate = calSingleSuccessRate(
@@ -158,7 +157,7 @@ export default class EnchantRecord {
         );
 
         // 计算期望成功率（暂时为空函数）
-        const expectedSingleSuccessRate = this._calculateExpectedSuccessRate(
+        const expectedSingleSuccessRate = calExpectedSuccessRate(
             singleSuccessRate,
             enchantmentStep
         );
@@ -445,79 +444,6 @@ export default class EnchantRecord {
     }
 
     /**
-     * 计算倍率
-     * @private
-     * @param {Object} enchantmentStep - 附魔步骤对象
-     * @returns {number} 倍率值
-     */
-    _calculateMultiplier(enchantmentStep) {
-        // 获取当前步骤中所有附魔的属性ID
-        const currentEnchantedPropertyIds = enchantmentStep.enchantments
-            .filter(enchant => enchant.property && enchant.value !== 0)
-            .map(enchant => enchant.property.id);
-
-        // 合并之前附魔过的属性和当前步骤附魔的属性，使用Set去重
-        const enchantedProperties = this.enchantmentSteps.length > 0 ?
-            this.enchantmentSteps[this.enchantmentSteps.length - 1].enchantedProperties :
-            this.getEnchantedProperties();
-
-        const allEnchantedPropertyIds = [...new Set([
-            ...Object.keys(enchantedProperties).filter(id => enchantedProperties[id]),
-            ...currentEnchantedPropertyIds
-        ])];
-
-        // 根据所有附魔属性，按属性类型分组
-        const enchantTypeGroups = {};
-
-        // 遍历所有附魔过的属性ID
-        for (const propId of allEnchantedPropertyIds) {
-            // 获取属性详细信息
-            const property = PM.properties[propId];
-            // 确保属性存在
-            if (property) {
-                // 将属性的enchantType转换为字符串作为分组键
-                const enchantType = property.enchantType.toString();
-                // 如果该enchantType分组还不存在，则初始化为空数组
-                if (!enchantTypeGroups[enchantType]) {
-                    enchantTypeGroups[enchantType] = [];
-                }
-                // 将当前属性ID添加到对应enchantType分组中
-                enchantTypeGroups[enchantType].push(propId);
-            }
-        }
-
-        // 计算倍率: 1 + 0.05 × 第1组同类项属性个数^2 + 0.05 × 第2组同类项属性个数^2 + ...
-        // 初始倍率为1（基础值）
-        let multiplier = 1;
-        // 遍历所有enchantType分组
-        for (const enchantType in enchantTypeGroups) {
-            // 获取当前分组中的属性数量
-            const groupSize = enchantTypeGroups[enchantType].length;
-            // 只有当组内属性个数大于1时才计入倍率计算
-            // 单个属性不产生倍率加成，只有相同类型的属性达到2个或以上才会产生倍率效果
-            if (groupSize > 1) {
-                // 倍率计算公式：每组同类型属性贡献 0.05 * (属性个数)^2 的加成
-                multiplier += 0.05 * Math.pow(groupSize, 2);
-            }
-        }
-
-        return multiplier;
-    }
-
-    /**
-     * 计算期望成功率
-     * @private
-     * @param {number} successRate - 单次成功率
-     * @param {Object} enchantmentStep - 附魔步骤对象
-     * @returns {number} 期望成功率
-     */
-    _calculateExpectedSuccessRate(successRate, enchantmentStep) {
-        // TODO: 实现期望成功率计算逻辑
-        // 这里暂时返回单次成功率，后续需要根据具体需求完善
-        return successRate;
-    }
-
-    /**
      * 计算每条属性对潜力值的变化
      * @private
      * @param {Object} enchantmentStep - 附魔步骤对象
@@ -528,42 +454,8 @@ export default class EnchantRecord {
     _calculatePropertyPotentialChanges(enchantmentStep, preEnchantmentPotential, equipmentType) {
         const propertyChanges = {};
 
-        // 获取当前已附魔的属性
-        const enchantedProperties = this.enchantmentSteps.length > 0 ?
-            this.enchantmentSteps[this.enchantmentSteps.length - 1].enchantedProperties :
-            this.getEnchantedProperties();
-
-        // 获取当前步骤中所有附魔的属性ID
-        const currentEnchantedPropertyIds = enchantmentStep.enchantments
-            .filter(enchant => enchant.property && enchant.value !== 0)
-            .map(enchant => enchant.property.id);
-
-        // 合并之前附魔过的属性和当前步骤附魔的属性
-        const allEnchantedPropertyIds = [...new Set([
-            ...Object.keys(enchantedProperties).filter(id => enchantedProperties[id]),
-            ...currentEnchantedPropertyIds
-        ])];
-
-        // 计算倍率
-        const enchantTypeGroups = {};
-        for (const propId of allEnchantedPropertyIds) {
-            const property = PM.properties[propId];
-            if (property) {
-                const enchantType = property.enchantType.toString();
-                if (!enchantTypeGroups[enchantType]) {
-                    enchantTypeGroups[enchantType] = [];
-                }
-                enchantTypeGroups[enchantType].push(propId);
-            }
-        }
-
-        let multiplier = 1;
-        for (const enchantType in enchantTypeGroups) {
-            const groupSize = enchantTypeGroups[enchantType].length;
-            if (groupSize > 1) {
-                multiplier += 0.05 * Math.pow(groupSize, 2);
-            }
-        }
+        // 直接使用附魔步骤中已计算的倍率
+        const multiplier = enchantmentStep.multiplier;
 
         // 计算每条属性的潜力变化
         for (const enchantment of enchantmentStep.enchantments) {
@@ -711,18 +603,33 @@ export default class EnchantRecord {
             return;
         }
 
-        // 重置属性值
+        // 重置属性值（仅用于第一步）
         const properties = PM.properties;
-        const currentProperties = {};
-        const enchantedProperties = {};
+        const defaultProperties = {};
+        const defaultEnchantedProperties = {};
 
         for (const propId in properties) {
-            currentProperties[propId] = 0;
-            enchantedProperties[propId] = false;
+            defaultProperties[propId] = 0;
+            defaultEnchantedProperties[propId] = false;
         }
 
-        // 根据所有步骤累加属性值，并更新附魔历史
-        for (const step of this.enchantmentSteps) {
+        // 处理每一步骤，基于前一步骤的结果进行计算
+        for (let i = 0; i < this.enchantmentSteps.length; i++) {
+            const step = this.enchantmentSteps[i];
+
+            // 获取基准属性值（前一步的currentProperties）
+            let currentProperties, enchantedProperties;
+            if (i === 0) {
+                // 第一步使用默认值
+                currentProperties = { ...defaultProperties };
+                enchantedProperties = { ...defaultEnchantedProperties };
+            } else {
+                // 后续步骤使用前一步的结果
+                currentProperties = { ...this.enchantmentSteps[i - 1].currentProperties };
+                enchantedProperties = { ...this.enchantmentSteps[i - 1].enchantedProperties };
+            }
+
+            // 应用当前步骤的附魔
             for (const enchantment of step.enchantments) {
                 // 检查属性对象是否存在
                 if (enchantment.property && currentProperties.hasOwnProperty(enchantment.property.id)) {
@@ -736,8 +643,8 @@ export default class EnchantRecord {
             }
 
             // 更新步骤中的属性值和附魔历史
-            step.currentProperties = { ...currentProperties };
-            step.enchantedProperties = { ...enchantedProperties };
+            step.currentProperties = currentProperties;
+            step.enchantedProperties = enchantedProperties;
         }
 
         // 更新汇总信息
@@ -834,8 +741,14 @@ export default class EnchantRecord {
             this.finalSingleSuccessRate = -1
         }
 
-        // 计算最终期望成功率（暂时为空函数）
-        this.finalExpectedSuccessRate = this._calculateFinalExpectedSuccessRate();
+        // 计算最终期望成功率
+        if (this.enchantmentSteps.length > 0) {
+            // 直接从最后一步获取已经计算好的期望成功率
+            this.finalExpectedSuccessRate = this.enchantmentSteps[this.enchantmentSteps.length - 1].expectedSingleSuccessRate;
+        } else {
+            // 如果没有步骤，返回-1
+            this.finalExpectedSuccessRate = -1;
+        }
     }
 
     /**
@@ -876,19 +789,6 @@ export default class EnchantRecord {
     }
 
     /**
-     * 计算已使用的潜力值
-     * @private
-     * @returns {number} 已使用的潜力值
-     */
-    _calculateUsedPotential() {
-        if (this.enchantmentSteps.length === 0) {
-            return 0;
-        }
-        // 最后一步的潜力值变化累加就是当前已使用的潜力值
-        return this.enchantmentSteps.reduce((total, step) => total + (step.potentialChange || 0), 0);
-    }
-
-    /**
      * 获取当前所有属性值
      * @returns {Object} 当前属性值对象
      */
@@ -913,9 +813,9 @@ export default class EnchantRecord {
      * @returns {number} 属性值
      */
     getProperty(property) {
-        // 返回指定属性的当前值，如果不存在则返回0
+        // 返回指定属性的当前值，如果不存在则返回null
         const currentProperties = this.getCurrentProperties();
-        return currentProperties[property.id] || 0;
+        return currentProperties[property.id] || null;
     }
 
     /**

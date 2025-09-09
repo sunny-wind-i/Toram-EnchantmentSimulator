@@ -20,3 +20,16 @@ export const calSingleSuccessRate = function (prePotential, postPotential, baseP
     // 结果取整数
     return Math.floor(successRate);
 }
+
+/**
+ * 计算期望成功率
+ * @private
+ * @param {number} successRate - 单次成功率
+ * @param {Object} enchantmentStep - 附魔步骤对象
+ * @returns {number} 期望成功率
+ */
+export const calExpectedSuccessRate = (successRate, enchantmentStep) => {
+    // TODO: 实现期望成功率计算逻辑
+    // 这里暂时返回单次成功率，后续需要根据具体需求完善
+    return successRate;
+}
