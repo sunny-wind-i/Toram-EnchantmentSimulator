@@ -1,9 +1,6 @@
 import EnchantRecord from "./modules/EnchantRecord.js";
 import PropertyManager from "./modules/PropertyManager.js";
 import EquipmentType from "./modules/EquipmentType.js";
-import { calPostEnchantmentPotential } from "./modules/PotentialCalculator.js";
-import { calEnchantmentStepMaterialCost } from "./modules/MaterialCalculator.js";
-import { calSingleSuccessRate } from "./modules/SuccessCalculator.js";
 
 const PM = new PropertyManager();
 const PMProperties = PM.properties;

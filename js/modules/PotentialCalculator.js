@@ -344,9 +344,11 @@ export const calculateDecreasePotentialGain = function (property, preValue, post
  * @param {Object} enchantedProperties - 之前所有附过魔的属性
  * @param {number} preEnchantmentPotential - 附魔前潜力值
  * @param {Object} equipmentType - 装备类型
- * @returns {Object} 包含附魔后潜力值、潜力变化值和倍率的对象
+ * @returns {Object} 包含附魔后潜力值、潜力变化值、倍率和每条属性对潜力值的变化的对象
  */
-export const calPostEnchantmentPotential = function (enchantmentStep, preEnchantmentProperties, enchantedProperties, preEnchantmentPotential, equipmentType) {
+export const calPostEnchantmentPotentialChanges = function (enchantmentStep, preEnchantmentProperties, enchantedProperties, preEnchantmentPotential, equipmentType) {
+    const propertyChanges = {};
+
     // 获取当前步骤中所有附魔的属性ID
     const currentEnchantedPropertyIds = enchantmentStep.enchantments
         .filter(enchant => enchant.property && enchant.value !== 0)
@@ -364,6 +366,11 @@ export const calPostEnchantmentPotential = function (enchantmentStep, preEnchant
     // 计算总消耗/获得的潜力值
     let totalPotentialChange = 0;
 
+    // 初始化每条属性的潜力变化值为0
+    for (const propId in PM.properties) {
+        propertyChanges[propId] = 0;
+    }
+
     // 遍历当前步骤的所有附魔
     for (const enchantment of enchantmentStep.enchantments) {
         const { property, value } = enchantment;
@@ -379,12 +386,13 @@ export const calPostEnchantmentPotential = function (enchantmentStep, preEnchant
         if (postValue > preValue) {
             // 属性值增加，消耗潜力
             const cost = calculateIncreasePotentialCost(property, preValue, postValue, equipmentType);
+            propertyChanges[property.id] = -cost;
             totalPotentialChange -= cost;
         } else if (postValue < preValue) {
             // 属性值减少，获得潜力
             const gain = calculateDecreasePotentialGain(property, preValue, postValue, equipmentType);
+            propertyChanges[property.id] = gain;
             totalPotentialChange += gain;
-            // console.log(`获得潜力：${gain}`);
         }
         // 如果postValue === preValue，则没有变化，不处理
     }
@@ -392,13 +400,63 @@ export const calPostEnchantmentPotential = function (enchantmentStep, preEnchant
     // 应用倍率并去除小数部分
     const finalPotentialChange = Math.trunc(totalPotentialChange * multiplier);
 
-    // 计算最终潜力值 = 附魔前潜力值 + 最终潜力变化值
-    const postEnchantmentPotential = preEnchantmentPotential + finalPotentialChange;
+    // 将propertyChanges之中各属性的潜力变化值直接乘以倍率
+    for (const propId in propertyChanges) {
+        propertyChanges[propId] = propertyChanges[propId] * multiplier;
+    }
+
 
     // 返回附魔后潜力值、潜力变化值和倍率
     return {
-        postEnchantmentPotential: postEnchantmentPotential,
         potentialChange: finalPotentialChange,
-        multiplier: multiplier
+        multiplier: multiplier,
+        propertyChanges: propertyChanges
     };
 }
+
+
+// /**
+//  * 计算每条属性对潜力值的变化
+//  * @param {Object} enchantmentStep - 附魔步骤对象
+//  * @param {number} preEnchantmentPotential - 附魔前潜力值
+//  * @param {Object} equipmentType - 装备类型
+//  * @returns {Object} 每条属性对潜力值的变化
+//  */
+// export const calculatePropertyPotentialChanges = function (enchantmentStep, preEnchantmentPotential, equipmentType) {
+//     const propertyChanges = {};
+
+//     // 直接使用附魔步骤中已计算的倍率
+//     const multiplier = enchantmentStep.multiplier;
+
+//     // 计算每条属性的潜力变化
+//     for (const enchantment of enchantmentStep.enchantments) {
+//         const { property, value } = enchantment;
+
+//         if (!property || value === 0) continue;
+
+//         const preValue = (this.enchantmentSteps.length > 0 ?
+//             this.enchantmentSteps[this.enchantmentSteps.length - 1].currentProperties :
+//             this.getCurrentProperties())[property.id] || 0;
+//         const postValue = preValue + value;
+
+//         let potentialChange = 0;
+
+//         // 根据属性值变化情况计算潜力变化
+//         if (postValue > preValue) {
+//             // 属性值增加，消耗潜力
+//             const cost = this._calculateIncreasePotentialCost(property, preValue, postValue, equipmentType);
+//             potentialChange = -cost;
+//         } else if (postValue < preValue) {
+//             // 属性值减少，获得潜力
+//             const gain = this._calculateDecreasePotentialGain(property, preValue, postValue, equipmentType);
+//             potentialChange = gain;
+//         }
+
+//         // 应用倍率
+//         potentialChange = Math.trunc(potentialChange * multiplier);
+
+//         propertyChanges[property.id] = potentialChange;
+//     }
+
+//     return propertyChanges;
+// }
