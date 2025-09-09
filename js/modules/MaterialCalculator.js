@@ -6,7 +6,7 @@ import MaterialType from "./MaterialType.js";
  * @param {Object} preEnchantmentProperties - 附魔前各属性值状态
  * @param {number} smithingLevel - 玩家锻冶熟练度
  * @param {Object} understandingSkills - 存储六种理解技能等级的对象
- * @returns {Object} 六种材料的素材消耗对象
+ * @returns {Object} 包含总材料消耗和每条属性材料消耗的对象
  */
 export function calEnchantmentStepMaterialCost(enchantmentStep, preEnchantmentProperties, smithingLevel, understandingSkills) {
     // 初始化六种材料的消耗量
@@ -19,6 +19,9 @@ export function calEnchantmentStepMaterialCost(enchantmentStep, preEnchantmentPr
         [MaterialType.MATERIAL_TYPE_MEDICINE.id]: 0,
         [MaterialType.MATERIAL_TYPE_MANA.id]: 0
     };
+
+    // 存储每条属性的材料消耗
+    const propertyMaterialCosts = {};
 
     // 遍历该步骤的所有附魔属性
     for (const enchantment of enchantmentStep.enchantments) {
@@ -36,16 +39,29 @@ export function calEnchantmentStepMaterialCost(enchantmentStep, preEnchantmentPr
         for (const materialId in propertyCosts) {
             materialCosts[materialId] += propertyCosts[materialId];
         }
+
+        // 保存每条属性的材料消耗
+        propertyMaterialCosts[propertyId] = {
+            metal: propertyCosts[MaterialType.MATERIAL_TYPE_METAL.id],
+            cloth: propertyCosts[MaterialType.MATERIAL_TYPE_CLOTH.id],
+            beast: propertyCosts[MaterialType.MATERIAL_TYPE_BEAST.id],
+            wood: propertyCosts[MaterialType.MATERIAL_TYPE_WOOD.id],
+            medicine: propertyCosts[MaterialType.MATERIAL_TYPE_MEDICINE.id],
+            mana: propertyCosts[MaterialType.MATERIAL_TYPE_MANA.id]
+        };
     }
 
     // 将返回值从ID键改为材料名称键
     return {
-        metal: materialCosts[MaterialType.MATERIAL_TYPE_METAL.id],
-        cloth: materialCosts[MaterialType.MATERIAL_TYPE_CLOTH.id],
-        beast: materialCosts[MaterialType.MATERIAL_TYPE_BEAST.id],
-        wood: materialCosts[MaterialType.MATERIAL_TYPE_WOOD.id],
-        medicine: materialCosts[MaterialType.MATERIAL_TYPE_MEDICINE.id],
-        mana: materialCosts[MaterialType.MATERIAL_TYPE_MANA.id]
+        total: {
+            metal: materialCosts[MaterialType.MATERIAL_TYPE_METAL.id],
+            cloth: materialCosts[MaterialType.MATERIAL_TYPE_CLOTH.id],
+            beast: materialCosts[MaterialType.MATERIAL_TYPE_BEAST.id],
+            wood: materialCosts[MaterialType.MATERIAL_TYPE_WOOD.id],
+            medicine: materialCosts[MaterialType.MATERIAL_TYPE_MEDICINE.id],
+            mana: materialCosts[MaterialType.MATERIAL_TYPE_MANA.id]
+        },
+        perProperty: propertyMaterialCosts
     };
 }
 

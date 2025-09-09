@@ -344,7 +344,7 @@ export const calculateDecreasePotentialGain = function (property, preValue, post
  * @param {Object} enchantedProperties - 之前所有附过魔的属性
  * @param {number} preEnchantmentPotential - 附魔前潜力值
  * @param {Object} equipmentType - 装备类型
- * @returns {number} 附魔后潜力值
+ * @returns {Object} 包含附魔后潜力值和潜力变化值的对象
  */
 export const calPostEnchantmentPotential = function (enchantmentStep, preEnchantmentProperties, enchantedProperties, preEnchantmentPotential, equipmentType) {
     // 获取当前步骤中所有附魔的属性ID
@@ -395,5 +395,11 @@ export const calPostEnchantmentPotential = function (enchantmentStep, preEnchant
     const finalPotentialChange = Math.trunc(totalPotentialChange * multiplier);
 
     // 计算最终潜力值 = 附魔前潜力值 + 最终潜力变化值
-    return preEnchantmentPotential + finalPotentialChange;
+    const postEnchantmentPotential = preEnchantmentPotential + finalPotentialChange;
+
+    // 返回附魔后潜力值和潜力变化值
+    return {
+        postEnchantmentPotential: postEnchantmentPotential,
+        potentialChange: finalPotentialChange
+    };
 }

@@ -3,7 +3,7 @@ import PropertyManager from "./modules/PropertyManager.js";
 import EquipmentType from "./modules/EquipmentType.js";
 import { calPostEnchantmentPotential } from "./modules/PotentialCalculator.js";
 import { calEnchantmentStepMaterialCost } from "./modules/MaterialCalculator.js";
-import { calSuccessRate } from "./modules/SuccessCalculator.js";
+import { calSingleSuccessRate } from "./modules/SuccessCalculator.js";
 
 const PM = new PropertyManager();
 const PMProperties = PM.properties;
@@ -98,35 +98,13 @@ let totalMeterialCost = {
 };
 
 steps.forEach((step, index) => {
-    let prePotential = potential;
-    potential = cal(record, step, potential);
-    console.log(`Step ${index + 1} 潜力:`, potential);
-    let success = calSuccessRate(prePotential, potential, record.baseEquipmentPotential)
-    console.log(`Step ${index + 1} 成功率:`, success);
-    let material = calEnchantmentStepMaterialCost(step, record.getCurrentProperties(), record.smithingLevel, record.understandingSkills);
-    console.log(`Step ${index + 1} 材料:`, material);
-    // 修改材料消耗累加方式为按材料名称累加
-    for (const materialType in material) {
-        totalMeterialCost[materialType] += material[materialType];
-    }
-    console.log(`Step ${index + 1} 素材总消耗:`, totalMeterialCost);
     record.addEnchantmentStep(step);
 });
 
-function cal(records, step, prePotential) {
-    return calPostEnchantmentPotential(
-        step,
-        records.getCurrentProperties(),
-        records.getEnchantedProperties(),
-        prePotential,
-        EquipmentType.EQUIPMENT_TYPE_WEAPON
-    )
-}
-
 
 // 导出数据
-const data = record.exportData();
-console.log(data);
+// const data = record.exportData();
+// console.log(data);
 
 console.log(record);
 

@@ -1,11 +1,11 @@
 /**
  * 计算成功率
  * @param {number} prePotential - 剩余潜力
- * @param {number} basePotential - 基础潜力
  * @param {number} postPotential - 最终潜力
+ * @param {number} basePotential - 基础潜力
  * @returns {number} 成功率（整数）
  */
-export const calSuccessRate = function (prePotential, postPotential, basePotential) {
+export const calSingleSuccessRate = function (prePotential, postPotential, basePotential) {
     let successRate;
 
     // 判断剩余潜力是否小于基础潜力
