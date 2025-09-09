@@ -170,14 +170,14 @@ export const calDoublePotlAttain = function (enchantProperty, playerLevel) {
     // 没有等级增长机制的属性类型
     else if (enchantProperty.lowerLimitIncreaseInterval === null) {
         // 获取最小值的绝对值
-        let min = Math.abs(calAttrMinLimit(enchantProperty, playerLevel))
+        let min = Math.abs(calAttrMinLimit(enchantProperty, standardLevel))
         // 计算公式: |最小值| * 基础耗潜 * 0.305 * 2
         return Math.floor(((min * enchantProperty.basePotentialCost) * 0.305 * 2).toFixed(2))
     }
     // 有等级增长机制的属性类型(需要分段计算)
     else {
         // 获取最小值的绝对值
-        let min = Math.abs(calAttrMinLimit(enchantProperty, playerLevel))
+        let min = Math.abs(calAttrMinLimit(enchantProperty, standardLevel))
         // 分段计算公式: (衰减阈值 * 基础耗潜 + (|最小值| - 衰减阈值) * 基础耗潜 / 2) * 0.305 * 2
         return Math.floor(((enchantProperty.attenuationThreshold * enchantProperty.basePotentialCost +
             (min - enchantProperty.attenuationThreshold) * enchantProperty.basePotentialCost / 2) * 0.305 * 2).toFixed(2))
@@ -281,7 +281,7 @@ export const calculateIncreasePotentialCost = function (property, preValue, post
     }
 
     // 去除小数部分（直接截断）
-    return Math.trunc(cost);
+    return Math.trunc(cost.toFixed(2));
 }
 
 /**
@@ -334,7 +334,7 @@ export const calculateDecreasePotentialGain = function (property, preValue, post
     }
 
     // 去除小数部分（直接截断）
-    return Math.trunc(gain);
+    return Math.trunc(gain.toFixed(2));
 }
 
 /**
@@ -398,11 +398,11 @@ export const calPostEnchantmentPotentialChanges = function (enchantmentStep, pre
     }
 
     // 应用倍率并去除小数部分
-    const finalPotentialChange = Math.trunc(totalPotentialChange * multiplier);
+    const finalPotentialChange = Math.trunc((totalPotentialChange * multiplier).toFixed(2));
 
     // 将propertyChanges之中各属性的潜力变化值直接乘以倍率
     for (const propId in propertyChanges) {
-        propertyChanges[propId] = propertyChanges[propId] * multiplier;
+        propertyChanges[propId] = Math.floor((propertyChanges[propId] * multiplier) * 100 + 0.5) / 100;
     }
 
 

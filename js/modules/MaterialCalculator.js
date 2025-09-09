@@ -200,14 +200,14 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, smithingLe
  */
 function calculateLayerMaterialCost(baseMaterialCost, level, smithingReduction, understandingLevel) {
     // 1. 计算原素材消耗 = [n * x^2]
-    const originalCost = Math.floor(baseMaterialCost * level * level);
+    const originalCost = Math.floor((baseMaterialCost * level * level).toFixed(2));
 
     // 2. 计算理解素材减少后的消耗 = 原素材消耗 - [原素材消耗 * 理解技能减少百分比]
     const understandingReduction = understandingLevel * 1; // 每级减少1%
-    const costAfterUnderstanding = originalCost - Math.floor(originalCost * understandingReduction / 100);
+    const costAfterUnderstanding = originalCost - Math.floor((originalCost * understandingReduction / 100).toFixed(2));
 
     // 3. 计算锻冶熟练度减少后的消耗 = [理解素材后消耗 * (1 - 锻冶减少百分比)]
-    const finalCost = Math.floor(costAfterUnderstanding * (100 - smithingReduction) / 100);
+    const finalCost = Math.floor((costAfterUnderstanding * (100 - smithingReduction) / 100).toFixed(2));
 
     return finalCost;
 }
