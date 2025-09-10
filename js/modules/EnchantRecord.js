@@ -429,21 +429,35 @@ export default class EnchantRecord {
      * @param {number} startIndex - 开始重新计算的步骤索引
      */
     _recalculateStepsFrom(startIndex) {
-        // 保存当前附魔步骤（不包括计算结果）
-        const steps = this.enchantmentSteps.map(step => ({
+        // 保存从startIndex开始的所有步骤数据
+        const stepsToRecalculate = this.enchantmentSteps.slice(startIndex).map(step => ({
             id: step.id,
             enchantments: step.enchantments.map(enchant => ({
                 property: enchant.property,
                 value: enchant.value
-            }))
+            })),
+            isIgnored: step.isIgnored,
+            isValid: step.isValid,
+            invalidReason: step.invalidReason
         }));
 
-        // 清除当前所有步骤
-        this.enchantmentSteps = [];
+        // 从startIndex开始删除所有步骤
+        this.enchantmentSteps.splice(startIndex, this.enchantmentSteps.length - startIndex);
 
-        // 重新添加每个步骤，触发重新计算
-        for (let i = 0; i <= startIndex; i++) {
-            this.addEnchantmentStep(steps[i]);
+        // 重新添加并计算每个步骤
+        for (let i = 0; i < stepsToRecalculate.length; i++) {
+            const stepData = stepsToRecalculate[i];
+            // 创建新的步骤对象，保持原有的ID和其他属性
+            const newStep = {
+                id: stepData.id,
+                enchantments: stepData.enchantments,
+                isIgnored: stepData.isIgnored !== undefined ? stepData.isIgnored : false,
+                isValid: stepData.isValid !== undefined ? stepData.isValid : true,
+                invalidReason: stepData.invalidReason || null
+            };
+            
+            // 添加步骤并触发重新计算
+            this.addEnchantmentStep(newStep);
         }
 
         // 更新每个步骤中的累计材料消耗
@@ -724,8 +738,11 @@ export default class EnchantRecord {
                 enchantedProperties = { ...this.enchantmentSteps[i - 1].enchantedProperties };
             }
 
-            // 只有当步骤有效且未被忽略时才应用附魔
-            if (step.isValid && !step.isIgnored) {
+            // 检查步骤是否为空（所有属性值都为0）
+            const isEmptyStep = step.enchantments.every(e => e.value === 0);
+            
+            // 只有当步骤有效且未被忽略且不为空时才应用附魔
+            if (step.isValid && !step.isIgnored && !isEmptyStep) {
                 // 应用当前步骤的附魔
                 for (const enchantment of step.enchantments) {
                     // 检查属性对象是否存在

@@ -274,8 +274,42 @@ function restorePreviousSelections() {
 
 // 确认属性选择
 function confirmProperties() {
+    // 保存当前步骤数据
+    const previousSteps = JSON.parse(JSON.stringify(enchantRecord.enchantmentSteps.map(step => ({
+        id: step.id,
+        enchantments: step.enchantments.map(enchant => ({
+            propertyId: enchant.property.id,
+            value: enchant.value
+        }))
+    }))));
+    
     // 更新表格头部
     updateTableHeader();
+
+    // 重新创建步骤，保持原有数据
+    if (previousSteps.length > 0) {
+        // 清空现有步骤
+        while (enchantRecord.enchantmentSteps.length > 0) {
+            const lastStep = enchantRecord.enchantmentSteps[enchantRecord.enchantmentSteps.length - 1];
+            enchantRecord.removeEnchantmentStep(lastStep.id);
+        }
+        
+        // 重新添加步骤
+        previousSteps.forEach(stepData => {
+            const newStep = {
+                id: stepData.id,
+                enchantments: selectedProperties.map(property => {
+                    // 查找原有数据
+                    const existingEnchant = stepData.enchantments.find(e => e.propertyId === property.id);
+                    return {
+                        property: property,
+                        value: existingEnchant ? existingEnchant.value : 0
+                    };
+                })
+            };
+            enchantRecord.addEnchantmentStep(newStep);
+        });
+    }
 
     // 更新显示
     updateDisplay();
@@ -359,19 +393,18 @@ function updateDisplay() {
 
 // 更新表格内容
 function updateTableContent() {
+    // 保存当前选中的单元格信息
+    let selectedCellInfo = null;
+    if (selectedCell) {
+        selectedCellInfo = {
+            stepIndex: selectedCell.dataset.stepIndex,
+            propertyId: selectedCell.dataset.propertyId,
+            columnType: selectedCell.dataset.columnType
+        };
+    }
+
     const tbody = document.querySelector('#enchantTable tbody');
     tbody.innerHTML = '';
-
-    // 添加新步骤按钮行
-    const addRow = document.createElement('tr');
-    const addCell = document.createElement('td');
-    addCell.colSpan = selectedProperties.length + 1;
-    addCell.textContent = '+ 添加新步骤';
-    addCell.style.textAlign = 'center';
-    addCell.style.cursor = 'pointer';
-    addCell.addEventListener('click', addNewStep);
-    addRow.appendChild(addCell);
-    tbody.appendChild(addRow);
 
     // 现有步骤行
     enchantRecord.enchantmentSteps.forEach((step, index) => {
@@ -394,22 +427,54 @@ function updateTableContent() {
                 case 'change':
                     // 显示属性变化值
                     const enchantment = step.enchantments.find(e => e.property.id === property.id);
-                    cell.textContent = enchantment ? enchantment.value : '0';
+                    // 只有当属性值不为0时才显示
+                    if (enchantment && enchantment.value !== 0) {
+                        const value = enchantment.value;
+                        cell.textContent = value > 0 ? `+${value}` : value.toString();
+                    } else {
+                        cell.textContent = '';
+                    }
                     break;
                 case 'value':
                     // 显示附魔后的属性值
                     const currentValue = step.currentProperties[property.id] || 0;
-                    cell.textContent = currentValue;
+                    // 只有当属性值不为0时才显示
+                    if (currentValue !== 0) {
+                        cell.textContent = currentValue;
+                    } else {
+                        cell.textContent = '';
+                    }
                     break;
                 case 'potential':
                     // 显示各属性消耗潜力
                     const potentialChange = step.propertyPotentialChanges[property.id] || 0;
-                    cell.textContent = potentialChange;
+                    // 只有当潜力变化不为0时才显示
+                    if (potentialChange !== 0) {
+                        cell.textContent = potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString();
+                    } else {
+                        cell.textContent = '';
+                    }
                     break;
                 case 'material':
                     // 显示各属性消耗素材
                     const materialCost = step.propertyMaterialCosts[property.id] || 0;
-                    cell.textContent = materialCost;
+                    // 只有当素材消耗不为0时才显示
+                    if (materialCost !== 0) {
+                        // 如果是对象，提取其中的值显示
+                        if (typeof materialCost === 'object') {
+                            const materialValues = [];
+                            for (const key in materialCost) {
+                                if (materialCost[key] !== 0) {
+                                    materialValues.push(`${key}:${materialCost[key]}`);
+                                }
+                            }
+                            cell.textContent = materialValues.length > 0 ? materialValues.join(', ') : '';
+                        } else {
+                            cell.textContent = materialCost;
+                        }
+                    } else {
+                        cell.textContent = '';
+                    }
                     break;
             }
 
@@ -418,6 +483,30 @@ function updateTableContent() {
 
         tbody.appendChild(row);
     });
+
+    // 添加新步骤按钮行（移到最后）
+    const addRow = document.createElement('tr');
+    const addCell = document.createElement('td');
+    addCell.colSpan = selectedProperties.length + 1;
+    addCell.textContent = '+ 添加新步骤';
+    addCell.style.textAlign = 'center';
+    addCell.style.cursor = 'pointer';
+    addCell.addEventListener('click', addNewStep);
+    addRow.appendChild(addCell);
+    tbody.appendChild(addRow);
+
+    // 恢复选中状态
+    if (selectedCellInfo) {
+        const cells = tbody.querySelectorAll('td');
+        cells.forEach(cell => {
+            if (cell.dataset.stepIndex === selectedCellInfo.stepIndex &&
+                ((cell.dataset.propertyId === selectedCellInfo.propertyId && selectedCellInfo.propertyId) || 
+                (cell.dataset.columnType === selectedCellInfo.columnType && !selectedCellInfo.propertyId))) {
+                cell.classList.add('selected');
+                selectedCell = cell;
+            }
+        });
+    }
 }
 
 // 更新成功率显示
@@ -712,8 +801,21 @@ function onAddStep() {
     // 重新计算步骤
     enchantRecord.updateEnchantmentStep(step.id, step);
 
-    // 更新显示
+    // 更新显示并保持选中状态
     updateDisplay();
+    
+    // 重新选中单元格
+    setTimeout(() => {
+        const tbody = document.querySelector('#enchantTable tbody');
+        const cells = tbody.querySelectorAll('td');
+        cells.forEach(cell => {
+            if (cell.dataset.stepIndex === stepIndex.toString() && 
+                cell.dataset.propertyId === propertyId) {
+                cell.classList.add('selected');
+                selectedCell = cell;
+            }
+        });
+    }, 0);
 }
 
 function onSubtractStep() {
@@ -757,17 +859,81 @@ function onSubtractStep() {
     // 重新计算步骤
     enchantRecord.updateEnchantmentStep(step.id, step);
 
-    // 更新显示
+    // 更新显示并保持选中状态
     updateDisplay();
+    
+    // 重新选中单元格
+    setTimeout(() => {
+        const tbody = document.querySelector('#enchantTable tbody');
+        const cells = tbody.querySelectorAll('td');
+        cells.forEach(cell => {
+            if (cell.dataset.stepIndex === stepIndex.toString() && 
+                cell.dataset.propertyId === propertyId) {
+                cell.classList.add('selected');
+                selectedCell = cell;
+            }
+        });
+    }, 0);
 }
 
 function switchViewMode() {
-    // 切换显示模式
-    const modes = ['change', 'value', 'potential', 'material'];
-    const currentIndex = modes.indexOf(currentViewMode);
-    currentViewMode = modes[(currentIndex + 1) % modes.length];
+    // 显示视图模式选择弹窗
+    const modal = createViewModeModal();
+    modal.classList.remove('hidden');
+}
 
-    updateDisplay();
+/**
+ * 创建视图模式选择弹窗
+ * @returns {HTMLDivElement}
+ */
+function createViewModeModal() {
+    // 如果弹窗已存在，先移除
+    const existingModal = document.getElementById('viewModeModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // 创建弹窗元素
+    const modal = document.createElement('div');
+    modal.id = 'viewModeModal';
+    modal.className = 'modal hidden';
+    modal.innerHTML = `
+        <div class="modal-content view-mode-modal">
+            <span class="close">&times;</span>
+            <h2>选择显示模式</h2>
+            <ul>
+                <li data-mode="change">各属性变化值</li>
+                <li data-mode="value">附魔完后的属性值</li>
+                <li data-mode="potential">各属性消耗潜力</li>
+                <li data-mode="material">各属性消耗素材</li>
+            </ul>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // 绑定关闭事件
+    modal.querySelector('.close').addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    // 点击模态框外部关闭
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+
+    // 绑定选项点击事件
+    modal.querySelectorAll('li').forEach(item => {
+        item.addEventListener('click', () => {
+            currentViewMode = item.dataset.mode;
+            updateDisplay();
+            modal.classList.add('hidden');
+        });
+    });
+
+    return modal;
 }
 
 function addNewStep() {

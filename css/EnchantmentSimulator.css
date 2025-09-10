@@ -17,7 +17,7 @@ body {
     background-color: #fff;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .basic-info-container {
@@ -68,7 +68,7 @@ body {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 .modal.hidden {
@@ -142,6 +142,86 @@ body {
 
 .save-btn:hover {
     background-color: #007B9A;
+}
+
+/* 工作区 */
+.workspace-section {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 70px;
+    /* 为悬浮工具栏留出空间 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.workspace-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.select-properties-btn {
+    padding: 8px 16px;
+    background-color: #008CBA;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.select-properties-btn:hover {
+    background-color: #007B9A;
+}
+
+.view-mode-selector {
+    display: flex;
+}
+
+.view-mode-btn {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+
+.view-mode-btn.active {
+    background-color: #008CBA;
+    color: white;
+}
+
+/* 表格样式 */
+.table-container {
+    overflow-x: auto;
+}
+
+.enchant-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.enchant-table th,
+.enchant-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+}
+
+.enchant-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.enchant-table td {
+    cursor: pointer;
+}
+
+.enchant-table td.selected {
+    border: 2px solid #008CBA;
+    background-color: #e6f7ff;
 }
 
 /* 添加确认按钮样式 */
@@ -250,86 +330,42 @@ body {
     padding: 0 3px;
 }
 
-/* 工作区 */
-.workspace-section {
+/* 视图模式选择弹窗 */
+.view-mode-modal {
     background-color: #fff;
+    margin: 15% auto;
     padding: 20px;
-    margin-bottom: 70px; /* 为悬浮工具栏留出空间 */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    width: 80%;
+    max-width: 400px;
 }
 
-.workspace-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.select-properties-btn {
-    padding: 8px 16px;
-    background-color: #008CBA;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.select-properties-btn:hover {
-    background-color: #007B9A;
-}
-
-.view-mode-selector {
-    display: flex;
-}
-
-.view-mode-btn {
-    padding: 8px 16px;
-    border: 1px solid #ddd;
-    background-color: #f5f5f5;
-    cursor: pointer;
-}
-
-.view-mode-btn.active {
-    background-color: #008CBA;
-    color: white;
-}
-
-/* 表格样式 */
-.table-container {
-    overflow-x: auto;
-}
-
-.enchant-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.enchant-table th,
-.enchant-table td {
-    border: 1px solid #ddd;
-    padding: 12px;
+.view-mode-modal h2 {
+    margin-top: 0;
     text-align: center;
 }
 
-.enchant-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
+.view-mode-modal ul {
+    list-style-type: none;
+    padding: 0;
 }
 
-.enchant-table td {
+.view-mode-modal li {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
     cursor: pointer;
+    text-align: center;
 }
 
-.enchant-table td.selected {
-    border: 2px solid #008CBA;
-    background-color: #e6f7ff;
+.view-mode-modal li:hover {
+    background-color: #f5f5f5;
 }
 
-/* 悬浮工具栏 */
+.view-mode-modal li:last-child {
+    border-bottom: none;
+}
+
+/* 浮动工具栏 */
 .floating-toolbar {
     position: fixed;
     bottom: 0;
@@ -400,7 +436,7 @@ body {
 .result-section {
     background-color: #fff;
     padding: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .result-display {
@@ -432,36 +468,36 @@ body {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .basic-info-item {
         width: 100%;
     }
-    
+
     .modal-content {
         width: 95%;
         margin: 10% auto;
     }
-    
+
     .property-list {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     }
-    
+
     .workspace-header {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .floating-toolbar {
         flex-wrap: wrap;
         padding: 10px;
     }
-    
+
     .toolbar-btn,
     .quantity-btn {
         padding: 8px 12px;
         font-size: 14px;
     }
-    
+
     .success-rate-display {
         font-size: 14px;
     }
@@ -471,21 +507,21 @@ body {
     .property-list {
         grid-template-columns: 1fr;
     }
-    
+
     .config-item {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .config-item label {
         width: 100%;
         margin-bottom: 5px;
     }
-    
+
     .config-item input {
         width: 100%;
     }
-    
+
     .property-selection-modal {
         padding: 10px;
     }
