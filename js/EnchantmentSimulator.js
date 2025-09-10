@@ -1,6 +1,572 @@
 import EnchantRecord from "./modules/EnchantRecord.js";
 import PropertyManager from "./modules/PropertyManager.js";
 import EquipmentType from "./modules/EquipmentType.js";
+import EnchantType from "./modules/EnchantType.js";
 
-const PM = new PropertyManager();
-const PMProperties = PM.properties;
+// 全局变量
+let enchantRecord = null;
+let propertyManager = null;
+let selectedProperties = [];
+let currentViewMode = 'change'; // change, value, potential, material
+let selectedCell = null;
+let currentQuantity = 1;
+let copiedStep = null;
+
+// 初始化
+document.addEventListener('DOMContentLoaded', function () {
+    propertyManager = new PropertyManager();
+
+    // 初始化附魔记录
+    initializeEnchantRecord();
+
+    // 绑定事件
+    bindEvents();
+
+    // 更新显示
+    updateDisplay();
+});
+
+// 初始化附魔记录
+function initializeEnchantRecord() {
+    const config = {
+        equipmentType: EquipmentType.EQUIPMENT_TYPE_WEAPON,
+        playerLevel: 290,
+        equipmentPotential: 100,
+        baseEquipmentPotential: 1,
+        smithingLevel: 0,
+        anvilLevel: 40,
+        masterEnhancement2Level: 10,
+        understandingSkills: {
+            metal: 0,
+            cloth: 0,
+            beast: 0,
+            wood: 0,
+            medicine: 0,
+            mana: 0
+        }
+    };
+
+    enchantRecord = new EnchantRecord(config);
+}
+
+// 绑定事件
+function bindEvents() {
+    // 基础信息事件
+    document.getElementById('equipmentType').addEventListener('change', onEquipmentTypeChange);
+    document.getElementById('playerLevel').addEventListener('change', onPlayerLevelChange);
+    document.getElementById('equipmentPotential').addEventListener('change', onEquipmentPotentialChange);
+    document.getElementById('smithingLevel').addEventListener('change', onSmithingLevelChange);
+    
+    // 更多配置事件
+    document.getElementById('moreConfigBtn').addEventListener('click', showMoreConfig);
+    document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
+    document.querySelector('#moreConfigModal .close').addEventListener('click', closeMoreConfig);
+    
+    // 属性选择事件
+    document.getElementById('selectPropertiesBtn').addEventListener('click', showPropertySelection);
+    document.getElementById('confirmPropertiesBtn').addEventListener('click', confirmProperties);
+    document.querySelector('#propertySelectionModal .close').addEventListener('click', closePropertySelection);
+    
+    // 表格事件
+    document.getElementById('enchantTable').addEventListener('click', onTableClick);
+    
+    // 悬浮工具栏事件
+    document.getElementById('addStepBtn').addEventListener('click', onAddStep);
+    document.getElementById('subtractStepBtn').addEventListener('click', onSubtractStep);
+    document.getElementById('quantity1Btn').addEventListener('click', () => setQuantity(1));
+    document.getElementById('quantity5Btn').addEventListener('click', () => setQuantity(5));
+    document.getElementById('quantityMaxBtn').addEventListener('click', () => setQuantity('max'));
+    document.getElementById('operationMenuBtn').addEventListener('click', showOperationMenu);
+    document.getElementById('switchViewBtn').addEventListener('click', switchViewMode);
+    document.querySelector('#operationMenuModal .close').addEventListener('click', closeOperationMenu);
+    
+    // 操作菜单事件
+    document.getElementById('undoBtn').addEventListener('click', undoStep);
+    document.getElementById('clearBtn').addEventListener('click', clearStep);
+    document.getElementById('addStepMenuBtn').addEventListener('click', addStepMenu);
+    document.getElementById('copyStepBtn').addEventListener('click', copyStep);
+    document.getElementById('pasteStepBtn').addEventListener('click', pasteStep);
+    
+    // 结果展示事件
+    document.getElementById('copyResultBtn').addEventListener('click', copyResult);
+    
+    // 点击非模态框区域关闭模态框
+    window.addEventListener('click', function (event) {
+        const moreConfigModal = document.getElementById('moreConfigModal');
+        const operationMenuModal = document.getElementById('operationMenuModal');
+
+        if (event.target === moreConfigModal) {
+            closeMoreConfig();
+        }
+
+        if (event.target === operationMenuModal) {
+            closeOperationMenu();
+        }
+    });
+}
+
+// 加载属性分类列表
+function loadPropertyCategoryList() {
+    const categoryList = document.getElementById('propertyCategoryList');
+    categoryList.innerHTML = '';
+
+    // 获取所有附魔类型
+    const enchantTypes = [
+        EnchantType.ENCHANT_TYPE_ABILITY,
+        EnchantType.ENCHANT_TYPE_HPMP,
+        EnchantType.ENCHANT_TYPE_ATK,
+        EnchantType.ENCHANT_TYPE_DEF,
+        EnchantType.ENCHANT_TYPE_HIT,
+        EnchantType.ENCHANT_TYPE_FLEE,
+        EnchantType.ENCHANT_TYPE_SPEED,
+        EnchantType.ENCHANT_TYPE_CRITICAL,
+        EnchantType.ENCHANT_TYPE_ELEMENT,
+        EnchantType.ENCHANT_TYPE_SPECIAL,
+        EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION
+    ];
+
+    const allProperties = propertyManager.getAllProperties();
+
+    enchantTypes.forEach(type => {
+        // 筛选出该类型的所有属性
+        const propertiesOfType = allProperties.filter(prop => prop.enchantType.id === type.id);
+
+        if (propertiesOfType.length > 0) {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'property-category';
+
+            const categoryHeader = document.createElement('div');
+            categoryHeader.className = 'property-category-header';
+            categoryHeader.innerHTML = `
+                <span>${type.nameChsFull}</span>
+                <span>+</span>
+            `;
+
+            const categoryContent = document.createElement('div');
+            categoryContent.className = 'property-category-content';
+
+            const propertyList = document.createElement('div');
+            propertyList.className = 'property-list';
+
+            propertiesOfType.forEach(property => {
+                const propertyItem = document.createElement('div');
+                propertyItem.className = 'property-item';
+                propertyItem.innerHTML = `
+                    <input type="checkbox" id="prop_${property.id}" data-property-id="${property.id}">
+                    <label for="prop_${property.id}">${property.nameChsFull}${property.isPercentage ? '(%)' : ''}</label>
+                `;
+                propertyList.appendChild(propertyItem);
+            });
+
+            categoryContent.appendChild(propertyList);
+            categoryDiv.appendChild(categoryHeader);
+            categoryDiv.appendChild(categoryContent);
+            categoryList.appendChild(categoryDiv);
+
+            // 绑定展开/收起事件
+            categoryHeader.addEventListener('click', function () {
+                categoryContent.classList.toggle('expanded');
+                const toggleSymbol = this.querySelector('span:last-child');
+                toggleSymbol.textContent = categoryContent.classList.contains('expanded') ? '−' : '+';
+            });
+        }
+    });
+
+    // 绑定复选框事件
+    document.querySelectorAll('#propertyCategoryList input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', onPropertyCheckboxChange);
+    });
+}
+
+// 属性复选框变化事件
+function onPropertyCheckboxChange(event) {
+    const checkbox = event.target;
+    const propertyId = checkbox.dataset.propertyId;
+    const property = propertyManager.getProperty(propertyId);
+
+    if (checkbox.checked) {
+        // 添加到已选择属性
+        if (selectedProperties.length < 8) {
+            selectedProperties.push(property);
+        } else {
+            // 超过8个，取消选择
+            checkbox.checked = false;
+            alert('最多只能选择8个属性');
+            return;
+        }
+    } else {
+        // 从已选择属性中移除
+        const index = selectedProperties.findIndex(p => p.id === propertyId);
+        if (index !== -1) {
+            selectedProperties.splice(index, 1);
+        }
+    }
+
+    // 更新已选择属性显示
+    updateSelectedPropertiesDisplay();
+}
+
+// 更新表格头部
+function updateTableHeader() {
+    const thead = document.querySelector('#enchantTable thead tr');
+    thead.innerHTML = '<th>潜力</th>';
+
+    selectedProperties.forEach(property => {
+        const th = document.createElement('th');
+        th.textContent = `${property.nameChsAbbr}${property.isPercentage ? '(%)' : ''}`;
+        thead.appendChild(th);
+    });
+}
+
+// 显示属性选择弹窗
+function showPropertySelection() {
+    // 清空之前的选择
+    selectedProperties = [];
+
+    // 加载属性分类列表
+    loadPropertyCategoryList();
+
+    // 更新已选择属性显示
+    updateSelectedPropertiesDisplay();
+
+    // 显示弹窗
+    document.getElementById('propertySelectionModal').classList.remove('hidden');
+}
+
+// 关闭属性选择弹窗
+function closePropertySelection() {
+    document.getElementById('propertySelectionModal').classList.add('hidden');
+}
+
+// 确认属性选择
+function confirmProperties() {
+    // 更新表格头部
+    updateTableHeader();
+
+    // 更新显示
+    updateDisplay();
+
+    // 关闭弹窗
+    closePropertySelection();
+}
+
+// 更新已选择属性显示
+function updateSelectedPropertiesDisplay() {
+    const selectedCountElement = document.getElementById('selectedCount');
+    const selectedPropertiesDisplay = document.getElementById('selectedPropertiesDisplay');
+
+    selectedCountElement.textContent = selectedProperties.length;
+
+    selectedPropertiesDisplay.innerHTML = '';
+    selectedProperties.forEach(property => {
+        const tag = document.createElement('div');
+        tag.className = 'selected-property-tag';
+        tag.innerHTML = `
+            ${property.nameChsFull}${property.isPercentage ? '(%)' : ''}
+            <span class="remove-property" data-property-id="${property.id}">×</span>
+        `;
+        selectedPropertiesDisplay.appendChild(tag);
+    });
+
+    // 绑定移除事件
+    document.querySelectorAll('.remove-property').forEach(button => {
+        button.addEventListener('click', function () {
+            const propertyId = this.dataset.propertyId;
+            // 取消对应的复选框选择
+            const checkbox = document.querySelector(`#prop_${propertyId}`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+
+            // 从已选择属性中移除
+            const index = selectedProperties.findIndex(p => p.id === propertyId);
+            if (index !== -1) {
+                selectedProperties.splice(index, 1);
+                updateSelectedPropertiesDisplay();
+            }
+        });
+    });
+}
+
+// 更新显示
+function updateDisplay() {
+    updateTableContent();
+    updateSuccessRate();
+    updateResultDisplay();
+}
+
+// 更新表格内容
+function updateTableContent() {
+    const tbody = document.querySelector('#enchantTable tbody');
+    tbody.innerHTML = '';
+
+    // 添加新步骤按钮行
+    const addRow = document.createElement('tr');
+    const addCell = document.createElement('td');
+    addCell.colSpan = selectedProperties.length + 1;
+    addCell.textContent = '+ 添加新步骤';
+    addCell.style.textAlign = 'center';
+    addCell.style.cursor = 'pointer';
+    addCell.addEventListener('click', addNewStep);
+    addRow.appendChild(addCell);
+    tbody.appendChild(addRow);
+
+    // 现有步骤行
+    enchantRecord.enchantmentSteps.forEach((step, index) => {
+        const row = document.createElement('tr');
+
+        // 潜力值列
+        const potentialCell = document.createElement('td');
+        potentialCell.textContent = step.postEnchantmentPotential;
+        potentialCell.dataset.stepIndex = index;
+        potentialCell.dataset.columnType = 'potential';
+        row.appendChild(potentialCell);
+
+        // 属性列
+        selectedProperties.forEach(property => {
+            const cell = document.createElement('td');
+            cell.dataset.stepIndex = index;
+            cell.dataset.propertyId = property.id;
+
+            switch (currentViewMode) {
+                case 'change':
+                    // 显示属性变化值
+                    const enchantment = step.enchantments.find(e => e.property.id === property.id);
+                    cell.textContent = enchantment ? enchantment.value : '0';
+                    break;
+                case 'value':
+                    // 显示附魔后的属性值
+                    const currentValue = step.currentProperties[property.id] || 0;
+                    cell.textContent = currentValue;
+                    break;
+                case 'potential':
+                    // 显示各属性消耗潜力
+                    const potentialChange = step.propertyPotentialChanges[property.id] || 0;
+                    cell.textContent = potentialChange;
+                    break;
+                case 'material':
+                    // 显示各属性消耗素材
+                    const materialCost = step.propertyMaterialCosts[property.id] || 0;
+                    cell.textContent = materialCost;
+                    break;
+            }
+
+            row.appendChild(cell);
+        });
+
+        tbody.appendChild(row);
+    });
+}
+
+// 更新成功率显示
+function updateSuccessRate() {
+    const successRateElement = document.getElementById('successRateValue');
+    if (enchantRecord.finalSingleSuccessRate !== null) {
+        successRateElement.textContent = enchantRecord.finalSingleSuccessRate.toFixed(2);
+    } else {
+        successRateElement.textContent = 'N/A';
+    }
+}
+
+// 更新结果展示
+function updateResultDisplay() {
+    const resultDisplay = document.getElementById('resultDisplay');
+    // TODO: 实现结果展示逻辑
+    resultDisplay.textContent = '附魔结果将在此显示';
+}
+
+// 事件处理函数
+function onEquipmentTypeChange(event) {
+    const type = event.target.value;
+    enchantRecord.setEquipmentType(
+        type === 'armor' ? EquipmentType.EQUIPMENT_TYPE_ARMOR : EquipmentType.EQUIPMENT_TYPE_WEAPON
+    );
+    updateDisplay();
+}
+
+function onPlayerLevelChange(event) {
+    const level = parseInt(event.target.value);
+    if (!isNaN(level) && level >= 200) {
+        enchantRecord.playerLevel = level;
+        updateDisplay();
+    }
+}
+
+function onEquipmentPotentialChange(event) {
+    const potential = parseInt(event.target.value);
+    if (!isNaN(potential) && potential > 0) {
+        enchantRecord.equipmentPotential = potential;
+        updateDisplay();
+    }
+}
+
+function onSmithingLevelChange(event) {
+    const level = parseInt(event.target.value);
+    if (!isNaN(level) && level >= 0) {
+        enchantRecord.smithingLevel = level;
+        updateDisplay();
+    }
+}
+
+function showMoreConfig() {
+    // 填充当前配置值
+    document.getElementById('baseEquipmentPotential').value = enchantRecord.baseEquipmentPotential;
+    document.getElementById('anvilLevel').value = enchantRecord.anvilLevel;
+    document.getElementById('masterEnhancement2Level').value = enchantRecord.masterEnhancement2Level;
+    document.getElementById('understandingMetal').value = enchantRecord.understandingSkills.metal;
+    document.getElementById('understandingCloth').value = enchantRecord.understandingSkills.cloth;
+    document.getElementById('understandingBeast').value = enchantRecord.understandingSkills.beast;
+    document.getElementById('understandingWood').value = enchantRecord.understandingSkills.wood;
+    document.getElementById('understandingMedicine').value = enchantRecord.understandingSkills.medicine;
+    document.getElementById('understandingMana').value = enchantRecord.understandingSkills.mana;
+
+    document.getElementById('moreConfigModal').classList.remove('hidden');
+}
+
+function closeMoreConfig() {
+    document.getElementById('moreConfigModal').classList.add('hidden');
+}
+
+function saveConfig() {
+    // 保存配置
+    enchantRecord.baseEquipmentPotential = parseInt(document.getElementById('baseEquipmentPotential').value);
+    enchantRecord.anvilLevel = parseInt(document.getElementById('anvilLevel').value);
+    enchantRecord.masterEnhancement2Level = parseInt(document.getElementById('masterEnhancement2Level').value);
+    enchantRecord.understandingSkills.metal = parseInt(document.getElementById('understandingMetal').value);
+    enchantRecord.understandingSkills.cloth = parseInt(document.getElementById('understandingCloth').value);
+    enchantRecord.understandingSkills.beast = parseInt(document.getElementById('understandingBeast').value);
+    enchantRecord.understandingSkills.wood = parseInt(document.getElementById('understandingWood').value);
+    enchantRecord.understandingSkills.medicine = parseInt(document.getElementById('understandingMedicine').value);
+    enchantRecord.understandingSkills.mana = parseInt(document.getElementById('understandingMana').value);
+
+    closeMoreConfig();
+    updateDisplay();
+}
+
+function onTableClick(event) {
+    const cell = event.target;
+
+    // 如果点击的是表格单元格
+    if (cell.tagName === 'TD' && cell.dataset.stepIndex !== undefined) {
+        // 取消之前选中的单元格
+        if (selectedCell) {
+            selectedCell.classList.remove('selected');
+        }
+
+        // 选中当前单元格
+        selectedCell = cell;
+        cell.classList.add('selected');
+    } else if (cell.tagName !== 'TD') {
+        // 如果点击的不是表格单元格，取消选中
+        if (selectedCell) {
+            selectedCell.classList.remove('selected');
+            selectedCell = null;
+        }
+    }
+}
+
+function setQuantity(quantity) {
+    currentQuantity = quantity;
+
+    // 更新按钮状态
+    document.querySelectorAll('.quantity-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    if (quantity === 1) {
+        document.getElementById('quantity1Btn').classList.add('active');
+    } else if (quantity === 5) {
+        document.getElementById('quantity5Btn').classList.add('active');
+    } else if (quantity === 'max') {
+        document.getElementById('quantityMaxBtn').classList.add('active');
+    }
+}
+
+function showOperationMenu() {
+    document.getElementById('operationMenuModal').classList.remove('hidden');
+}
+
+function closeOperationMenu() {
+    document.getElementById('operationMenuModal').classList.add('hidden');
+}
+
+function onAddStep() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        return;
+    }
+
+    // TODO: 实现增加属性值逻辑
+    alert('增加属性值功能待实现');
+}
+
+function onSubtractStep() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        return;
+    }
+
+    // TODO: 实现减少属性值逻辑
+    alert('减少属性值功能待实现');
+}
+
+function switchViewMode() {
+    // 切换显示模式
+    const modes = ['change', 'value', 'potential', 'material'];
+    const currentIndex = modes.indexOf(currentViewMode);
+    currentViewMode = modes[(currentIndex + 1) % modes.length];
+
+    updateDisplay();
+}
+
+function addNewStep() {
+    // TODO: 实现添加新步骤逻辑
+    alert('添加新步骤功能待实现');
+}
+
+function undoStep() {
+    // TODO: 实现撤销步骤逻辑
+    alert('撤销步骤功能待实现');
+    closeOperationMenu();
+}
+
+function clearStep() {
+    // TODO: 实现清空步骤逻辑
+    alert('清空步骤功能待实现');
+    closeOperationMenu();
+}
+
+function addStepMenu() {
+    // TODO: 实现增加步骤菜单逻辑
+    alert('增加步骤菜单功能待实现');
+    closeOperationMenu();
+}
+
+function copyStep() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        closeOperationMenu();
+        return;
+    }
+
+    // TODO: 实现复制步骤逻辑
+    alert('复制步骤功能待实现');
+    closeOperationMenu();
+}
+
+function pasteStep() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        closeOperationMenu();
+        return;
+    }
+
+    // TODO: 实现粘贴步骤逻辑
+    alert('粘贴步骤功能待实现');
+    closeOperationMenu();
+}
+
+function copyResult() {
+    // TODO: 实现复制结果逻辑
+    alert('复制结果功能待实现');
+}

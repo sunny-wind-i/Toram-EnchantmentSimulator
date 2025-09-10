@@ -1,17 +1,194 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>托拉姆附魔模拟器</title>
     <link rel="stylesheet" href="css/EnchantmentSimulator.css">
     <script src="lib/jquery-3.7.1.min.js"></script>
-    <script type="module" src="js/EnchantmentSimulator.js"></script>
-    <script type="module" src="js/enchantTest.js"></script>
-
 </head>
 
 <body>
+    <!-- 基础信息区 -->
+    <div class="basic-info-section">
+        <div class="basic-info-container">
+            <div class="basic-info-item">
+                <label for="equipmentType">装备类型:</label>
+                <select id="equipmentType">
+                    <option value="weapon">武器</option>
+                    <option value="armor">身体装备</option>
+                </select>
+            </div>
+            
+            <div class="basic-info-item">
+                <label for="playerLevel">玩家等级:</label>
+                <input type="number" id="playerLevel" min="200" value="290">
+            </div>
+            
+            <div class="basic-info-item">
+                <label for="equipmentPotential">装备潜力:</label>
+                <input type="number" id="equipmentPotential" min="1" value="100">
+            </div>
+            
+            <div class="basic-info-item">
+                <label for="smithingLevel">锻冶熟练度:</label>
+                <input type="number" id="smithingLevel" min="0" value="0">
+            </div>
+            
+            <button id="moreConfigBtn" class="more-config-btn">更多配置</button>
+        </div>
+    </div>
+
+    <!-- 更多配置弹窗 -->
+    <div id="moreConfigModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>更多配置</h2>
+            
+            <div class="config-group">
+                <h3>基础设置</h3>
+                <div class="config-item">
+                    <label for="baseEquipmentPotential">基础潜力:</label>
+                    <input type="number" id="baseEquipmentPotential" min="1" value="1">
+                </div>
+                
+                <div class="config-item">
+                    <label for="anvilLevel">铁砧技能等级:</label>
+                    <input type="number" id="anvilLevel" min="0" max="40" value="40">
+                </div>
+                
+                <div class="config-item">
+                    <label for="masterEnhancement2Level">大师II等级:</label>
+                    <input type="number" id="masterEnhancement2Level" min="0" max="10" value="10">
+                </div>
+            </div>
+            
+            <div class="config-group">
+                <h3>理解技能等级</h3>
+                <div class="config-item">
+                    <label for="understandingMetal">理解金属:</label>
+                    <input type="number" id="understandingMetal" min="0" max="10" value="0">
+                </div>
+                
+                <div class="config-item">
+                    <label for="understandingCloth">理解布料:</label>
+                    <input type="number" id="understandingCloth" min="0" max="10" value="0">
+                </div>
+                
+                <div class="config-item">
+                    <label for="understandingBeast">理解兽品:</label>
+                    <input type="number" id="understandingBeast" min="0" max="10" value="0">
+                </div>
+                
+                <div class="config-item">
+                    <label for="understandingWood">理解木材:</label>
+                    <input type="number" id="understandingWood" min="0" max="10" value="0">
+                </div>
+                
+                <div class="config-item">
+                    <label for="understandingMedicine">理解药品:</label>
+                    <input type="number" id="understandingMedicine" min="0" max="10" value="0">
+                </div>
+                
+                <div class="config-item">
+                    <label for="understandingMana">理解魔素:</label>
+                    <input type="number" id="understandingMana" min="0" max="10" value="0">
+                </div>
+            </div>
+            
+            <button id="saveConfigBtn" class="save-btn">保存配置</button>
+        </div>
+    </div>
+
+    <!-- 属性选择弹窗 -->
+    <div id="propertySelectionModal" class="modal hidden">
+        <div class="modal-content property-selection-modal">
+            <span class="close">&times;</span>
+            <h2>选择附魔属性（最多8项）</h2>
+            
+            <div id="propertyCategoryList" class="property-category-list">
+                <!-- 属性分类将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="selected-properties-summary">
+                <h3>已选择属性 (<span id="selectedCount">0</span>/8)</h3>
+                <div id="selectedPropertiesDisplay" class="selected-properties-display"></div>
+            </div>
+            
+            <button id="confirmPropertiesBtn" class="confirm-btn">确认属性选择</button>
+        </div>
+    </div>
+
+    <!-- 工作区 -->
+    <div class="workspace-section">
+        <div class="workspace-header">
+            <h2>附魔工作区</h2>
+            <button id="selectPropertiesBtn" class="select-properties-btn">选择属性</button>
+            <div class="view-mode-selector">
+                <button class="view-mode-btn active" data-mode="vertical">纵向表格</button>
+            </div>
+        </div>
+        
+        <!-- 表格显示区域 -->
+        <div class="table-container">
+            <table id="enchantTable" class="enchant-table">
+                <thead>
+                    <tr>
+                        <th>潜力</th>
+                        <!-- 属性列将通过JavaScript动态生成 -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 表格内容将通过JavaScript动态生成 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 悬浮操作栏 -->
+    <div class="floating-toolbar">
+        <button id="addStepBtn" class="toolbar-btn">+</button>
+        <button id="subtractStepBtn" class="toolbar-btn">-</button>
+        
+        <div class="quantity-selector">
+            <button id="quantity1Btn" class="quantity-btn active" data-quantity="1">1</button>
+            <button id="quantity5Btn" class="quantity-btn" data-quantity="5">5</button>
+            <button id="quantityMaxBtn" class="quantity-btn" data-quantity="max">max</button>
+        </div>
+        
+        <button id="operationMenuBtn" class="toolbar-btn">…</button>
+        <button id="switchViewBtn" class="toolbar-btn">-></button>
+        <div class="success-rate-display">
+            成功率: <span id="successRateValue">100</span>%
+        </div>
+    </div>
+
+    <!-- 操作菜单弹窗 -->
+    <div id="operationMenuModal" class="modal hidden">
+        <div class="modal-content operation-menu">
+            <span class="close">&times;</span>
+            <h2>操作菜单</h2>
+            <ul>
+                <li id="undoBtn">撤销</li>
+                <li id="clearBtn">清空</li>
+                <li id="addStepMenuBtn">增加</li>
+                <li id="copyStepBtn">复制步骤</li>
+                <li id="pasteStepBtn">粘贴步骤</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 附魔结果展示区 -->
+    <div class="result-section">
+        <h2>附魔结果</h2>
+        <div id="resultDisplay" class="result-display">
+            <!-- 结果将通过JavaScript动态生成 -->
+        </div>
+        <button id="copyResultBtn" class="copy-btn">复制结果</button>
+    </div>
+
+    <script type="module" src="js/EnchantmentSimulator.js"></script>
 </body>
 
 </html>

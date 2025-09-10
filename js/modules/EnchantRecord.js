@@ -9,7 +9,6 @@ import { calEnchantmentStepMaterialCost } from './MaterialCalculator.js';
  * 附魔模拟类，用于管理整个附魔过程的数据结构
  * 包括装备基本信息、玩家信息以及每一步附魔操作记录
  */
-
 const PM = new PropertyManager();
 
 export default class EnchantRecord {
@@ -17,25 +16,36 @@ export default class EnchantRecord {
      * 创建一个新的附魔模拟实例
      * @param {Object} config - 配置对象
      * @param {Object} config.equipmentType - 装备类型 (EquipmentType.EQUIPMENT_TYPE_WEAPON 或 EquipmentType.EQUIPMENT_TYPE_ARMOR)
-     * @param {number} config.playerLevel - 玩家等级
-     * @param {number} config.equipmentPotential - 装备潜力值
-     * @param {number} config.baseEquipmentPotential - 装备基础潜力值
-     * @param {number} config.smithingLevel - 玩家锻冶熟练度
-     * @param {number} config.anvilLevel - 铁砧技能等级，默认为40
-     * @param {number} config.masterEnhancement2Level - 大师级强化技术2技能等级，默认为0
+     * @param {number} [config.playerLevel=290] - 玩家等级
+     * @param {number} [config.equipmentPotential=100] - 装备潜力值
+     * @param {number} [config.baseEquipmentPotential=1] - 装备基础潜力值
+     * @param {number} [config.smithingLevel=0] - 玩家锻冶熟练度
+     * @param {number} [config.anvilLevel=40] - 铁砧技能等级
+     * @param {number} [config.masterEnhancement2Level=10] - 大师级强化技术2技能等级
      * @param {Object} config.understandingSkills - 玩家理解技能等级对象
-     * @param {number} config.understandingSkills.metal - 理解金属技能等级
-     * @param {number} config.understandingSkills.cloth - 理解布料技能等级
-     * @param {number} config.understandingSkills.beast - 理解兽品技能等级
-     * @param {number} config.understandingSkills.wood - 理解木材技能等级
-     * @param {number} config.understandingSkills.medicine - 理解药品技能等级
-     * @param {number} config.understandingSkills.mana - 理解魔素技能等级
+     * @param {number} [config.understandingSkills.metal=0] - 理解金属技能等级
+     * @param {number} [config.understandingSkills.cloth=0] - 理解布料技能等级
+     * @param {number} [config.understandingSkills.beast=0] - 理解兽品技能等级
+     * @param {number} [config.understandingSkills.wood=0] - 理解木材技能等级
+     * @param {number} [config.understandingSkills.medicine=0] - 理解药品技能等级
+     * @param {number} [config.understandingSkills.mana=0] - 理解魔素技能等级
+     * @param {Array} [config.enchantmentSteps=[]] - 附魔步骤数组
+     * @param {Object} [config.finalTotalMaterialCosts] - 最终总材料消耗对象
+     * @param {number} [config.finalTotalMaterialCosts.metal=0] - 金属材料总消耗
+     * @param {number} [config.finalTotalMaterialCosts.cloth=0] - 布料材料总消耗
+     * @param {number} [config.finalTotalMaterialCosts.beast=0] - 兽品材料总消耗
+     * @param {number} [config.finalTotalMaterialCosts.wood=0] - 木材材料总消耗
+     * @param {number} [config.finalTotalMaterialCosts.medicine=0] - 药品材料总消耗
+     * @param {number} [config.finalTotalMaterialCosts.mana=0] - 魔素材料总消耗
+     * @param {number} [config.finalRemainingPotential] - 最终剩余潜力值
+     * @param {number} [config.finalSingleSuccessRate] - 最终单条成功率
+     * @param {number} [config.finalExpectedSuccessRate] - 最终期望成功率
      */
     constructor(config = {}) {
         // 基础信息（只出现一次的固定数据）
         this.equipmentType = config.equipmentType || EquipmentType.EQUIPMENT_TYPE_WEAPON; // 装备类型
-        this.playerLevel = config.playerLevel || 290; // 玩家等级
-        this.equipmentPotential = config.equipmentPotential || 0; // 装备潜力值
+        this.playerLevel = config.playerLevel || 290; // 玩家等级，默认290
+        this.equipmentPotential = config.equipmentPotential || 100; // 装备潜力值
         this.baseEquipmentPotential = config.baseEquipmentPotential || 1; // 装备基础潜力值
         this.smithingLevel = config.smithingLevel || 0; // 玩家锻冶熟练度
         this.anvilLevel = config.anvilLevel || 40; // 铁砧技能等级，默认为40
@@ -76,6 +86,7 @@ export default class EnchantRecord {
      * @param {Object} step.enchantments[].property - 属性对象
      * @param {string} step.enchantments[].propertyId - 属性ID（可选，如果提供了property则忽略此字段）
      * @param {number} step.enchantments[].value - 属性值变化量
+     * @param {boolean} step.isIgnored - 是否忽略该步骤，默认为false
      * @returns {string} 步骤ID
      */
     addEnchantmentStep(step) {
@@ -370,6 +381,13 @@ export default class EnchantRecord {
      * 更新指定步骤
      * @param {string} stepId - 步骤ID
      * @param {Object} updatedStep - 更新后的步骤对象
+     * @param {Array<Object>} updatedStep.enchantments - 该步骤的附魔属性数组
+     * @param {Object} updatedStep.enchantments[].property - 属性对象
+     * @param {string} updatedStep.enchantments[].propertyId - 属性ID（可选，如果提供了property则忽略此字段）
+     * @param {number} updatedStep.enchantments[].value - 属性值变化量
+     * @param {boolean} updatedStep.isIgnored - 是否忽略该步骤
+     * @param {boolean} updatedStep.isValid - 是否有效
+     * @param {string} updatedStep.invalidReason - 无效原因
      */
     updateEnchantmentStep(stepId, updatedStep) {
         // 查找要更新的步骤索引
@@ -514,6 +532,19 @@ export default class EnchantRecord {
     /**
      * 从JSON对象导入模拟数据
      * @param {Object} data - 导入的数据对象
+     * @param {string} data.equipmentType - 装备类型
+     * @param {number} data.playerLevel - 玩家等级
+     * @param {number} data.equipmentPotential - 装备潜力值
+     * @param {number} data.baseEquipmentPotential - 装备基础潜力值
+     * @param {number} data.smithingLevel - 玩家锻冶熟练度
+     * @param {number} data.anvilLevel - 铁砧技能等级
+     * @param {number} data.masterEnhancement2Level - 大师级强化技术2技能等级
+     * @param {Object} data.understandingSkills - 玩家理解技能等级对象
+     * @param {Array} data.enchantmentSteps - 附魔步骤数组
+     * @param {Object} data.finalTotalMaterialCosts - 最终总材料消耗
+     * @param {number} data.finalRemainingPotential - 最终剩余潜力值
+     * @param {number} data.finalSingleSuccessRate - 最终单条成功率
+     * @param {number} data.finalExpectedSingleSuccessRate - 最终期望成功率
      */
     importData(data) {
         // 导入基础信息
@@ -590,6 +621,19 @@ export default class EnchantRecord {
     /**
      * 导出模拟数据为JSON对象
      * @returns {Object} 可序列化的模拟数据对象
+     * @returns {string} return.equipmentType - 装备类型
+     * @returns {number} return.playerLevel - 玩家等级
+     * @returns {number} return.equipmentPotential - 装备潜力值
+     * @returns {number} return.baseEquipmentPotential - 装备基础潜力值
+     * @returns {number} return.smithingLevel - 玩家锻冶熟练度
+     * @returns {number} return.anvilLevel - 铁砧技能等级
+     * @returns {number} return.masterEnhancement2Level - 大师级强化技术2技能等级
+     * @returns {Object} return.understandingSkills - 玩家理解技能等级对象
+     * @returns {Array} return.enchantmentSteps - 附魔步骤数组
+     * @returns {Object} return.finalTotalMaterialCosts - 最终总材料消耗
+     * @returns {number} return.finalRemainingPotential - 最终剩余潜力值
+     * @returns {number} return.finalSingleSuccessRate - 最终单条成功率
+     * @returns {number} return.finalExpectedSingleSuccessRate - 最终期望成功率
      */
     exportData() {
         // 返回包含所有必要数据的对象
