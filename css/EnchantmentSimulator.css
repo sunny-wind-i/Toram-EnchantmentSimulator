@@ -526,3 +526,135 @@ body {
         padding: 10px;
     }
 }
+
+/* 清空选项弹窗 */
+.clear-options-modal {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 400px;
+}
+
+.clear-options-modal h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.clear-options-modal ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.clear-options-modal li {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    text-align: center;
+}
+
+.clear-options-modal li:hover {
+    background-color: #f5f5f5;
+}
+
+.clear-options-modal li:last-child {
+    border-bottom: none;
+}
+
+/* 增加步骤选项弹窗 */
+.add-step-options-modal {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 400px;
+}
+
+.add-step-options-modal h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.add-step-options-modal ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.add-step-options-modal li {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    text-align: center;
+}
+
+.add-step-options-modal li:hover {
+    background-color: #f5f5f5;
+}
+
+.add-step-options-modal li:last-child {
+    border-bottom: none;
+}
+
+/* 粘贴步骤选项弹窗 */
+.paste-step-options-modal {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 400px;
+}
+
+.paste-step-options-modal h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.paste-step-options-modal .paste-options {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.paste-step-options-modal .paste-options label {
+    margin-right: 10px;
+}
+
+.paste-step-options-modal .paste-options input {
+    width: 60px;
+    padding: 5px;
+    text-align: center;
+}
+
+.paste-step-options-modal ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.paste-step-options-modal li {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    text-align: center;
+}
+
+.paste-step-options-modal li:hover {
+    background-color: #f5f5f5;
+}
+
+.paste-step-options-modal li:last-child {
+    border-bottom: none;
+}
+
+/* 忽略/无效步骤样式 */
+.enchant-table tr.ignored td {
+    background-color: #f0f0f0;
+    color: #999;
+    text-decoration: line-through;
+}
+
+.enchant-table tr.invalid td {
+    background-color: #ffe6e6;
+    color: #ff0000;
+}

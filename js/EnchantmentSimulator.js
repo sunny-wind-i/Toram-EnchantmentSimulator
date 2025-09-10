@@ -10,7 +10,7 @@ let selectedProperties = [];
 let currentViewMode = 'change'; // change, value, potential, material
 let selectedCell = null;
 let currentQuantity = 1;
-let copiedStep = null;
+let copiedStepData = null;
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function () {
@@ -95,29 +95,65 @@ function bindEvents() {
     document.getElementById('switchViewBtn').addEventListener('click', switchViewMode);
     document.querySelector('#operationMenuModal .close').addEventListener('click', closeOperationMenu);
 
+    // 增加步骤选项事件
+    document.getElementById('addStepMenuBtn').addEventListener('click', showAddStepOptions);
+    document.getElementById('copyStepBtn').addEventListener('click', copyStep);
+    document.getElementById('pasteStepBtn').addEventListener('click', showPasteStepOptions);
+    document.getElementById('toggleIgnoreBtn').addEventListener('click', toggleIgnoreStep);
+
     // 操作菜单事件
     document.getElementById('undoBtn').addEventListener('click', undoStep);
-    document.getElementById('clearBtn').addEventListener('click', clearStep);
-    document.getElementById('addStepMenuBtn').addEventListener('click', addStepMenu);
+    document.getElementById('clearBtn').addEventListener('click', showClearOptions);
+    document.getElementById('addStepMenuBtn').addEventListener('click', showAddStepOptions);
     document.getElementById('copyStepBtn').addEventListener('click', copyStep);
-    document.getElementById('pasteStepBtn').addEventListener('click', pasteStep);
+    document.getElementById('pasteStepBtn').addEventListener('click', showPasteStepOptions);
+    document.getElementById('toggleIgnoreBtn').addEventListener('click', toggleIgnoreStep);
+
+    // 清空选项事件
+    document.querySelector('#clearOptionsModal .close').addEventListener('click', closeClearOptions);
+    document.getElementById('clearCellBtn').addEventListener('click', clearCell);
+    document.getElementById('clearStepBtn').addEventListener('click', clearStepValues);
+    document.getElementById('deleteStepBtn').addEventListener('click', deleteStep);
+    document.getElementById('deleteEmptyStepsBtn').addEventListener('click', deleteEmptySteps);
+    document.getElementById('deleteAllStepsBtn').addEventListener('click', deleteAllSteps);
+
+    // 增加步骤选项事件
+    document.querySelector('#addStepOptionsModal .close').addEventListener('click', closeAddStepOptions);
+    document.getElementById('addStepAboveBtn').addEventListener('click', addStepAbove);
+    document.getElementById('addStepBelowBtn').addEventListener('click', addStepBelow);
+
+    // 粘贴步骤选项事件
+    document.querySelector('#pasteStepOptionsModal .close').addEventListener('click', closePasteStepOptions);
+    document.getElementById('pasteStepAboveBtn').addEventListener('click', pasteStepAbove);
+    document.getElementById('pasteStepBelowBtn').addEventListener('click', pasteStepBelow);
+
+    // 点击模态框外部关闭
+    document.addEventListener('click', function (event) {
+        const operationMenuModal = document.getElementById('operationMenuModal');
+        const clearOptionsModal = document.getElementById('clearOptionsModal');
+        const addStepOptionsModal = document.getElementById('addStepOptionsModal');
+        const pasteStepOptionsModal = document.getElementById('pasteStepOptionsModal');
+        const propertySelectionModal = document.getElementById('propertySelectionModal');
+        const viewModeModal = document.getElementById('viewModeModal');
+
+        if (event.target === operationMenuModal) {
+            closeOperationMenu();
+        } else if (event.target === clearOptionsModal) {
+            closeClearOptions();
+        } else if (event.target === addStepOptionsModal) {
+            closeAddStepOptions();
+        } else if (event.target === pasteStepOptionsModal) {
+            closePasteStepOptions();
+        } else if (event.target === propertySelectionModal) {
+            closePropertySelection();
+        } else if (event.target === viewModeModal) {
+            viewModeModal.classList.add('hidden');
+        }
+    });
 
     // 结果展示事件
     document.getElementById('copyResultBtn').addEventListener('click', copyResult);
 
-    // 点击非模态框区域关闭模态框
-    window.addEventListener('click', function (event) {
-        const moreConfigModal = document.getElementById('moreConfigModal');
-        const operationMenuModal = document.getElementById('operationMenuModal');
-
-        if (event.target === moreConfigModal) {
-            closeMoreConfig();
-        }
-
-        if (event.target === operationMenuModal) {
-            closeOperationMenu();
-        }
-    });
 }
 
 // 加载属性分类列表
@@ -282,7 +318,7 @@ function confirmProperties() {
             value: enchant.value
         }))
     }))));
-    
+
     // 更新表格头部
     updateTableHeader();
 
@@ -293,7 +329,7 @@ function confirmProperties() {
             const lastStep = enchantRecord.enchantmentSteps[enchantRecord.enchantmentSteps.length - 1];
             enchantRecord.removeEnchantmentStep(lastStep.id);
         }
-        
+
         // 重新添加步骤
         previousSteps.forEach(stepData => {
             const newStep = {
@@ -410,6 +446,13 @@ function updateTableContent() {
     enchantRecord.enchantmentSteps.forEach((step, index) => {
         const row = document.createElement('tr');
 
+        // 添加忽略/无效步骤的样式类
+        if (step.isIgnored) {
+            row.classList.add('ignored');
+        } else if (!step.isValid) {
+            row.classList.add('invalid');
+        }
+
         // 潜力值列
         const potentialCell = document.createElement('td');
         potentialCell.textContent = step.postEnchantmentPotential;
@@ -491,7 +534,7 @@ function updateTableContent() {
     addCell.textContent = '+ 添加新步骤';
     addCell.style.textAlign = 'center';
     addCell.style.cursor = 'pointer';
-    addCell.addEventListener('click', addNewStep);
+    addCell.addEventListener('click', addNewStepAtEnd);
     addRow.appendChild(addCell);
     tbody.appendChild(addRow);
 
@@ -500,8 +543,8 @@ function updateTableContent() {
         const cells = tbody.querySelectorAll('td');
         cells.forEach(cell => {
             if (cell.dataset.stepIndex === selectedCellInfo.stepIndex &&
-                ((cell.dataset.propertyId === selectedCellInfo.propertyId && selectedCellInfo.propertyId) || 
-                (cell.dataset.columnType === selectedCellInfo.columnType && !selectedCellInfo.propertyId))) {
+                ((cell.dataset.propertyId === selectedCellInfo.propertyId && selectedCellInfo.propertyId) ||
+                    (cell.dataset.columnType === selectedCellInfo.columnType && !selectedCellInfo.propertyId))) {
                 cell.classList.add('selected');
                 selectedCell = cell;
             }
@@ -513,7 +556,12 @@ function updateTableContent() {
 function updateSuccessRate() {
     const successRateElement = document.getElementById('successRateValue');
     if (enchantRecord.finalSingleSuccessRate !== null) {
-        successRateElement.textContent = enchantRecord.finalSingleSuccessRate.toFixed(2);
+        const rate = Math.round(enchantRecord.finalSingleSuccessRate);
+        if (rate > 999) {
+            successRateElement.textContent = '>999';
+        } else {
+            successRateElement.textContent = rate;
+        }
     } else {
         successRateElement.textContent = 'N/A';
     }
@@ -753,11 +801,541 @@ function setQuantity(quantity) {
 }
 
 function showOperationMenu() {
+    // 更新忽略/取消忽略按钮文本
+    updateIgnoreButton();
     document.getElementById('operationMenuModal').classList.remove('hidden');
+}
+
+function updateIgnoreButton() {
+    const toggleIgnoreBtn = document.getElementById('toggleIgnoreBtn');
+    if (!selectedCell) {
+        toggleIgnoreBtn.style.display = 'none';
+        return;
+    }
+
+    toggleIgnoreBtn.style.display = 'block';
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+
+    if (step) {
+        if (step.isIgnored) {
+            toggleIgnoreBtn.textContent = '取消忽略';
+        } else {
+            toggleIgnoreBtn.textContent = '忽略';
+        }
+    }
 }
 
 function closeOperationMenu() {
     document.getElementById('operationMenuModal').classList.add('hidden');
+}
+
+function closeClearOptions() {
+    document.getElementById('clearOptionsModal').classList.add('hidden');
+}
+
+function closeAddStepOptions() {
+    document.getElementById('addStepOptionsModal').classList.add('hidden');
+}
+
+function closePasteStepOptions() {
+    document.getElementById('pasteStepOptionsModal').classList.add('hidden');
+}
+
+function undoStep() {
+    // 检查是否有步骤可以撤销
+    if (enchantRecord.enchantmentSteps.length === 0) {
+        alert('没有可以撤销的步骤');
+        closeOperationMenu();
+        return;
+    }
+
+    // 获取最后一个步骤
+    const lastStep = enchantRecord.enchantmentSteps[enchantRecord.enchantmentSteps.length - 1];
+
+    // 删除最后一个步骤
+    enchantRecord.removeEnchantmentStep(lastStep.id);
+
+    // 更新显示
+    updateDisplay();
+
+    closeOperationMenu();
+}
+
+function showClearOptions() {
+    closeOperationMenu();
+    document.getElementById('clearOptionsModal').classList.remove('hidden');
+}
+
+function clearCell() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        closeClearOptions();
+        return;
+    }
+
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const propertyId = selectedCell.dataset.propertyId;
+
+    // 检查是否是属性单元格
+    if (propertyId === undefined) {
+        alert('请选择一个属性单元格');
+        closeClearOptions();
+        return;
+    }
+
+    // 获取当前步骤
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    if (!step) {
+        alert('未找到选中的步骤');
+        closeClearOptions();
+        return;
+    }
+
+    // 查找对应的附魔属性
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    if (!enchantment) {
+        alert('未找到选中的属性');
+        closeClearOptions();
+        return;
+    }
+
+    // 清空单元格值
+    enchantment.value = 0;
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
+
+    closeClearOptions();
+}
+
+function clearStepValues() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        closeClearOptions();
+        return;
+    }
+
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+
+    // 获取当前步骤
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    if (!step) {
+        alert('未找到选中的步骤');
+        closeClearOptions();
+        return;
+    }
+
+    // 清空步骤中所有属性值
+    step.enchantments.forEach(enchantment => {
+        enchantment.value = 0;
+    });
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
+
+    closeClearOptions();
+}
+
+function deleteStep() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        closeClearOptions();
+        return;
+    }
+
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+
+    // 获取当前步骤
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    if (!step) {
+        alert('未找到选中的步骤');
+        closeClearOptions();
+        return;
+    }
+
+    // 删除步骤
+    enchantRecord.removeEnchantmentStep(step.id);
+
+    // 更新显示
+    updateDisplay();
+
+    closeClearOptions();
+}
+
+function deleteEmptySteps() {
+    // 过滤掉所有空白步骤（所有属性值都为0的步骤）
+    const emptySteps = enchantRecord.enchantmentSteps.filter(step =>
+        step.enchantments.every(enchant => enchant.value === 0)
+    );
+
+    if (emptySteps.length === 0) {
+        alert('没有空白步骤');
+        closeClearOptions();
+        return;
+    }
+
+    // 删除所有空白步骤
+    emptySteps.forEach(step => {
+        enchantRecord.removeEnchantmentStep(step.id);
+    });
+
+    // 更新显示
+    updateDisplay();
+
+    closeClearOptions();
+}
+
+function deleteAllSteps() {
+    // 确认是否删除所有步骤
+    if (!confirm('确定要删除所有步骤吗？此操作无法撤销！')) {
+        closeClearOptions();
+        return;
+    }
+
+    // 删除所有步骤
+    while (enchantRecord.enchantmentSteps.length > 0) {
+        const lastStep = enchantRecord.enchantmentSteps[enchantRecord.enchantmentSteps.length - 1];
+        enchantRecord.removeEnchantmentStep(lastStep.id);
+    }
+
+    // 更新显示
+    updateDisplay();
+
+    closeClearOptions();
+}
+
+function showAddStepOptions() {
+    closeOperationMenu();
+    document.getElementById('addStepOptionsModal').classList.remove('hidden');
+}
+
+function addStepAbove() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        closeAddStepOptions();
+        return;
+    }
+
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+
+    // 创建一个新的附魔步骤
+    const newStep = {
+        enchantments: selectedProperties.map(property => ({
+            property: property,
+            value: 0
+        }))
+    };
+
+    // 在指定位置插入新步骤
+    const steps = enchantRecord.enchantmentSteps;
+    steps.splice(stepIndex, 0, newStep);
+
+    // 重新添加所有步骤以触发重新计算
+    const stepsData = steps.map(step => ({
+        enchantments: step.enchantments.map(enchant => ({
+            property: enchant.property,
+            value: enchant.value
+        }))
+    }));
+
+    // 清空现有步骤
+    while (enchantRecord.enchantmentSteps.length > 0) {
+        const lastStep = enchantRecord.enchantmentSteps[enchantRecord.enchantmentSteps.length - 1];
+        enchantRecord.removeEnchantmentStep(lastStep.id);
+    }
+
+    // 重新添加步骤
+    stepsData.forEach(stepData => {
+        enchantRecord.addEnchantmentStep(stepData);
+    });
+
+    // 更新显示
+    updateDisplay();
+
+    closeAddStepOptions();
+}
+
+function addStepBelow() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        closeAddStepOptions();
+        return;
+    }
+
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+
+    // 创建一个新的附魔步骤
+    const newStep = {
+        enchantments: selectedProperties.map(property => ({
+            property: property,
+            value: 0
+        }))
+    };
+
+    // 在指定位置插入新步骤（下方）
+    const steps = enchantRecord.enchantmentSteps;
+    steps.splice(stepIndex + 1, 0, newStep);
+
+    // 重新添加所有步骤以触发重新计算
+    const stepsData = steps.map(step => ({
+        enchantments: step.enchantments.map(enchant => ({
+            property: enchant.property,
+            value: enchant.value
+        }))
+    }));
+
+    // 清空现有步骤
+    while (enchantRecord.enchantmentSteps.length > 0) {
+        const lastStep = enchantRecord.enchantmentSteps[enchantRecord.enchantmentSteps.length - 1];
+        enchantRecord.removeEnchantmentStep(lastStep.id);
+    }
+
+    // 重新添加步骤
+    stepsData.forEach(stepData => {
+        enchantRecord.addEnchantmentStep(stepData);
+    });
+
+    // 更新显示
+    updateDisplay();
+
+    closeAddStepOptions();
+}
+
+function addNewStepAtEnd() {
+    // 创建一个新的附魔步骤
+    const newStep = {
+        enchantments: selectedProperties.map(property => ({
+            property: property,
+            value: 0
+        }))
+    };
+
+    // 添加步骤到附魔记录中
+    enchantRecord.addEnchantmentStep(newStep);
+
+    // 更新显示
+    updateDisplay();
+}
+
+function copyStep() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        closeOperationMenu();
+        return;
+    }
+
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+
+    // 获取当前步骤
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    if (!step) {
+        alert('未找到选中的步骤');
+        closeOperationMenu();
+        return;
+    }
+
+    // 保存步骤数据用于粘贴
+    copiedStepData = {
+        enchantments: step.enchantments.map(enchant => ({
+            propertyId: enchant.property.id,
+            value: enchant.value
+        }))
+    };
+
+    alert('步骤已复制');
+    closeOperationMenu();
+}
+
+function showPasteStepOptions() {
+    if (!copiedStepData) {
+        alert('没有复制的步骤数据');
+        closeOperationMenu();
+        return;
+    }
+
+    closeOperationMenu();
+    document.getElementById('pasteStepOptionsModal').classList.remove('hidden');
+}
+
+function pasteStepAbove() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        closePasteStepOptions();
+        return;
+    }
+
+    if (!copiedStepData) {
+        alert('没有复制的步骤数据');
+        closePasteStepOptions();
+        return;
+    }
+
+    // 获取粘贴次数
+    const pasteCount = parseInt(document.getElementById('pasteCount').value);
+    if (isNaN(pasteCount) || pasteCount <= 0) {
+        alert('粘贴次数必须为正整数');
+        return;
+    }
+
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+
+    // 获取现有步骤
+    const steps = enchantRecord.enchantmentSteps;
+
+    // 创建要粘贴的步骤数据
+    const stepsToPaste = [];
+    for (let i = 0; i < pasteCount; i++) {
+        const newStep = {
+            enchantments: selectedProperties.map(property => {
+                const copiedEnchant = copiedStepData.enchantments.find(e => e.propertyId === property.id);
+                return {
+                    property: property,
+                    value: copiedEnchant ? copiedEnchant.value : 0
+                };
+            })
+        };
+        stepsToPaste.push(newStep);
+    }
+
+    // 在指定位置插入新步骤
+    steps.splice(stepIndex, 0, ...stepsToPaste);
+
+    // 重新添加所有步骤以触发重新计算
+    const stepsData = steps.map(step => ({
+        enchantments: step.enchantments.map(enchant => ({
+            property: enchant.property,
+            value: enchant.value
+        }))
+    }));
+
+    // 清空现有步骤
+    while (enchantRecord.enchantmentSteps.length > 0) {
+        const lastStep = enchantRecord.enchantmentSteps[enchantRecord.enchantmentSteps.length - 1];
+        enchantRecord.removeEnchantmentStep(lastStep.id);
+    }
+
+    // 重新添加步骤
+    stepsData.forEach(stepData => {
+        enchantRecord.addEnchantmentStep(stepData);
+    });
+
+    // 更新显示
+    updateDisplay();
+
+    closePasteStepOptions();
+}
+
+function pasteStepBelow() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        closePasteStepOptions();
+        return;
+    }
+
+    if (!copiedStepData) {
+        alert('没有复制的步骤数据');
+        closePasteStepOptions();
+        return;
+    }
+
+    // 获取粘贴次数
+    const pasteCount = parseInt(document.getElementById('pasteCount').value);
+    if (isNaN(pasteCount) || pasteCount <= 0) {
+        alert('粘贴次数必须为正整数');
+        return;
+    }
+
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+
+    // 获取现有步骤
+    const steps = enchantRecord.enchantmentSteps;
+
+    // 创建要粘贴的步骤数据
+    const stepsToPaste = [];
+    for (let i = 0; i < pasteCount; i++) {
+        const newStep = {
+            enchantments: selectedProperties.map(property => {
+                const copiedEnchant = copiedStepData.enchantments.find(e => e.propertyId === property.id);
+                return {
+                    property: property,
+                    value: copiedEnchant ? copiedEnchant.value : 0
+                };
+            })
+        };
+        stepsToPaste.push(newStep);
+    }
+
+    // 在指定位置插入新步骤（下方）
+    steps.splice(stepIndex + 1, 0, ...stepsToPaste);
+
+    // 重新添加所有步骤以触发重新计算
+    const stepsData = steps.map(step => ({
+        enchantments: step.enchantments.map(enchant => ({
+            property: enchant.property,
+            value: enchant.value
+        }))
+    }));
+
+    // 清空现有步骤
+    while (enchantRecord.enchantmentSteps.length > 0) {
+        const lastStep = enchantRecord.enchantmentSteps[enchantRecord.enchantmentSteps.length - 1];
+        enchantRecord.removeEnchantmentStep(lastStep.id);
+    }
+
+    // 重新添加步骤
+    stepsData.forEach(stepData => {
+        enchantRecord.addEnchantmentStep(stepData);
+    });
+
+    // 更新显示
+    updateDisplay();
+
+    closePasteStepOptions();
+}
+
+function toggleIgnoreStep() {
+    if (!selectedCell) {
+        alert('请先选择一个单元格');
+        closeOperationMenu();
+        return;
+    }
+
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+
+    // 获取当前步骤
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    if (!step) {
+        alert('未找到选中的步骤');
+        closeOperationMenu();
+        return;
+    }
+
+    // 切换忽略状态
+    enchantRecord.setStepIgnored(step.id, !step.isIgnored);
+
+    // 更新显示
+    updateDisplay();
+
+    // 更新按钮文本
+    updateIgnoreButton();
+
+    closeOperationMenu();
 }
 
 function onAddStep() {
@@ -792,8 +1370,17 @@ function onAddStep() {
 
     // 根据当前数量模式更新属性值
     if (currentQuantity === 'max') {
-        // TODO: 实现max逻辑，暂时增加10作为示例
-        enchantment.value += 10;
+        // 获取当前属性
+        const property = enchantment.property;
+
+        // 根据属性类型确定最大值
+        if (property.isPercentage) {
+            // 百分比属性最大值为100
+            enchantment.value = 100;
+        } else {
+            // 固定值属性最大值为1000
+            enchantment.value = 1000;
+        }
     } else {
         enchantment.value += currentQuantity;
     }
@@ -803,13 +1390,13 @@ function onAddStep() {
 
     // 更新显示并保持选中状态
     updateDisplay();
-    
+
     // 重新选中单元格
     setTimeout(() => {
         const tbody = document.querySelector('#enchantTable tbody');
         const cells = tbody.querySelectorAll('td');
         cells.forEach(cell => {
-            if (cell.dataset.stepIndex === stepIndex.toString() && 
+            if (cell.dataset.stepIndex === stepIndex.toString() &&
                 cell.dataset.propertyId === propertyId) {
                 cell.classList.add('selected');
                 selectedCell = cell;
@@ -850,8 +1437,17 @@ function onSubtractStep() {
 
     // 根据当前数量模式更新属性值
     if (currentQuantity === 'max') {
-        // TODO: 实现max逻辑，暂时减少10作为示例
-        enchantment.value -= 10;
+        // 获取当前属性
+        const property = enchantment.property;
+
+        // 根据属性类型确定最小值
+        if (property.isPercentage) {
+            // 百分比属性最小值为-100
+            enchantment.value = -100;
+        } else {
+            // 固定值属性最小值为-1000
+            enchantment.value = -1000;
+        }
     } else {
         enchantment.value -= currentQuantity;
     }
@@ -861,13 +1457,13 @@ function onSubtractStep() {
 
     // 更新显示并保持选中状态
     updateDisplay();
-    
+
     // 重新选中单元格
     setTimeout(() => {
         const tbody = document.querySelector('#enchantTable tbody');
         const cells = tbody.querySelectorAll('td');
         cells.forEach(cell => {
-            if (cell.dataset.stepIndex === stepIndex.toString() && 
+            if (cell.dataset.stepIndex === stepIndex.toString() &&
                 cell.dataset.propertyId === propertyId) {
                 cell.classList.add('selected');
                 selectedCell = cell;
@@ -934,78 +1530,6 @@ function createViewModeModal() {
     });
 
     return modal;
-}
-
-function addNewStep() {
-    // 创建一个新的附魔步骤
-    const newStep = {
-        enchantments: selectedProperties.map(property => ({
-            property: property,
-            value: 0
-        }))
-    };
-
-    // 添加步骤到附魔记录中
-    enchantRecord.addEnchantmentStep(newStep);
-
-    // 更新显示
-    updateDisplay();
-}
-
-function undoStep() {
-    // 检查是否有步骤可以撤销
-    if (enchantRecord.enchantmentSteps.length === 0) {
-        alert('没有可以撤销的步骤');
-        closeOperationMenu();
-        return;
-    }
-
-    // 获取最后一个步骤
-    const lastStep = enchantRecord.enchantmentSteps[enchantRecord.enchantmentSteps.length - 1];
-
-    // 删除最后一个步骤
-    enchantRecord.removeEnchantmentStep(lastStep.id);
-
-    // 更新显示
-    updateDisplay();
-
-    closeOperationMenu();
-}
-
-function clearStep() {
-    // TODO: 实现清空步骤逻辑
-    alert('清空步骤功能待实现');
-    closeOperationMenu();
-}
-
-function addStepMenu() {
-    // TODO: 实现增加步骤菜单逻辑
-    alert('增加步骤菜单功能待实现');
-    closeOperationMenu();
-}
-
-function copyStep() {
-    if (!selectedCell) {
-        alert('请先选择一个单元格');
-        closeOperationMenu();
-        return;
-    }
-
-    // TODO: 实现复制步骤逻辑
-    alert('复制步骤功能待实现');
-    closeOperationMenu();
-}
-
-function pasteStep() {
-    if (!selectedCell) {
-        alert('请先选择一个单元格');
-        closeOperationMenu();
-        return;
-    }
-
-    // TODO: 实现粘贴步骤逻辑
-    alert('粘贴步骤功能待实现');
-    closeOperationMenu();
 }
 
 function copyResult() {

@@ -20,22 +20,22 @@
                     <option value="armor">身体装备</option>
                 </select>
             </div>
-            
+
             <div class="basic-info-item">
                 <label for="playerLevel">玩家等级:</label>
                 <input type="number" id="playerLevel" min="200" value="290">
             </div>
-            
+
             <div class="basic-info-item">
                 <label for="equipmentPotential">装备潜力:</label>
                 <input type="number" id="equipmentPotential" min="1" value="100">
             </div>
-            
+
             <div class="basic-info-item">
                 <label for="smithingLevel">锻冶熟练度:</label>
                 <input type="number" id="smithingLevel" min="0" value="0">
             </div>
-            
+
             <button id="moreConfigBtn" class="more-config-btn">更多配置</button>
         </div>
     </div>
@@ -45,58 +45,58 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>更多配置</h2>
-            
+
             <div class="config-group">
                 <h3>基础设置</h3>
                 <div class="config-item">
                     <label for="baseEquipmentPotential">基础潜力:</label>
                     <input type="number" id="baseEquipmentPotential" min="1" value="1">
                 </div>
-                
+
                 <div class="config-item">
                     <label for="anvilLevel">铁砧技能等级:</label>
                     <input type="number" id="anvilLevel" min="0" max="40" value="40">
                 </div>
-                
+
                 <div class="config-item">
                     <label for="masterEnhancement2Level">大师II等级:</label>
                     <input type="number" id="masterEnhancement2Level" min="0" max="10" value="10">
                 </div>
             </div>
-            
+
             <div class="config-group">
                 <h3>理解技能等级</h3>
                 <div class="config-item">
                     <label for="understandingMetal">理解金属:</label>
                     <input type="number" id="understandingMetal" min="0" max="10" value="0">
                 </div>
-                
+
                 <div class="config-item">
                     <label for="understandingCloth">理解布料:</label>
                     <input type="number" id="understandingCloth" min="0" max="10" value="0">
                 </div>
-                
+
                 <div class="config-item">
                     <label for="understandingBeast">理解兽品:</label>
                     <input type="number" id="understandingBeast" min="0" max="10" value="0">
                 </div>
-                
+
                 <div class="config-item">
                     <label for="understandingWood">理解木材:</label>
                     <input type="number" id="understandingWood" min="0" max="10" value="0">
                 </div>
-                
+
                 <div class="config-item">
                     <label for="understandingMedicine">理解药品:</label>
                     <input type="number" id="understandingMedicine" min="0" max="10" value="0">
                 </div>
-                
+
                 <div class="config-item">
                     <label for="understandingMana">理解魔素:</label>
                     <input type="number" id="understandingMana" min="0" max="10" value="0">
                 </div>
             </div>
-            
+
             <button id="saveConfigBtn" class="save-btn">保存配置</button>
         </div>
     </div>
@@ -106,16 +106,16 @@
         <div class="modal-content property-selection-modal">
             <span class="close">&times;</span>
             <h2>选择附魔属性（最多8项）</h2>
-            
+
             <div id="propertyCategoryList" class="property-category-list">
                 <!-- 属性分类将通过JavaScript动态生成 -->
             </div>
-            
+
             <div class="selected-properties-summary">
                 <h3>已选择属性 (<span id="selectedCount">0</span>/8)</h3>
                 <div id="selectedPropertiesDisplay" class="selected-properties-display"></div>
             </div>
-            
+
             <button id="confirmPropertiesBtn" class="confirm-btn">确认属性选择</button>
         </div>
     </div>
@@ -129,7 +129,7 @@
                 <button class="view-mode-btn active" data-mode="vertical">纵向表格</button>
             </div>
         </div>
-        
+
         <!-- 表格显示区域 -->
         <div class="table-container">
             <table id="enchantTable" class="enchant-table">
@@ -150,13 +150,13 @@
     <div class="floating-toolbar">
         <button id="addStepBtn" class="toolbar-btn">+</button>
         <button id="subtractStepBtn" class="toolbar-btn">-</button>
-        
+
         <div class="quantity-selector">
             <button id="quantity1Btn" class="quantity-btn active" data-quantity="1">1</button>
             <button id="quantity5Btn" class="quantity-btn" data-quantity="5">5</button>
             <button id="quantityMaxBtn" class="quantity-btn" data-quantity="max">max</button>
         </div>
-        
+
         <button id="operationMenuBtn" class="toolbar-btn">…</button>
         <button id="switchViewBtn" class="toolbar-btn">&lt;=&gt;</button>
         <div class="success-rate-display">
@@ -175,6 +175,50 @@
                 <li id="addStepMenuBtn">增加</li>
                 <li id="copyStepBtn">复制步骤</li>
                 <li id="pasteStepBtn">粘贴步骤</li>
+                <li id="toggleIgnoreBtn">忽略/取消忽略</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 清空操作选择弹窗 -->
+    <div id="clearOptionsModal" class="modal hidden">
+        <div class="modal-content clear-options-modal">
+            <span class="close">&times;</span>
+            <h2>清空选项</h2>
+            <ul>
+                <li id="clearCellBtn">清空单元格</li>
+                <li id="clearStepBtn">清空步骤</li>
+                <li id="deleteStepBtn">删除步骤</li>
+                <li id="deleteEmptyStepsBtn">删除所有空白步骤</li>
+                <li id="deleteAllStepsBtn">删除所有步骤</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 增加步骤选择弹窗 -->
+    <div id="addStepOptionsModal" class="modal hidden">
+        <div class="modal-content add-step-options-modal">
+            <span class="close">&times;</span>
+            <h2>增加步骤选项</h2>
+            <ul>
+                <li id="addStepAboveBtn">在上方增加一步</li>
+                <li id="addStepBelowBtn">在下方增加一步</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 粘贴步骤选项弹窗 -->
+    <div id="pasteStepOptionsModal" class="modal hidden">
+        <div class="modal-content paste-step-options-modal">
+            <span class="close">&times;</span>
+            <h2>粘贴步骤选项</h2>
+            <div class="paste-options">
+                <label for="pasteCount">粘贴次数:</label>
+                <input type="number" id="pasteCount" min="1" value="1">
+            </div>
+            <ul>
+                <li id="pasteStepAboveBtn">在上方粘贴步骤</li>
+                <li id="pasteStepBelowBtn">在下方粘贴步骤</li>
             </ul>
         </div>
     </div>
