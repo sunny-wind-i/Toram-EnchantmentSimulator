@@ -56,20 +56,35 @@ function bindEvents() {
     document.getElementById('playerLevel').addEventListener('change', onPlayerLevelChange);
     document.getElementById('equipmentPotential').addEventListener('change', onEquipmentPotentialChange);
     document.getElementById('smithingLevel').addEventListener('change', onSmithingLevelChange);
-    
+
     // 更多配置事件
     document.getElementById('moreConfigBtn').addEventListener('click', showMoreConfig);
     document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
     document.querySelector('#moreConfigModal .close').addEventListener('click', closeMoreConfig);
-    
+
     // 属性选择事件
     document.getElementById('selectPropertiesBtn').addEventListener('click', showPropertySelection);
     document.getElementById('confirmPropertiesBtn').addEventListener('click', confirmProperties);
     document.querySelector('#propertySelectionModal .close').addEventListener('click', closePropertySelection);
-    
+
+    // 属性分类展开/收起和复选框事件
+    document.querySelectorAll('#propertyCategoryList .property-category-header').forEach(header => {
+        header.addEventListener('click', function () {
+            const categoryContent = this.nextElementSibling;
+            categoryContent.classList.toggle('expanded');
+            const toggleSymbol = this.querySelector('span:last-child');
+            toggleSymbol.textContent = categoryContent.classList.contains('expanded') ? '−' : '+';
+        });
+    });
+
+    // 为复选框添加事件监听器
+    document.querySelectorAll('#propertyCategoryList input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', onPropertyCheckboxChange);
+    });
+
     // 表格事件
     document.getElementById('enchantTable').addEventListener('click', onTableClick);
-    
+
     // 悬浮工具栏事件
     document.getElementById('addStepBtn').addEventListener('click', onAddStep);
     document.getElementById('subtractStepBtn').addEventListener('click', onSubtractStep);
@@ -79,17 +94,17 @@ function bindEvents() {
     document.getElementById('operationMenuBtn').addEventListener('click', showOperationMenu);
     document.getElementById('switchViewBtn').addEventListener('click', switchViewMode);
     document.querySelector('#operationMenuModal .close').addEventListener('click', closeOperationMenu);
-    
+
     // 操作菜单事件
     document.getElementById('undoBtn').addEventListener('click', undoStep);
     document.getElementById('clearBtn').addEventListener('click', clearStep);
     document.getElementById('addStepMenuBtn').addEventListener('click', addStepMenu);
     document.getElementById('copyStepBtn').addEventListener('click', copyStep);
     document.getElementById('pasteStepBtn').addEventListener('click', pasteStep);
-    
+
     // 结果展示事件
     document.getElementById('copyResultBtn').addEventListener('click', copyResult);
-    
+
     // 点击非模态框区域关闭模态框
     window.addEventListener('click', function (event) {
         const moreConfigModal = document.getElementById('moreConfigModal');
@@ -173,9 +188,12 @@ function loadPropertyCategoryList() {
     });
 
     // 绑定复选框事件
-    document.querySelectorAll('#propertyCategoryList input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', onPropertyCheckboxChange);
-    });
+    setTimeout(() => {
+        document.querySelectorAll('#propertyCategoryList input[type="checkbox"]').forEach(checkbox => {
+            checkbox.removeEventListener('change', onPropertyCheckboxChange);
+            checkbox.addEventListener('change', onPropertyCheckboxChange);
+        });
+    }, 0);
 }
 
 // 属性复选框变化事件
@@ -185,10 +203,13 @@ function onPropertyCheckboxChange(event) {
     const property = propertyManager.getProperty(propertyId);
 
     if (checkbox.checked) {
+        // 检查属性是否已经选择
+        const isAlreadySelected = selectedProperties.some(p => p.id === propertyId);
+
         // 添加到已选择属性
-        if (selectedProperties.length < 8) {
+        if (!isAlreadySelected && selectedProperties.length < 8) {
             selectedProperties.push(property);
-        } else {
+        } else if (!isAlreadySelected) {
             // 超过8个，取消选择
             checkbox.checked = false;
             alert('最多只能选择8个属性');
@@ -220,14 +241,13 @@ function updateTableHeader() {
 
 // 显示属性选择弹窗
 function showPropertySelection() {
-    // 清空之前的选择
-    selectedProperties = [];
-
     // 加载属性分类列表
     loadPropertyCategoryList();
 
-    // 更新已选择属性显示
-    updateSelectedPropertiesDisplay();
+    // 恢复之前的选择状态
+    setTimeout(() => {
+        restorePreviousSelections();
+    }, 10);
 
     // 显示弹窗
     document.getElementById('propertySelectionModal').classList.remove('hidden');
@@ -236,6 +256,20 @@ function showPropertySelection() {
 // 关闭属性选择弹窗
 function closePropertySelection() {
     document.getElementById('propertySelectionModal').classList.add('hidden');
+}
+
+// 恢复之前的选择状态
+function restorePreviousSelections() {
+    // 为已选择的属性勾选复选框
+    selectedProperties.forEach(property => {
+        const checkbox = document.querySelector(`#prop_${property.id}`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+    });
+
+    // 更新已选择属性显示
+    updateSelectedPropertiesDisplay();
 }
 
 // 确认属性选择
@@ -258,11 +292,13 @@ function updateSelectedPropertiesDisplay() {
     selectedCountElement.textContent = selectedProperties.length;
 
     selectedPropertiesDisplay.innerHTML = '';
-    selectedProperties.forEach(property => {
+    selectedProperties.forEach((property, index) => {
         const tag = document.createElement('div');
         tag.className = 'selected-property-tag';
         tag.innerHTML = `
             ${property.nameChsFull}${property.isPercentage ? '(%)' : ''}
+            <span class="move-property-left" data-index="${index}">◀</span>
+            <span class="move-property-right" data-index="${index}">▶</span>
             <span class="remove-property" data-property-id="${property.id}">×</span>
         `;
         selectedPropertiesDisplay.appendChild(tag);
@@ -282,6 +318,32 @@ function updateSelectedPropertiesDisplay() {
             const index = selectedProperties.findIndex(p => p.id === propertyId);
             if (index !== -1) {
                 selectedProperties.splice(index, 1);
+                updateSelectedPropertiesDisplay();
+            }
+        });
+    });
+
+    // 绑定左移事件
+    document.querySelectorAll('.move-property-left').forEach(button => {
+        button.addEventListener('click', function () {
+            const index = parseInt(this.dataset.index);
+            if (index > 0) {
+                // 交换位置
+                [selectedProperties[index], selectedProperties[index - 1]] =
+                    [selectedProperties[index - 1], selectedProperties[index]];
+                updateSelectedPropertiesDisplay();
+            }
+        });
+    });
+
+    // 绑定右移事件
+    document.querySelectorAll('.move-property-right').forEach(button => {
+        button.addEventListener('click', function () {
+            const index = parseInt(this.dataset.index);
+            if (index < selectedProperties.length - 1) {
+                // 交换位置
+                [selectedProperties[index], selectedProperties[index + 1]] =
+                    [selectedProperties[index + 1], selectedProperties[index]];
                 updateSelectedPropertiesDisplay();
             }
         });
@@ -371,8 +433,127 @@ function updateSuccessRate() {
 // 更新结果展示
 function updateResultDisplay() {
     const resultDisplay = document.getElementById('resultDisplay');
-    // TODO: 实现结果展示逻辑
-    resultDisplay.textContent = '附魔结果将在此显示';
+
+    // 如果没有步骤，显示默认信息
+    if (enchantRecord.enchantmentSteps.length === 0) {
+        resultDisplay.textContent = '暂无附魔结果';
+        return;
+    }
+
+    // 构建结果文本
+    let resultText = '';
+
+    // 1. 最终附魔的属性状态总览
+    resultText += '=== 最终属性状态 ===\n';
+    const finalProperties = enchantRecord.getCurrentProperties();
+    for (const propId in finalProperties) {
+        const property = propertyManager.getProperty(propId);
+        const value = finalProperties[propId];
+
+        // 只显示非零属性
+        if (value !== 0) {
+            resultText += `${property.nameChsFull}: ${value}${property.isPercentage ? '%' : ''}\n`;
+        }
+    }
+
+    resultText += '\n';
+
+    // 2. 基础信息
+    resultText += '=== 基础信息 ===\n';
+    resultText += `装备类型: ${enchantRecord.equipmentType.nameChsFull}\n`;
+    resultText += `装备潜力: ${enchantRecord.equipmentPotential}\n`;
+    resultText += `锻冶熟练度: ${enchantRecord.smithingLevel}\n`;
+
+    // 只有非默认值才显示
+    if (enchantRecord.baseEquipmentPotential !== 1) {
+        resultText += `基础潜力: ${enchantRecord.baseEquipmentPotential}\n`;
+    }
+
+    if (enchantRecord.anvilLevel !== 40) {
+        resultText += `铁砧技能等级: ${enchantRecord.anvilLevel}\n`;
+    }
+
+    if (enchantRecord.masterEnhancement2Level !== 10) {
+        resultText += `大师II等级: ${enchantRecord.masterEnhancement2Level}\n`;
+    }
+
+    // 理解技能等级
+    const understandingSkills = enchantRecord.understandingSkills;
+    let hasUnderstandingSkills = false;
+    let understandingText = '';
+
+    if (understandingSkills.metal !== 0) {
+        understandingText += `理解金属: ${understandingSkills.metal} `;
+        hasUnderstandingSkills = true;
+    }
+
+    if (understandingSkills.cloth !== 0) {
+        understandingText += `理解布料: ${understandingSkills.cloth} `;
+        hasUnderstandingSkills = true;
+    }
+
+    if (understandingSkills.beast !== 0) {
+        understandingText += `理解兽品: ${understandingSkills.beast} `;
+        hasUnderstandingSkills = true;
+    }
+
+    if (understandingSkills.wood !== 0) {
+        understandingText += `理解木材: ${understandingSkills.wood} `;
+        hasUnderstandingSkills = true;
+    }
+
+    if (understandingSkills.medicine !== 0) {
+        understandingText += `理解药品: ${understandingSkills.medicine} `;
+        hasUnderstandingSkills = true;
+    }
+
+    if (understandingSkills.mana !== 0) {
+        understandingText += `理解魔素: ${understandingSkills.mana} `;
+        hasUnderstandingSkills = true;
+    }
+
+    if (hasUnderstandingSkills) {
+        resultText += `理解技能: ${understandingText.trim()}\n`;
+    }
+
+    resultText += '\n';
+
+    // 3. 附魔总素材消耗
+    resultText += '=== 总素材消耗 ===\n';
+    const totalMaterialCosts = enchantRecord.finalTotalMaterialCosts;
+    if (totalMaterialCosts.metal > 0) resultText += `金属: ${totalMaterialCosts.metal}\n`;
+    if (totalMaterialCosts.cloth > 0) resultText += `布料: ${totalMaterialCosts.cloth}\n`;
+    if (totalMaterialCosts.beast > 0) resultText += `兽品: ${totalMaterialCosts.beast}\n`;
+    if (totalMaterialCosts.wood > 0) resultText += `木材: ${totalMaterialCosts.wood}\n`;
+    if (totalMaterialCosts.medicine > 0) resultText += `药品: ${totalMaterialCosts.medicine}\n`;
+    if (totalMaterialCosts.mana > 0) resultText += `魔素: ${totalMaterialCosts.mana}\n`;
+
+    if (Object.values(totalMaterialCosts).every(cost => cost === 0)) {
+        resultText += '无素材消耗\n';
+    }
+
+    resultText += '\n';
+
+    // 4. 附魔的所有步骤展示
+    resultText += '=== 附魔步骤 ===\n';
+    enchantRecord.enchantmentSteps.forEach((step, index) => {
+        resultText += `${index + 1}. 潜力: ${step.postEnchantmentPotential}\n`;
+
+        // 显示该步骤的属性变化
+        step.enchantments.forEach(enchantment => {
+            const property = enchantment.property;
+            const value = enchantment.value;
+
+            // 只显示非零变化
+            if (value !== 0) {
+                resultText += `   ${property.nameChsFull}: ${value > 0 ? '+' : ''}${value}${property.isPercentage ? '%' : ''}\n`;
+            }
+        });
+
+        resultText += '\n';
+    });
+
+    resultDisplay.textContent = resultText;
 }
 
 // 事件处理函数
@@ -496,8 +677,43 @@ function onAddStep() {
         return;
     }
 
-    // TODO: 实现增加属性值逻辑
-    alert('增加属性值功能待实现');
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const propertyId = selectedCell.dataset.propertyId;
+
+    // 检查是否是属性单元格
+    if (propertyId === undefined) {
+        alert('请选择一个属性单元格');
+        return;
+    }
+
+    // 获取当前步骤
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    if (!step) {
+        alert('未找到选中的步骤');
+        return;
+    }
+
+    // 查找对应的附魔属性
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    if (!enchantment) {
+        alert('未找到选中的属性');
+        return;
+    }
+
+    // 根据当前数量模式更新属性值
+    if (currentQuantity === 'max') {
+        // TODO: 实现max逻辑，暂时增加10作为示例
+        enchantment.value += 10;
+    } else {
+        enchantment.value += currentQuantity;
+    }
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
 }
 
 function onSubtractStep() {
@@ -506,8 +722,43 @@ function onSubtractStep() {
         return;
     }
 
-    // TODO: 实现减少属性值逻辑
-    alert('减少属性值功能待实现');
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const propertyId = selectedCell.dataset.propertyId;
+
+    // 检查是否是属性单元格
+    if (propertyId === undefined) {
+        alert('请选择一个属性单元格');
+        return;
+    }
+
+    // 获取当前步骤
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    if (!step) {
+        alert('未找到选中的步骤');
+        return;
+    }
+
+    // 查找对应的附魔属性
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    if (!enchantment) {
+        alert('未找到选中的属性');
+        return;
+    }
+
+    // 根据当前数量模式更新属性值
+    if (currentQuantity === 'max') {
+        // TODO: 实现max逻辑，暂时减少10作为示例
+        enchantment.value -= 10;
+    } else {
+        enchantment.value -= currentQuantity;
+    }
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
 }
 
 function switchViewMode() {
@@ -520,13 +771,38 @@ function switchViewMode() {
 }
 
 function addNewStep() {
-    // TODO: 实现添加新步骤逻辑
-    alert('添加新步骤功能待实现');
+    // 创建一个新的附魔步骤
+    const newStep = {
+        enchantments: selectedProperties.map(property => ({
+            property: property,
+            value: 0
+        }))
+    };
+
+    // 添加步骤到附魔记录中
+    enchantRecord.addEnchantmentStep(newStep);
+
+    // 更新显示
+    updateDisplay();
 }
 
 function undoStep() {
-    // TODO: 实现撤销步骤逻辑
-    alert('撤销步骤功能待实现');
+    // 检查是否有步骤可以撤销
+    if (enchantRecord.enchantmentSteps.length === 0) {
+        alert('没有可以撤销的步骤');
+        closeOperationMenu();
+        return;
+    }
+
+    // 获取最后一个步骤
+    const lastStep = enchantRecord.enchantmentSteps[enchantRecord.enchantmentSteps.length - 1];
+
+    // 删除最后一个步骤
+    enchantRecord.removeEnchantmentStep(lastStep.id);
+
+    // 更新显示
+    updateDisplay();
+
     closeOperationMenu();
 }
 
@@ -567,6 +843,20 @@ function pasteStep() {
 }
 
 function copyResult() {
-    // TODO: 实现复制结果逻辑
-    alert('复制结果功能待实现');
+    const resultDisplay = document.getElementById('resultDisplay');
+
+    // 创建一个临时的textarea元素用于复制
+    const textarea = document.createElement('textarea');
+    textarea.value = resultDisplay.textContent;
+    document.body.appendChild(textarea);
+
+    // 选择并复制文本
+    textarea.select();
+    document.execCommand('copy');
+
+    // 移除临时元素
+    document.body.removeChild(textarea);
+
+    // 提示用户
+    alert('结果已复制到剪贴板');
 }

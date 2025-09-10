@@ -144,6 +144,24 @@ body {
     background-color: #007B9A;
 }
 
+/* 添加确认按钮样式 */
+.confirm-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+}
+
+.confirm-btn:hover {
+    background-color: #45a049;
+}
+
 /* 属性选择弹窗样式 */
 .property-selection-modal {
     max-width: 800px;
@@ -223,10 +241,13 @@ body {
     align-items: center;
 }
 
-.selected-property-tag .remove-property {
+.selected-property-tag .remove-property,
+.selected-property-tag .move-property-left,
+.selected-property-tag .move-property-right {
     margin-left: 5px;
     cursor: pointer;
     font-weight: bold;
+    padding: 0 3px;
 }
 
 /* 工作区 */
