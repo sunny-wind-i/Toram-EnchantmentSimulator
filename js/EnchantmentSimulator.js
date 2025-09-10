@@ -1,7 +1,8 @@
-import EnchantRecord from "./modules/EnchantRecord.js";
-import PropertyManager from "./modules/PropertyManager.js";
-import EquipmentType from "./modules/EquipmentType.js";
-import EnchantType from "./modules/EnchantType.js";
+import EnchantRecord from './modules/EnchantRecord.js';
+import PropertyManager from './modules/PropertyManager.js';
+import { attrNumToActualNum } from './modules/PotentialCalculator.js';
+import EquipmentType from './modules/EquipmentType.js';
+import EnchantType from './modules/EnchantType.js';
 
 // 全局变量
 let enchantRecord = null;
@@ -88,12 +89,20 @@ function bindEvents() {
     // 悬浮工具栏事件
     document.getElementById('addStepBtn').addEventListener('click', onAddStep);
     document.getElementById('subtractStepBtn').addEventListener('click', onSubtractStep);
-    document.getElementById('quantity1Btn').addEventListener('click', () => setQuantity(1));
-    document.getElementById('quantity5Btn').addEventListener('click', () => setQuantity(5));
-    document.getElementById('quantityMaxBtn').addEventListener('click', () => setQuantity('max'));
+    document.getElementById('editPropertyBtn').addEventListener('click', showEditPropertyModal);
     document.getElementById('operationMenuBtn').addEventListener('click', showOperationMenu);
     document.getElementById('switchViewBtn').addEventListener('click', switchViewMode);
     document.querySelector('#operationMenuModal .close').addEventListener('click', closeOperationMenu);
+
+    // 绑定属性编辑弹窗事件
+    document.querySelector('#editPropertyModal .close').addEventListener('click', closeEditPropertyModal);
+    document.getElementById('minValueBtn').addEventListener('click', setMinValue);
+    document.getElementById('decreaseValueBtn').addEventListener('click', decreaseValue);
+    document.getElementById('increaseValueBtn').addEventListener('click', increaseValue);
+    document.getElementById('maxValueBtn').addEventListener('click', setMaxValue);
+    document.getElementById('propertyValueInput').addEventListener('input', onPropertyValueInput);
+    document.getElementById('propertyValueInput').addEventListener('change', onPropertyValueChanged);
+    document.getElementById('propertyValueSlider').addEventListener('input', onPropertyValueSliderChange);
 
     // 增加步骤选项事件
     document.getElementById('addStepMenuBtn').addEventListener('click', showAddStepOptions);
@@ -128,13 +137,14 @@ function bindEvents() {
     document.getElementById('pasteStepBelowBtn').addEventListener('click', pasteStepBelow);
 
     // 点击模态框外部关闭
-    document.addEventListener('click', function (event) {
+    document.addEventListener('click', function(event) {
         const operationMenuModal = document.getElementById('operationMenuModal');
         const clearOptionsModal = document.getElementById('clearOptionsModal');
         const addStepOptionsModal = document.getElementById('addStepOptionsModal');
         const pasteStepOptionsModal = document.getElementById('pasteStepOptionsModal');
         const propertySelectionModal = document.getElementById('propertySelectionModal');
         const viewModeModal = document.getElementById('viewModeModal');
+        const editPropertyModal = document.getElementById('editPropertyModal');
 
         if (event.target === operationMenuModal) {
             closeOperationMenu();
@@ -148,6 +158,8 @@ function bindEvents() {
             closePropertySelection();
         } else if (event.target === viewModeModal) {
             viewModeModal.classList.add('hidden');
+        } else if (event.target === editPropertyModal) {
+            closeEditPropertyModal();
         }
     });
 
@@ -483,7 +495,9 @@ function updateTableContent() {
                     const currentValue = step.currentProperties[property.id] || 0;
                     // 只有当属性值不为0时才显示
                     if (currentValue !== 0) {
-                        cell.textContent = currentValue;
+                        // 使用attrNumToActualNum转化数值
+                        const actualValue = attrNumToActualNum(property, currentValue);
+                        cell.textContent = actualValue;
                     } else {
                         cell.textContent = '';
                     }
@@ -508,7 +522,29 @@ function updateTableContent() {
                             const materialValues = [];
                             for (const key in materialCost) {
                                 if (materialCost[key] !== 0) {
-                                    materialValues.push(`${key}:${materialCost[key]}`);
+                                    // 使用中文表示素材类型
+                                    let materialName = key;
+                                    switch (key) {
+                                        case 'metal':
+                                            materialName = '金属';
+                                            break;
+                                        case 'cloth':
+                                            materialName = '布料';
+                                            break;
+                                        case 'beast':
+                                            materialName = '兽品';
+                                            break;
+                                        case 'wood':
+                                            materialName = '木材';
+                                            break;
+                                        case 'medicine':
+                                            materialName = '药品';
+                                            break;
+                                        case 'mana':
+                                            materialName = '魔素';
+                                            break;
+                                    }
+                                    materialValues.push(`${materialName}${materialCost[key]}`);
                                 }
                             }
                             cell.textContent = materialValues.length > 0 ? materialValues.join(', ') : '';
@@ -845,7 +881,7 @@ function closePasteStepOptions() {
 function undoStep() {
     // 检查是否有步骤可以撤销
     if (enchantRecord.enchantmentSteps.length === 0) {
-        alert('没有可以撤销的步骤');
+        showMessage('没有可以撤销的步骤');
         closeOperationMenu();
         return;
     }
@@ -863,13 +899,13 @@ function undoStep() {
 }
 
 function showClearOptions() {
-    closeOperationMenu();
+    closeClearOptions();
     document.getElementById('clearOptionsModal').classList.remove('hidden');
 }
 
 function clearCell() {
     if (!selectedCell) {
-        alert('请先选择一个单元格');
+        showMessage('请先选择一个单元格');
         closeClearOptions();
         return;
     }
@@ -880,7 +916,7 @@ function clearCell() {
 
     // 检查是否是属性单元格
     if (propertyId === undefined) {
-        alert('请选择一个属性单元格');
+        showMessage('请选择一个属性单元格');
         closeClearOptions();
         return;
     }
@@ -888,7 +924,7 @@ function clearCell() {
     // 获取当前步骤
     const step = enchantRecord.enchantmentSteps[stepIndex];
     if (!step) {
-        alert('未找到选中的步骤');
+        showMessage('未找到选中的步骤');
         closeClearOptions();
         return;
     }
@@ -896,7 +932,7 @@ function clearCell() {
     // 查找对应的附魔属性
     const enchantment = step.enchantments.find(e => e.property.id === propertyId);
     if (!enchantment) {
-        alert('未找到选中的属性');
+        showMessage('未找到选中的属性');
         closeClearOptions();
         return;
     }
@@ -915,7 +951,7 @@ function clearCell() {
 
 function clearStepValues() {
     if (!selectedCell) {
-        alert('请先选择一个单元格');
+        showMessage('请先选择一个单元格');
         closeClearOptions();
         return;
     }
@@ -926,7 +962,7 @@ function clearStepValues() {
     // 获取当前步骤
     const step = enchantRecord.enchantmentSteps[stepIndex];
     if (!step) {
-        alert('未找到选中的步骤');
+        showMessage('未找到选中的步骤');
         closeClearOptions();
         return;
     }
@@ -947,7 +983,7 @@ function clearStepValues() {
 
 function deleteStep() {
     if (!selectedCell) {
-        alert('请先选择一个单元格');
+        showMessage('请先选择一个单元格');
         closeClearOptions();
         return;
     }
@@ -958,7 +994,7 @@ function deleteStep() {
     // 获取当前步骤
     const step = enchantRecord.enchantmentSteps[stepIndex];
     if (!step) {
-        alert('未找到选中的步骤');
+        showMessage('未找到选中的步骤');
         closeClearOptions();
         return;
     }
@@ -979,7 +1015,7 @@ function deleteEmptySteps() {
     );
 
     if (emptySteps.length === 0) {
-        alert('没有空白步骤');
+        showMessage('没有空白步骤');
         closeClearOptions();
         return;
     }
@@ -1015,13 +1051,13 @@ function deleteAllSteps() {
 }
 
 function showAddStepOptions() {
-    closeOperationMenu();
+    closeAddStepOptions();
     document.getElementById('addStepOptionsModal').classList.remove('hidden');
 }
 
 function addStepAbove() {
     if (!selectedCell) {
-        alert('请先选择一个单元格');
+        showMessage('请先选择一个单元格');
         closeAddStepOptions();
         return;
     }
@@ -1068,7 +1104,7 @@ function addStepAbove() {
 
 function addStepBelow() {
     if (!selectedCell) {
-        alert('请先选择一个单元格');
+        showMessage('请先选择一个单元格');
         closeAddStepOptions();
         return;
     }
@@ -1131,7 +1167,7 @@ function addNewStepAtEnd() {
 
 function copyStep() {
     if (!selectedCell) {
-        alert('请先选择一个单元格');
+        showMessage('请先选择一个单元格');
         closeOperationMenu();
         return;
     }
@@ -1142,7 +1178,7 @@ function copyStep() {
     // 获取当前步骤
     const step = enchantRecord.enchantmentSteps[stepIndex];
     if (!step) {
-        alert('未找到选中的步骤');
+        showMessage('未找到选中的步骤');
         closeOperationMenu();
         return;
     }
@@ -1155,13 +1191,13 @@ function copyStep() {
         }))
     };
 
-    alert('步骤已复制');
+    showMessage('步骤已复制');
     closeOperationMenu();
 }
 
 function showPasteStepOptions() {
     if (!copiedStepData) {
-        alert('没有复制的步骤数据');
+        showMessage('没有复制的步骤数据');
         closeOperationMenu();
         return;
     }
@@ -1172,13 +1208,13 @@ function showPasteStepOptions() {
 
 function pasteStepAbove() {
     if (!selectedCell) {
-        alert('请先选择一个单元格');
+        showMessage('请先选择一个单元格');
         closePasteStepOptions();
         return;
     }
 
     if (!copiedStepData) {
-        alert('没有复制的步骤数据');
+        showMessage('没有复制的步骤数据');
         closePasteStepOptions();
         return;
     }
@@ -1186,7 +1222,7 @@ function pasteStepAbove() {
     // 获取粘贴次数
     const pasteCount = parseInt(document.getElementById('pasteCount').value);
     if (isNaN(pasteCount) || pasteCount <= 0) {
-        alert('粘贴次数必须为正整数');
+        showMessage('粘贴次数必须为正整数');
         return;
     }
 
@@ -1241,13 +1277,13 @@ function pasteStepAbove() {
 
 function pasteStepBelow() {
     if (!selectedCell) {
-        alert('请先选择一个单元格');
+        showMessage('请先选择一个单元格');
         closePasteStepOptions();
         return;
     }
 
     if (!copiedStepData) {
-        alert('没有复制的步骤数据');
+        showMessage('没有复制的步骤数据');
         closePasteStepOptions();
         return;
     }
@@ -1255,7 +1291,7 @@ function pasteStepBelow() {
     // 获取粘贴次数
     const pasteCount = parseInt(document.getElementById('pasteCount').value);
     if (isNaN(pasteCount) || pasteCount <= 0) {
-        alert('粘贴次数必须为正整数');
+        showMessage('粘贴次数必须为正整数');
         return;
     }
 
@@ -1310,7 +1346,7 @@ function pasteStepBelow() {
 
 function toggleIgnoreStep() {
     if (!selectedCell) {
-        alert('请先选择一个单元格');
+        showMessage('请先选择一个单元格');
         closeOperationMenu();
         return;
     }
@@ -1321,7 +1357,7 @@ function toggleIgnoreStep() {
     // 获取当前步骤
     const step = enchantRecord.enchantmentSteps[stepIndex];
     if (!step) {
-        alert('未找到选中的步骤');
+        showMessage('未找到选中的步骤');
         closeOperationMenu();
         return;
     }
@@ -1340,7 +1376,7 @@ function toggleIgnoreStep() {
 
 function onAddStep() {
     if (!selectedCell) {
-        alert('请先选择一个单元格');
+        showMessage('请先选择一个单元格');
         return;
     }
 
@@ -1350,53 +1386,39 @@ function onAddStep() {
 
     // 检查是否是属性单元格
     if (propertyId === undefined) {
-        alert('请选择一个属性单元格');
+        showMessage('请选择一个属性单元格');
         return;
     }
 
     // 获取当前步骤
     const step = enchantRecord.enchantmentSteps[stepIndex];
     if (!step) {
-        alert('未找到选中的步骤');
+        showMessage('未找到选中的步骤');
         return;
     }
 
     // 查找对应的附魔属性
     const enchantment = step.enchantments.find(e => e.property.id === propertyId);
     if (!enchantment) {
-        alert('未找到选中的属性');
+        showMessage('未找到选中的属性');
         return;
     }
 
-    // 根据当前数量模式更新属性值
-    if (currentQuantity === 'max') {
-        // 获取当前属性
-        const property = enchantment.property;
-
-        // 根据属性类型确定最大值
-        if (property.isPercentage) {
-            // 百分比属性最大值为100
-            enchantment.value = 100;
-        } else {
-            // 固定值属性最大值为1000
-            enchantment.value = 1000;
-        }
-    } else {
-        enchantment.value += currentQuantity;
-    }
+    // 增加属性值1
+    enchantment.value += 1;
 
     // 重新计算步骤
     enchantRecord.updateEnchantmentStep(step.id, step);
 
     // 更新显示并保持选中状态
     updateDisplay();
-
+    
     // 重新选中单元格
     setTimeout(() => {
         const tbody = document.querySelector('#enchantTable tbody');
         const cells = tbody.querySelectorAll('td');
         cells.forEach(cell => {
-            if (cell.dataset.stepIndex === stepIndex.toString() &&
+            if (cell.dataset.stepIndex === stepIndex.toString() && 
                 cell.dataset.propertyId === propertyId) {
                 cell.classList.add('selected');
                 selectedCell = cell;
@@ -1407,7 +1429,7 @@ function onAddStep() {
 
 function onSubtractStep() {
     if (!selectedCell) {
-        alert('请先选择一个单元格');
+        showMessage('请先选择一个单元格');
         return;
     }
 
@@ -1417,53 +1439,39 @@ function onSubtractStep() {
 
     // 检查是否是属性单元格
     if (propertyId === undefined) {
-        alert('请选择一个属性单元格');
+        showMessage('请选择一个属性单元格');
         return;
     }
 
     // 获取当前步骤
     const step = enchantRecord.enchantmentSteps[stepIndex];
     if (!step) {
-        alert('未找到选中的步骤');
+        showMessage('未找到选中的步骤');
         return;
     }
 
     // 查找对应的附魔属性
     const enchantment = step.enchantments.find(e => e.property.id === propertyId);
     if (!enchantment) {
-        alert('未找到选中的属性');
+        showMessage('未找到选中的属性');
         return;
     }
 
-    // 根据当前数量模式更新属性值
-    if (currentQuantity === 'max') {
-        // 获取当前属性
-        const property = enchantment.property;
-
-        // 根据属性类型确定最小值
-        if (property.isPercentage) {
-            // 百分比属性最小值为-100
-            enchantment.value = -100;
-        } else {
-            // 固定值属性最小值为-1000
-            enchantment.value = -1000;
-        }
-    } else {
-        enchantment.value -= currentQuantity;
-    }
+    // 减少属性值1
+    enchantment.value -= 1;
 
     // 重新计算步骤
     enchantRecord.updateEnchantmentStep(step.id, step);
 
     // 更新显示并保持选中状态
     updateDisplay();
-
+    
     // 重新选中单元格
     setTimeout(() => {
         const tbody = document.querySelector('#enchantTable tbody');
         const cells = tbody.querySelectorAll('td');
         cells.forEach(cell => {
-            if (cell.dataset.stepIndex === stepIndex.toString() &&
+            if (cell.dataset.stepIndex === stepIndex.toString() && 
                 cell.dataset.propertyId === propertyId) {
                 cell.classList.add('selected');
                 selectedCell = cell;
@@ -1532,6 +1540,40 @@ function createViewModeModal() {
     return modal;
 }
 
+// 显示消息提示函数
+function showMessage(message) {
+    // 创建消息元素
+    const messageElement = document.createElement('div');
+    messageElement.textContent = message;
+    messageElement.style.position = 'fixed';
+    messageElement.style.top = '20px';
+    messageElement.style.left = '50%';
+    messageElement.style.transform = 'translateX(-50%)';
+    messageElement.style.backgroundColor = '#333';
+    messageElement.style.color = 'white';
+    messageElement.style.padding = '10px 20px';
+    messageElement.style.borderRadius = '4px';
+    messageElement.style.zIndex = '1000';
+    messageElement.style.opacity = '0';
+    messageElement.style.transition = 'opacity 0.3s';
+
+    // 添加到页面
+    document.body.appendChild(messageElement);
+
+    // 显示消息
+    setTimeout(() => {
+        messageElement.style.opacity = '1';
+    }, 10);
+
+    // 3秒后移除消息
+    setTimeout(() => {
+        messageElement.style.opacity = '0';
+        setTimeout(() => {
+            document.body.removeChild(messageElement);
+        }, 300);
+    }, 3000);
+}
+
 function copyResult() {
     const resultDisplay = document.getElementById('resultDisplay');
 
@@ -1549,4 +1591,270 @@ function copyResult() {
 
     // 提示用户
     alert('结果已复制到剪贴板');
+}
+
+// 显示属性编辑弹窗
+function showEditPropertyModal() {
+    if (!selectedCell) {
+        showMessage('请先选择一个单元格');
+        return;
+    }
+
+    // 获取选中单元格的信息
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const propertyId = selectedCell.dataset.propertyId;
+
+    // 检查是否是属性单元格
+    if (propertyId === undefined) {
+        showMessage('请选择一个属性单元格');
+        return;
+    }
+
+    // 获取当前步骤
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    if (!step) {
+        showMessage('未找到选中的步骤');
+        return;
+    }
+
+    // 查找对应的附魔属性
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    if (!enchantment) {
+        showMessage('未找到选中的属性');
+        return;
+    }
+
+    // 获取当前属性
+    const property = enchantment.property;
+    
+    // 设置输入框的值
+    const valueInput = document.getElementById('propertyValueInput');
+    valueInput.value = enchantment.value;
+    
+    // 设置滑块的值和范围
+    const valueSlider = document.getElementById('propertyValueSlider');
+    valueSlider.value = enchantment.value;
+    
+    // 根据属性类型设置最大值和最小值
+    let minValue, maxValue;
+    if (property.isPercentage) {
+        minValue = -100;
+        maxValue = 100;
+    } else {
+        minValue = -1000;
+        maxValue = 1000;
+    }
+    
+    valueSlider.min = minValue;
+    valueSlider.max = maxValue;
+    
+    // 设置滑块标签
+    document.getElementById('minSliderValue').textContent = minValue;
+    document.getElementById('maxSliderValue').textContent = maxValue;
+    
+    // 显示实际属性值
+    const actualValue = attrNumToActualNum(property, enchantment.value);
+    document.getElementById('actualValueDisplay').textContent = actualValue;
+    
+    // 显示弹窗
+    document.getElementById('editPropertyModal').classList.remove('hidden');
+}
+
+// 关闭属性编辑弹窗
+function closeEditPropertyModal() {
+    document.getElementById('editPropertyModal').classList.add('hidden');
+}
+
+// 设置最小值
+function setMinValue() {
+    const valueInput = document.getElementById('propertyValueInput');
+    const valueSlider = document.getElementById('propertyValueSlider');
+    const propertyId = selectedCell.dataset.propertyId;
+    
+    // 获取当前步骤和属性
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    const property = enchantment.property;
+    
+    // 根据属性类型设置最小值
+    let minValue;
+    if (property.isPercentage) {
+        minValue = -100;
+    } else {
+        minValue = -1000;
+    }
+    
+    valueInput.value = minValue;
+    valueSlider.value = minValue;
+    
+    // 更新实际属性值显示
+    const actualValue = attrNumToActualNum(property, minValue);
+    document.getElementById('actualValueDisplay').textContent = actualValue;
+}
+
+// 减少值
+function decreaseValue() {
+    const valueInput = document.getElementById('propertyValueInput');
+    const valueSlider = document.getElementById('propertyValueSlider');
+    const propertyId = selectedCell.dataset.propertyId;
+    
+    // 获取当前步骤和属性
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    const property = enchantment.property;
+    
+    let currentValue = parseInt(valueInput.value) || 0;
+    currentValue -= 1;
+    
+    // 根据属性类型限制范围
+    if (property.isPercentage) {
+        currentValue = Math.max(currentValue, -100);
+    } else {
+        currentValue = Math.max(currentValue, -1000);
+    }
+    
+    valueInput.value = currentValue;
+    valueSlider.value = currentValue;
+    
+    // 更新实际属性值显示
+    const actualValue = attrNumToActualNum(property, currentValue);
+    document.getElementById('actualValueDisplay').textContent = actualValue;
+}
+
+// 增加值
+function increaseValue() {
+    const valueInput = document.getElementById('propertyValueInput');
+    const valueSlider = document.getElementById('propertyValueSlider');
+    const propertyId = selectedCell.dataset.propertyId;
+    
+    // 获取当前步骤和属性
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    const property = enchantment.property;
+    
+    let currentValue = parseInt(valueInput.value) || 0;
+    currentValue += 1;
+    
+    // 根据属性类型限制范围
+    if (property.isPercentage) {
+        currentValue = Math.min(currentValue, 100);
+    } else {
+        currentValue = Math.min(currentValue, 1000);
+    }
+    
+    valueInput.value = currentValue;
+    valueSlider.value = currentValue;
+    
+    // 更新实际属性值显示
+    const actualValue = attrNumToActualNum(property, currentValue);
+    document.getElementById('actualValueDisplay').textContent = actualValue;
+}
+
+// 设置最大值
+function setMaxValue() {
+    const valueInput = document.getElementById('propertyValueInput');
+    const valueSlider = document.getElementById('propertyValueSlider');
+    const propertyId = selectedCell.dataset.propertyId;
+    
+    // 获取当前步骤和属性
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    const property = enchantment.property;
+    
+    // 根据属性类型设置最大值
+    let maxValue;
+    if (property.isPercentage) {
+        maxValue = 100;
+    } else {
+        maxValue = 1000;
+    }
+    
+    valueInput.value = maxValue;
+    valueSlider.value = maxValue;
+    
+    // 更新实际属性值显示
+    const actualValue = attrNumToActualNum(property, maxValue);
+    document.getElementById('actualValueDisplay').textContent = actualValue;
+}
+
+// 输入框输入事件处理
+function onPropertyValueInput() {
+    const valueInput = document.getElementById('propertyValueInput');
+    const valueSlider = document.getElementById('propertyValueSlider');
+    const propertyId = selectedCell.dataset.propertyId;
+    
+    // 获取当前步骤和属性
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    const property = enchantment.property;
+    
+    let value = parseInt(valueInput.value);
+    
+    // 检查是否为有效数字
+    if (isNaN(value)) {
+        value = 0;
+    }
+    
+    // 根据属性类型限制范围
+    if (property.isPercentage) {
+        value = Math.max(Math.min(value, 100), -100);
+    } else {
+        value = Math.max(Math.min(value, 1000), -1000);
+    }
+    
+    // 更新输入框和滑块
+    valueInput.value = value;
+    valueSlider.value = value;
+    
+    // 更新实际属性值显示
+    const actualValue = attrNumToActualNum(property, value);
+    document.getElementById('actualValueDisplay').textContent = actualValue;
+}
+
+// 输入框值改变事件处理
+function onPropertyValueChanged() {
+    const valueInput = document.getElementById('propertyValueInput');
+    const propertyId = selectedCell.dataset.propertyId;
+    
+    // 获取当前步骤和属性
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    
+    // 更新属性值
+    const value = parseInt(valueInput.value) || 0;
+    enchantment.value = value;
+    
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+    
+    // 更新显示
+    updateDisplay();
+}
+
+// 滑块改变事件处理
+function onPropertyValueSliderChange() {
+    const valueSlider = document.getElementById('propertyValueSlider');
+    const valueInput = document.getElementById('propertyValueInput');
+    const propertyId = selectedCell.dataset.propertyId;
+    
+    // 获取当前步骤和属性
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    const property = enchantment.property;
+    
+    const value = parseInt(valueSlider.value);
+    
+    // 更新输入框和滑块
+    valueInput.value = value;
+    
+    // 更新实际属性值显示
+    const actualValue = attrNumToActualNum(property, value);
+    document.getElementById('actualValueDisplay').textContent = actualValue;
 }

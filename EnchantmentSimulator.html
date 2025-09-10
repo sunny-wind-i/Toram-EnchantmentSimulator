@@ -151,16 +151,39 @@
         <button id="addStepBtn" class="toolbar-btn">+</button>
         <button id="subtractStepBtn" class="toolbar-btn">-</button>
 
-        <div class="quantity-selector">
-            <button id="quantity1Btn" class="quantity-btn active" data-quantity="1">1</button>
-            <button id="quantity5Btn" class="quantity-btn" data-quantity="5">5</button>
-            <button id="quantityMaxBtn" class="quantity-btn" data-quantity="max">max</button>
-        </div>
+        <button id="editPropertyBtn" class="toolbar-btn">✎</button>
 
         <button id="operationMenuBtn" class="toolbar-btn">…</button>
         <button id="switchViewBtn" class="toolbar-btn">&lt;=&gt;</button>
         <div class="success-rate-display">
             成功率: <span id="successRateValue">100</span>%
+        </div>
+    </div>
+
+    <!-- 属性编辑弹窗 -->
+    <div id="editPropertyModal" class="modal hidden">
+        <div class="modal-content edit-property-modal">
+            <span class="close">&times;</span>
+            <h2>编辑属性值</h2>
+            <div class="property-info">
+                <div class="actual-value-display">
+                    实际属性值变化: <span id="actualValueDisplay"></span>
+                </div>
+                <div class="property-value-editor">
+                    <button id="minValueBtn" class="value-btn">⌊⌋</button>
+                    <button id="decreaseValueBtn" class="value-btn">-</button>
+                    <input type="number" id="propertyValueInput" class="property-value-input">
+                    <button id="increaseValueBtn" class="value-btn">+</button>
+                    <button id="maxValueBtn" class="value-btn">⌈⌉</button>
+                </div>
+                <div class="property-slider-container">
+                    <input type="range" id="propertyValueSlider" class="property-value-slider">
+                    <div class="slider-labels">
+                        <span id="minSliderValue"></span>
+                        <span id="maxSliderValue"></span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

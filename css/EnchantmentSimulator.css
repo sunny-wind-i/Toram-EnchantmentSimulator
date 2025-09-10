@@ -658,3 +658,78 @@ body {
     background-color: #ffe6e6;
     color: #ff0000;
 }
+
+/* 属性编辑弹窗 */
+.edit-property-modal {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 500px;
+}
+
+.edit-property-modal h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.property-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.actual-value-display {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.property-value-editor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.property-value-input {
+    width: 100px;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.value-btn {
+    padding: 8px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.value-btn:hover {
+    background-color: #0056b3;
+}
+
+.property-slider-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.property-value-slider {
+    width: 100%;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #666;
+}
