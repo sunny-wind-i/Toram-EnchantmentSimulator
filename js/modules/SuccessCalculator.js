@@ -23,13 +23,51 @@ export const calSingleSuccessRate = function (prePotential, postPotential, baseP
 
 /**
  * 计算期望成功率
- * @private
- * @param {number} successRate - 单次成功率
- * @param {Object} enchantmentStep - 附魔步骤对象
- * @returns {number} 期望成功率
+ * @param {number} singleSuccessRate - 单次成功率（百分号前的数字）
+ * @param {Object} currentProperties - 当前所有属性值
+ * @param {Object} enchantmentStep - 当前附魔步骤
+ * @param {number} masterEnhancement2Level - 大师级强化技术2等级
+ * @returns {number} 期望成功率（百分号前的数字，需要乘以100输出）
  */
-export const calExpectedSuccessRate = (successRate, enchantmentStep) => {
-    // TODO: 实现期望成功率计算逻辑
-    // 这里暂时返回单次成功率，后续需要根据具体需求完善
-    return successRate;
+export const calExpectedSuccessRate = (singleSuccessRate, currentProperties, enchantmentStep, masterEnhancement2Level) => {
+    // 创建包含当前步骤属性的完整属性列表
+    const propertiesWithCurrentStep = { ...currentProperties };
+
+    // 只有当步骤有效且未被忽略时才应用附魔
+    if (enchantmentStep.isValid && !enchantmentStep.isIgnored) {
+        for (const enchantment of enchantmentStep.enchantments) {
+            if (enchantment.property && propertiesWithCurrentStep.hasOwnProperty(enchantment.property.id)) {
+                propertiesWithCurrentStep[enchantment.property.id] += enchantment.value;
+            }
+        }
+    }
+
+    // 统计所有正属性的数量（值大于0的属性）
+    let positiveCount = 0;
+    for (const propId in propertiesWithCurrentStep) {
+        if (propertiesWithCurrentStep[propId] > 0) {
+            positiveCount++;
+        }
+    }
+
+    // 如果没有正属性，期望成功率为0
+    if (positiveCount === 0) {
+        return 0;
+    }
+
+    // 处理大师级强化技术2技能等级为10的情况（第一条正属性必定强制成功）
+    let calculatedPositiveCount = positiveCount;
+    if (masterEnhancement2Level === 10) {
+        // 第一条正属性必定成功，所以只需要计算剩下的正属性
+        calculatedPositiveCount = Math.max(0, positiveCount - 1);
+    }
+
+    // 将单条成功率从百分号前的数字转换为小数形式
+    const singleSuccessRateDecimal = singleSuccessRate / 100;
+
+    // 期望成功率 = (单条成功率)^正属性条数
+    const expectedSuccessRateDecimal = Math.pow(singleSuccessRateDecimal, calculatedPositiveCount);
+
+    // 转换回百分号前的数字形式并返回
+    return expectedSuccessRateDecimal * 100;
 }

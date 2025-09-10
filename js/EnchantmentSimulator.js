@@ -21,8 +21,6 @@ const record = new EnchantRecord({
     }
 });
 
-let potential = 114
-
 // 参考公式：https://www.taptap.cn/moment/641960089816665718
 // 暴击伤害+1% 力量+10% 暴击伤害+22 暴击率+28 ATK+14% MP自然回复-14 HP自然回复-28 回避-20
 const steps = [
@@ -80,7 +78,7 @@ const steps = [
             { property: PMProperties.AtkRate, value: 14 },
             { property: PMProperties.StrRate, value: 1 },
             { property: PMProperties.Critical, value: 8 },
-            { property: PMProperties.CriticalDmg, value: 18 }
+            { property: PMProperties.CriticalDmg, value: 19 }
         ]
     }
 ];

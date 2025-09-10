@@ -21,6 +21,7 @@ export default class EnchantRecord {
      * @param {number} config.baseEquipmentPotential - 装备基础潜力值
      * @param {number} config.smithingLevel - 玩家锻冶熟练度
      * @param {number} config.anvilLevel - 铁砧技能等级，默认为40
+     * @param {number} config.masterEnhancement2Level - 大师级强化技术2技能等级，默认为0
      * @param {Object} config.understandingSkills - 玩家理解技能等级对象
      * @param {number} config.understandingSkills.metal - 理解金属技能等级
      * @param {number} config.understandingSkills.cloth - 理解布料技能等级
@@ -37,6 +38,7 @@ export default class EnchantRecord {
         this.baseEquipmentPotential = config.baseEquipmentPotential || 1; // 装备基础潜力值
         this.smithingLevel = config.smithingLevel || 0; // 玩家锻冶熟练度
         this.anvilLevel = config.anvilLevel || 40; // 铁砧技能等级，默认为40
+        this.masterEnhancement2Level = config.masterEnhancement2Level || 10; // 大师级强化技术2技能等级，默认为10
 
         // 玩家"理解xx"技能等级（减少对应素材消耗量）
         this.understandingSkills = {
@@ -61,8 +63,8 @@ export default class EnchantRecord {
             mana: 0
         };
         this.finalRemainingPotential = this.equipmentPotential;
-        this.finalSingleSuccessRate = -1;
-        this.finalExpectedSuccessRate = this._calculateFinalExpectedSuccessRate();
+        this.finalSingleSuccessRate = null;
+        this.finalExpectedSuccessRate = null;
     }
 
     /**
@@ -90,6 +92,10 @@ export default class EnchantRecord {
                     value: enchant.value
                 };
             }),
+            // 添加ignored和valid属性，默认值分别为false和true
+            isIgnored: step.isIgnored || false, // 用户可以设置是否忽略该步骤
+            isValid: true, // 默认为有效步骤
+            invalidReason: null, // 无效原因
             totalMaterialCosts: {
                 metal: 0,
                 cloth: 0,
@@ -155,10 +161,15 @@ export default class EnchantRecord {
         );
 
         // 计算期望成功率（暂时为空函数）
-        const expectedSingleSuccessRate = calExpectedSuccessRate(
+        const expectedSuccessRate = calExpectedSuccessRate(
             singleSuccessRate,
-            enchantmentStep
+            currentProperties,
+            enchantmentStep, // 传递当前步骤对象
+            this.masterEnhancement2Level
         );
+
+        // 检查该步骤是否有效
+        this._checkStepValidity(enchantmentStep, preEnchantmentPotential, singleSuccessRate);
 
         // 完善附魔步骤对象，添加材料消耗、潜力值变化等信息
         enchantmentStep.materialCosts = materialCosts;
@@ -168,7 +179,7 @@ export default class EnchantRecord {
         enchantmentStep.potentialChange = potentialChange;
         enchantmentStep.multiplier = multiplier;
         enchantmentStep.singleSuccessRate = singleSuccessRate;
-        enchantmentStep.expectedSingleSuccessRate = expectedSingleSuccessRate;
+        enchantmentStep.expectedSuccessRate = expectedSuccessRate;
 
         // 将步骤添加到记录中
         this.enchantmentSteps.push(enchantmentStep);
@@ -177,6 +188,107 @@ export default class EnchantRecord {
         // 更新总材料消耗等汇总信息
         this._updateSummaryInfo();
         return stepId;
+    }
+
+    /**
+     * 检查步骤是否有效
+     * @param {Object} step - 附魔步骤对象
+     * @param {number} preEnchantmentPotential - 附魔前潜力值
+     * @param {number} singleSuccessRate - 单次成功率
+     * @private
+     */
+    _checkStepValidity(step, preEnchantmentPotential, singleSuccessRate) {
+        // 如果步骤被用户忽略，则标记为无效，原因为用户忽略
+        if (step.isIgnored) {
+            step.isValid = false;
+            step.invalidReason = '用户忽略';
+            return;
+        }
+
+        // 获取前一步骤
+        const previousStep = this.enchantmentSteps.length > 0 ?
+            this.enchantmentSteps[this.enchantmentSteps.length - 1] : null;
+
+        // 检查上一步是否无效
+        if (previousStep && !previousStep.isValid) {
+            step.isValid = false;
+            step.invalidReason = '上一步无效';
+            return;
+        }
+
+        // 获取已附魔的属性数量
+        const enchantedPropertiesCount = this.enchantmentSteps.length > 0 ?
+            Object.values(this.enchantmentSteps[this.enchantmentSteps.length - 1].enchantedProperties)
+                .filter(isEnchanted => isEnchanted).length : 0;
+
+        // 检查已附魔属性是否已满8条
+        if (enchantedPropertiesCount >= 8) {
+            step.isValid = false;
+            step.invalidReason = '已附魔属性已达8条上限';
+            return;
+        }
+
+        // 检查潜力值是否小于或等于0
+        if (preEnchantmentPotential <= 0) {
+            step.isValid = false;
+            step.invalidReason = '附魔前潜力值小于或等于0';
+            return;
+        }
+
+        // 检查单条成功率是否小于或等于0
+        if (singleSuccessRate <= 0) {
+            step.isValid = false;
+            step.invalidReason = '单条成功率小于或等于0';
+            return;
+        }
+
+        // 如果以上条件都不满足，则步骤有效
+        step.isValid = true;
+        step.invalidReason = null;
+    }
+
+    /**
+     * 设置步骤是否被忽略
+     * @param {string} stepId - 步骤ID
+     * @param {boolean} isIgnored - 是否忽略
+     */
+    setStepIgnored(stepId, isIgnored) {
+        const step = this.enchantmentSteps.find(step => step.id === stepId);
+        if (step) {
+            step.isIgnored = isIgnored;
+            // 重新计算所有步骤
+            this._recalculateAllSteps();
+        }
+    }
+
+    /**
+     * 获取步骤是否被忽略
+     * @param {string} stepId - 步骤ID
+     * @returns {boolean|null} 是否忽略，如果未找到步骤则返回null
+     */
+    isStepIgnored(stepId) {
+        const step = this.enchantmentSteps.find(step => step.id === stepId);
+        return step ? step.isIgnored : null;
+    }
+
+    /**
+     * 获取步骤是否有效
+     * @param {string} stepId - 步骤ID
+     * @returns {boolean|null} 是否有效，如果未找到步骤则返回null
+     */
+    isStepValid(stepId) {
+        const step = this.enchantmentSteps.find(step => step.id === stepId);
+        return step ? step.isValid : null;
+    }
+
+    /**
+     * 获取步骤无效原因
+     * @param {string} stepId - 步骤ID
+     * @returns {string|null} 无效原因，如果未找到步骤或步骤有效则返回null
+     */
+    getStepInvalidReason(stepId) {
+        const step = this.enchantmentSteps.find(step => step.id === stepId);
+        return step && !step.isValid ? step.invalidReason : null;
     }
 
     /**
@@ -199,6 +311,10 @@ export default class EnchantRecord {
                         value: enchant.value
                     };
                 }),
+                isIgnored: updatedStep.isIgnored !== undefined ? updatedStep.isIgnored : this.enchantmentSteps[stepIndex].isIgnored,
+                isValid: updatedStep.isValid !== undefined ? updatedStep.isValid : true,
+                invalidReason: updatedStep.invalidReason || null,
+
                 totalMaterialCosts: {
                     metal: 0,
                     cloth: 0,
@@ -338,6 +454,7 @@ export default class EnchantRecord {
         this.baseEquipmentPotential = data.baseEquipmentPotential || 0;
         this.smithingLevel = data.smithingLevel || 0;
         this.anvilLevel = data.anvilLevel || 40; // 导入铁砧技能等级，默认为40
+        this.masterEnhancement2Level = data.masterEnhancement2Level || 0; // 导入大师级强化技术2技能等级
 
         // 导入理解技能数据
         if (data.understandingSkills) {
@@ -356,6 +473,9 @@ export default class EnchantRecord {
                         value: enchant.value
                     };
                 }).filter(enchant => enchant.property), // 过滤掉无效的属性
+                isIgnored: step.isIgnored !== undefined ? step.isIgnored : false,
+                isValid: step.isValid !== undefined ? step.isValid : true,
+                invalidReason: step.invalidReason || null,
                 materialCosts: step.materialCosts,
                 perPropertyMaterialCosts: step.perPropertyMaterialCosts,
                 postEnchantmentPotential: step.postEnchantmentPotential,
@@ -363,7 +483,7 @@ export default class EnchantRecord {
                 potentialChange: step.potentialChange,
                 multiplier: step.multiplier,
                 singleSuccessRate: step.singleSuccessRate,
-                expectedSingleSuccessRate: step.expectedSingleSuccessRate,
+                expectedSuccessRate: step.expectedSuccessRate,
                 totalMaterialCosts: step.totalMaterialCosts || {
                     metal: 0,
                     cloth: 0,
@@ -405,6 +525,7 @@ export default class EnchantRecord {
             baseEquipmentPotential: this.baseEquipmentPotential,
             smithingLevel: this.smithingLevel,
             anvilLevel: this.anvilLevel, // 导出铁砧技能等级
+            masterEnhancement2Level: this.masterEnhancement2Level, // 导出大师级强化技术2技能等级
             understandingSkills: { ...this.understandingSkills },
             enchantmentSteps: this.enchantmentSteps.map(step => ({
                 id: step.id,
@@ -413,6 +534,9 @@ export default class EnchantRecord {
                     propertyId: enchant.property?.id,
                     value: enchant.value
                 })).filter(enchant => enchant.propertyId), // 过滤掉无效的属性
+                isIgnored: step.isIgnored,
+                isValid: step.isValid,
+                invalidReason: step.invalidReason,
                 materialCosts: step.materialCosts,
                 perPropertyMaterialCosts: step.perPropertyMaterialCosts,
                 postEnchantmentPotential: step.postEnchantmentPotential,
@@ -420,9 +544,10 @@ export default class EnchantRecord {
                 potentialChange: step.potentialChange,
                 multiplier: step.multiplier,
                 singleSuccessRate: step.singleSuccessRate,
-                expectedSingleSuccessRate: step.expectedSingleSuccessRate,
+                expectedSuccessRate: step.expectedSuccessRate,
                 totalMaterialCosts: step.totalMaterialCosts
             })),
+
             // 导出汇总信息
             finalTotalMaterialCosts: this.finalTotalMaterialCosts,
             finalRemainingPotential: this.finalRemainingPotential,
@@ -480,16 +605,19 @@ export default class EnchantRecord {
                 enchantedProperties = { ...this.enchantmentSteps[i - 1].enchantedProperties };
             }
 
-            // 应用当前步骤的附魔
-            for (const enchantment of step.enchantments) {
-                // 检查属性对象是否存在
-                if (enchantment.property && currentProperties.hasOwnProperty(enchantment.property.id)) {
-                    // 如果有附魔值变化，则标记该属性为已附魔
-                    if (enchantment.value !== 0) {
-                        enchantedProperties[enchantment.property.id] = true;
-                    }
+            // 只有当步骤有效且未被忽略时才应用附魔
+            if (step.isValid && !step.isIgnored) {
+                // 应用当前步骤的附魔
+                for (const enchantment of step.enchantments) {
+                    // 检查属性对象是否存在
+                    if (enchantment.property && currentProperties.hasOwnProperty(enchantment.property.id)) {
+                        // 如果有附魔值变化，则标记该属性为已附魔
+                        if (enchantment.value !== 0) {
+                            enchantedProperties[enchantment.property.id] = true;
+                        }
 
-                    currentProperties[enchantment.property.id] += enchantment.value;
+                        currentProperties[enchantment.property.id] += enchantment.value;
+                    }
                 }
             }
 
@@ -588,29 +716,18 @@ export default class EnchantRecord {
             // 直接从最后一步获取已经计算好的成功率
             this.finalSingleSuccessRate = this.enchantmentSteps[this.enchantmentSteps.length - 1].singleSuccessRate;
         } else {
-            // 如果没有步骤，返回-1
-            this.finalSingleSuccessRate = -1
+            // 如果没有步骤，返回null
+            this.finalSingleSuccessRate = null
         }
 
         // 计算最终期望成功率
         if (this.enchantmentSteps.length > 0) {
             // 直接从最后一步获取已经计算好的期望成功率
-            this.finalExpectedSuccessRate = this.enchantmentSteps[this.enchantmentSteps.length - 1].expectedSingleSuccessRate;
+            this.finalExpectedSuccessRate = this.enchantmentSteps[this.enchantmentSteps.length - 1].expectedSuccessRate;
         } else {
-            // 如果没有步骤，返回-1
-            this.finalExpectedSuccessRate = -1;
+            // 如果没有步骤，返回null
+            this.finalExpectedSuccessRate = null;
         }
-    }
-
-    /**
-     * 计算最终期望成功率
-     * @private
-     * @returns {number} 最终期望成功率
-     */
-    _calculateFinalExpectedSuccessRate() {
-        // TODO: 实现最终期望成功率计算逻辑
-        // 这里暂时返回最终单次成功率，后续需要根据具体需求完善
-        return this.finalSingleSuccessRate || 0;
     }
 
     /**
