@@ -523,10 +523,9 @@ function updateTableContent() {
 
                     // 只有当属性值发生变化时才显示
                     if (currentValue !== previousValue) {
-                        // 使用attrNumToActualNum转化数值
+                        // 使用attrNumToActualNum转化数值，直接显示附魔后的值
                         const actualCurrentValue = attrNumToActualNum(property, currentValue);
-                        const actualPreviousValue = attrNumToActualNum(property, previousValue);
-                        cell.textContent = `${actualPreviousValue} → ${actualCurrentValue}`;
+                        cell.textContent = actualCurrentValue;
                     } else {
                         cell.textContent = '';
                     }
@@ -878,12 +877,12 @@ function onTableTouchEnd(event) {
 
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
-    
+
     // 检查是否为同一单元格且时间间隔小于300ms
     if (lastTapCell === cell && tapLength < 300 && tapLength > 0) {
         // 触发双击事件
         event.preventDefault();
-        
+
         // 移除之前选中的样式
         if (selectedCell) {
             selectedCell.classList.remove('selected');
@@ -900,7 +899,7 @@ function onTableTouchEnd(event) {
         if (selectedCell.dataset.propertyId !== undefined) {
             showEditPropertyModal();
         }
-        
+
         // 重置计时器
         lastTap = 0;
         lastTapCell = null;
@@ -908,7 +907,7 @@ function onTableTouchEnd(event) {
         // 单击处理
         lastTap = currentTime;
         lastTapCell = cell;
-        
+
         // 移除之前选中的样式
         if (selectedCell) {
             selectedCell.classList.remove('selected');
@@ -1730,14 +1729,16 @@ function showEditPropertyModal() {
 
     // 获取当前属性
     const property = enchantment.property;
-    
+
     // 设置输入框的值
     const valueInput = document.getElementById('propertyValueInput');
-    valueInput.value = enchantment.value;
+    // 从currentProperties中获取对应属性的值作为默认值
+    const currentPropertyValue = step.currentProperties[propertyId] || 0;
+    valueInput.value = currentPropertyValue;
 
     // 设置滑块的值和范围
     const valueSlider = document.getElementById('propertyValueSlider');
-    valueSlider.value = enchantment.value;
+    valueSlider.value = currentPropertyValue;
 
     // 根据属性类型设置最大值和最小值（使用calAttrMaxLimit和calAttrMinLimit函数）
     const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
@@ -1751,16 +1752,18 @@ function showEditPropertyModal() {
     document.getElementById('maxSliderValue').textContent = maxValue;
 
     // 显示变化量范围
-    const actualValue = attrNumToActualNum(property, enchantment.value);
     // 获取上一步的属性值
-    let previousValue = 0;
+    let previousPropertyValue = 0;
     if (stepIndex > 0) {
         const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
-        previousValue = previousStep.currentProperties[propertyId] || 0;
+        previousPropertyValue = previousStep.currentProperties[propertyId] || 0;
     }
-    const actualPreviousValue = attrNumToActualNum(property, previousValue);
+    
+    // 获取当前步骤的目标属性值
+    const targetPropertyValue = step.currentProperties[propertyId] || 0;
+    
     document.getElementById('actualValueDisplay').textContent = 
-        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${previousPropertyValue} → ${targetPropertyValue}`;
 
     // 显示弹窗
     document.getElementById('editPropertyModal').classList.remove('hidden');
@@ -1791,18 +1794,20 @@ function setMinValue() {
 
     // 更新实际属性值显示
     const actualValue = attrNumToActualNum(property, minValue);
-    // 获取上一步的属性值
-    let previousValue = 0;
+    // 获取上一步的属性值（用于显示和计算变化值）
+    let previousStepPropertyValue = 0;
     if (stepIndex > 0) {
         const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
-        previousValue = previousStep.currentProperties[propertyId] || 0;
+        previousStepPropertyValue = previousStep.currentProperties[propertyId] || 0;
     }
-    const actualPreviousValue = attrNumToActualNum(property, previousValue);
+    const actualPreviousStepValue = attrNumToActualNum(property, previousStepPropertyValue);
     document.getElementById('actualValueDisplay').textContent = 
-        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousStepValue} → ${actualValue}`;
 
+    // 计算属性变化值（目标值 - 上一步中该属性的值）
+    const valueChange = minValue - previousStepPropertyValue;
     // 实时更新属性值
-    enchantment.value = minValue;
+    enchantment.value = valueChange;
 
     // 重新计算步骤
     enchantRecord.updateEnchantmentStep(step.id, step);
@@ -1823,30 +1828,34 @@ function decreaseValue() {
     const enchantment = step.enchantments.find(e => e.property.id === propertyId);
     const property = enchantment.property;
 
-    let currentValue = parseInt(valueInput.value) || 0;
-    currentValue -= 1;
-
-    // 根据属性类型限制范围（使用calAttrMinLimit函数）
-    const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
-    currentValue = Math.max(currentValue, minValue);
-
-    valueInput.value = currentValue;
-    valueSlider.value = currentValue;
-
-    // 更新实际属性值显示
-    const actualValue = attrNumToActualNum(property, currentValue);
     // 获取上一步的属性值
-    let previousValue = 0;
+    let previousStepPropertyValue = 0;
     if (stepIndex > 0) {
         const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
-        previousValue = previousStep.currentProperties[propertyId] || 0;
+        previousStepPropertyValue = previousStep.currentProperties[propertyId] || 0;
     }
-    const actualPreviousValue = attrNumToActualNum(property, previousValue);
-    document.getElementById('actualValueDisplay').textContent = 
-        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+    
+    // 基于上一步的属性值减少指定数量的值
+    let targetValue = previousStepPropertyValue - currentQuantity;
 
+    // 根据属性类型限制范围（使用calAttrMaxLimit和calAttrMinLimit函数）
+    const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
+    const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
+    targetValue = Math.max(targetValue, minValue);
+
+    valueInput.value = targetValue;
+    valueSlider.value = targetValue;
+
+    // 更新实际属性值显示
+    const actualValue = attrNumToActualNum(property, targetValue);
+    const actualPreviousStepValue = attrNumToActualNum(property, previousStepPropertyValue);
+    document.getElementById('actualValueDisplay').textContent =
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousStepValue} → ${actualValue}`;
+
+    // 计算属性变化值（目标值 - 上一步中该属性的值）
+    const valueChange = targetValue - previousStepPropertyValue;
     // 实时更新属性值
-    enchantment.value = currentValue;
+    enchantment.value = valueChange;
 
     // 重新计算步骤
     enchantRecord.updateEnchantmentStep(step.id, step);
@@ -1867,30 +1876,34 @@ function increaseValue() {
     const enchantment = step.enchantments.find(e => e.property.id === propertyId);
     const property = enchantment.property;
 
-    let currentValue = parseInt(valueInput.value) || 0;
-    currentValue += 1;
-
-    // 根据属性类型限制范围（使用calAttrMaxLimit函数）
-    const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
-    currentValue = Math.min(currentValue, maxValue);
-
-    valueInput.value = currentValue;
-    valueSlider.value = currentValue;
-
-    // 更新实际属性值显示
-    const actualValue = attrNumToActualNum(property, currentValue);
     // 获取上一步的属性值
-    let previousValue = 0;
+    let previousStepPropertyValue = 0;
     if (stepIndex > 0) {
         const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
-        previousValue = previousStep.currentProperties[propertyId] || 0;
+        previousStepPropertyValue = previousStep.currentProperties[propertyId] || 0;
     }
-    const actualPreviousValue = attrNumToActualNum(property, previousValue);
-    document.getElementById('actualValueDisplay').textContent = 
-        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+    
+    // 基于上一步的属性值增加指定数量的值
+    let targetValue = previousStepPropertyValue + currentQuantity;
 
+    // 根据属性类型限制范围（使用calAttrMaxLimit和calAttrMinLimit函数）
+    const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
+    const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
+    targetValue = Math.min(targetValue, maxValue);
+
+    valueInput.value = targetValue;
+    valueSlider.value = targetValue;
+
+    // 更新实际属性值显示
+    const actualValue = attrNumToActualNum(property, targetValue);
+    const actualPreviousStepValue = attrNumToActualNum(property, previousStepPropertyValue);
+    document.getElementById('actualValueDisplay').textContent =
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousStepValue} → ${actualValue}`;
+
+    // 计算属性变化值（目标值 - 上一步中该属性的值）
+    const valueChange = targetValue - previousStepPropertyValue;
     // 实时更新属性值
-    enchantment.value = currentValue;
+    enchantment.value = valueChange;
 
     // 重新计算步骤
     enchantRecord.updateEnchantmentStep(step.id, step);
@@ -1919,57 +1932,20 @@ function setMaxValue() {
 
     // 更新实际属性值显示
     const actualValue = attrNumToActualNum(property, maxValue);
-    // 获取上一步的属性值
-    let previousValue = 0;
+    // 获取上一步的属性值（用于显示和计算变化值）
+    let previousStepPropertyValue = 0;
     if (stepIndex > 0) {
         const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
-        previousValue = previousStep.currentProperties[propertyId] || 0;
+        previousStepPropertyValue = previousStep.currentProperties[propertyId] || 0;
     }
-    const actualPreviousValue = attrNumToActualNum(property, previousValue);
-    document.getElementById('actualValueDisplay').textContent = 
-        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+    const actualPreviousStepValue = attrNumToActualNum(property, previousStepPropertyValue);
+    document.getElementById('actualValueDisplay').textContent =
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousStepValue} → ${actualValue}`;
 
+    // 计算属性变化值（目标值 - 上一步中该属性的值）
+    const valueChange = maxValue - previousStepPropertyValue;
     // 实时更新属性值
-    enchantment.value = maxValue;
-
-    // 重新计算步骤
-    enchantRecord.updateEnchantmentStep(step.id, step);
-
-    // 更新显示
-    updateDisplay();
-}
-
-// 滑块改变事件处理
-function onPropertyValueSliderChange() {
-    const valueSlider = document.getElementById('propertyValueSlider');
-    const valueInput = document.getElementById('propertyValueInput');
-    const propertyId = selectedCell.dataset.propertyId;
-
-    // 获取当前步骤和属性
-    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
-    const step = enchantRecord.enchantmentSteps[stepIndex];
-    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
-    const property = enchantment.property;
-
-    const value = parseInt(valueSlider.value);
-
-    // 更新输入框和滑块
-    valueInput.value = value;
-
-    // 更新实际属性值显示
-    const actualValue = attrNumToActualNum(property, value);
-    // 获取上一步的属性值
-    let previousValue = 0;
-    if (stepIndex > 0) {
-        const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
-        previousValue = previousStep.currentProperties[propertyId] || 0;
-    }
-    const actualPreviousValue = attrNumToActualNum(property, previousValue);
-    document.getElementById('actualValueDisplay').textContent = 
-        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
-
-    // 实时更新属性值
-    enchantment.value = value;
+    enchantment.value = valueChange;
 
     // 重新计算步骤
     enchantRecord.updateEnchantmentStep(step.id, step);
@@ -1979,8 +1955,8 @@ function onPropertyValueSliderChange() {
 }
 
 // 输入框输入事件处理
-function onPropertyValueInput() {
-    const valueInput = document.getElementById('propertyValueInput');
+function onPropertyValueInput(event) {
+    const valueInput = event.target;
     const valueSlider = document.getElementById('propertyValueSlider');
     const propertyId = selectedCell.dataset.propertyId;
 
@@ -1990,36 +1966,34 @@ function onPropertyValueInput() {
     const enchantment = step.enchantments.find(e => e.property.id === propertyId);
     const property = enchantment.property;
 
-    let value = parseInt(valueInput.value);
-
-    // 检查是否为有效数字
-    if (isNaN(value)) {
-        value = 0;
-    }
+    // 获取输入的值
+    let targetValue = parseInt(valueInput.value);
 
     // 根据属性类型限制范围（使用calAttrMaxLimit和calAttrMinLimit函数）
     const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
     const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
-    value = Math.max(Math.min(value, maxValue), minValue);
+    targetValue = Math.max(targetValue, minValue);
+    targetValue = Math.min(targetValue, maxValue);
 
-    // 更新输入框和滑块
-    valueInput.value = value;
-    valueSlider.value = value;
+    valueInput.value = targetValue;
+    valueSlider.value = targetValue;
 
     // 更新实际属性值显示
-    const actualValue = attrNumToActualNum(property, value);
-    // 获取上一步的属性值
-    let previousValue = 0;
+    const actualValue = attrNumToActualNum(property, targetValue);
+    // 获取上一步的属性值（用于显示和计算变化值）
+    let previousStepPropertyValue = 0;
     if (stepIndex > 0) {
         const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
-        previousValue = previousStep.currentProperties[propertyId] || 0;
+        previousStepPropertyValue = previousStep.currentProperties[propertyId] || 0;
     }
-    const actualPreviousValue = attrNumToActualNum(property, previousValue);
-    document.getElementById('actualValueDisplay').textContent = 
-        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+    const actualPreviousStepValue = attrNumToActualNum(property, previousStepPropertyValue);
+    document.getElementById('actualValueDisplay').textContent =
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousStepValue} → ${actualValue}`;
 
+    // 计算属性变化值（目标值 - 上一步中该属性的值）
+    const valueChange = targetValue - previousStepPropertyValue;
     // 实时更新属性值
-    enchantment.value = value;
+    enchantment.value = valueChange;
 
     // 重新计算步骤
     enchantRecord.updateEnchantmentStep(step.id, step);
@@ -2028,9 +2002,98 @@ function onPropertyValueInput() {
     updateDisplay();
 }
 
-// 输入框值改变事件处理
-function onPropertyValueChanged() {
-    // 移除重复的更新逻辑，因为已经在onPropertyValueInput中处理了
-    // 这里只需要关闭弹窗
-    closeEditPropertyModal();
+// 输入框变化事件处理
+function onPropertyValueChanged(event) {
+    const valueInput = event.target;
+    const valueSlider = document.getElementById('propertyValueSlider');
+    const propertyId = selectedCell.dataset.propertyId;
+
+    // 获取当前步骤和属性
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    const property = enchantment.property;
+
+    // 获取输入的值
+    let targetValue = parseInt(valueInput.value);
+
+    // 根据属性类型限制范围（使用calAttrMaxLimit和calAttrMinLimit函数）
+    const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
+    const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
+    targetValue = Math.max(targetValue, minValue);
+    targetValue = Math.min(targetValue, maxValue);
+
+    valueInput.value = targetValue;
+    valueSlider.value = targetValue;
+
+    // 更新实际属性值显示
+    const actualValue = attrNumToActualNum(property, targetValue);
+    // 获取上一步的属性值（用于显示和计算变化值）
+    let previousStepPropertyValue = 0;
+    if (stepIndex > 0) {
+        const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
+        previousStepPropertyValue = previousStep.currentProperties[propertyId] || 0;
+    }
+    const actualPreviousStepValue = attrNumToActualNum(property, previousStepPropertyValue);
+    document.getElementById('actualValueDisplay').textContent =
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousStepValue} → ${actualValue}`;
+
+    // 计算属性变化值（目标值 - 上一步中该属性的值）
+    const valueChange = targetValue - previousStepPropertyValue;
+    // 实时更新属性值
+    enchantment.value = valueChange;
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
+}
+
+// 滑块变化事件处理
+function onPropertyValueSliderChange(event) {
+    const valueSlider = event.target;
+    const valueInput = document.getElementById('propertyValueInput');
+    const propertyId = selectedCell.dataset.propertyId;
+
+    // 获取当前步骤和属性
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    const property = enchantment.property;
+
+    // 获取滑块的值
+    let targetValue = parseInt(valueSlider.value);
+
+    // 根据属性类型限制范围（使用calAttrMaxLimit和calAttrMinLimit函数）
+    const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
+    const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
+    targetValue = Math.max(targetValue, minValue);
+    targetValue = Math.min(targetValue, maxValue);
+
+    valueInput.value = targetValue;
+    valueSlider.value = targetValue;
+
+    // 更新实际属性值显示
+    const actualValue = attrNumToActualNum(property, targetValue);
+    // 获取上一步的属性值（用于显示和计算变化值）
+    let previousStepPropertyValue = 0;
+    if (stepIndex > 0) {
+        const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
+        previousStepPropertyValue = previousStep.currentProperties[propertyId] || 0;
+    }
+    const actualPreviousStepValue = attrNumToActualNum(property, previousStepPropertyValue);
+    document.getElementById('actualValueDisplay').textContent =
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousStepValue} → ${actualValue}`;
+
+    // 计算属性变化值（目标值 - 上一步中该属性的值）
+    const valueChange = targetValue - previousStepPropertyValue;
+    // 实时更新属性值
+    enchantment.value = valueChange;
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
 }

@@ -4,6 +4,7 @@ import EnchantType from './EnchantType.js';
 import { calPostEnchantmentPotentialChanges } from './PotentialCalculator.js';
 import { calSingleSuccessRate, calExpectedSuccessRate } from './SuccessCalculator.js';
 import { calEnchantmentStepMaterialCost } from './MaterialCalculator.js';
+import { calAttrMaxLimit, calAttrMinLimit } from './PotentialCalculator.js';
 
 /**
  * 附魔模拟类，用于管理整个附魔过程的数据结构
@@ -254,10 +255,15 @@ export default class EnchantRecord {
             return;
         }
 
-        // 检查属性是否超出限制
-        const propertiesWithCurrentStep = { ...step.currentProperties };
-        // 只有当步骤有效且未被忽略时才应用附魔
-        if (step.isValid && !step.isIgnored) {
+        // 获取当前属性值（基于上一步的结果）
+        const currentProperties = this.enchantmentSteps.length > 0 ?
+            { ...this.enchantmentSteps[this.enchantmentSteps.length - 1].currentProperties } :
+            this.getCurrentProperties();
+
+        // 计算应用当前步骤附魔后的属性值
+        const propertiesWithCurrentStep = { ...currentProperties };
+        // 只有当步骤未被忽略时才应用附魔
+        if (!step.isIgnored) {
             for (const enchantment of step.enchantments) {
                 if (enchantment.property && propertiesWithCurrentStep.hasOwnProperty(enchantment.property.id)) {
                     propertiesWithCurrentStep[enchantment.property.id] += enchantment.value;
@@ -316,7 +322,7 @@ export default class EnchantRecord {
             if (property &&
                 (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION)) { // 属性觉醒类型
                 // 获取该属性在上一步的值
-                const previousValue = step.currentProperties[property.id] || 0;
+                const previousValue = currentProperties[property.id] || 0;
                 const currentValue = previousValue + enchantment.value;
 
                 // 如果属性值减少，则步骤无效
@@ -455,7 +461,7 @@ export default class EnchantRecord {
                 isValid: stepData.isValid !== undefined ? stepData.isValid : true,
                 invalidReason: stepData.invalidReason || null
             };
-            
+
             // 添加步骤并触发重新计算
             this.addEnchantmentStep(newStep);
         }
@@ -740,7 +746,7 @@ export default class EnchantRecord {
 
             // 检查步骤是否为空（所有属性值都为0）
             const isEmptyStep = step.enchantments.every(e => e.value === 0);
-            
+
             // 只有当步骤有效且未被忽略且不为空时才应用附魔
             if (step.isValid && !step.isIgnored && !isEmptyStep) {
                 // 应用当前步骤的附魔
