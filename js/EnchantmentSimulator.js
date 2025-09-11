@@ -1836,7 +1836,9 @@ function decreaseValue() {
     }
 
     // 获取输入框中的当前值
-    let targetValue = parseInt(valueInput.value) || previousStepPropertyValue;
+    let inputValue = parseInt(valueInput.value);
+    // 正确处理输入框值为0的情况
+    let targetValue = (isNaN(inputValue)) ? previousStepPropertyValue : inputValue;
 
     // 对输入框中的值进行减一操作
     targetValue -= currentQuantity;
@@ -1845,6 +1847,7 @@ function decreaseValue() {
     const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
     const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
     targetValue = Math.max(targetValue, minValue);
+    targetValue = Math.min(targetValue, maxValue);
 
     valueInput.value = targetValue;
     valueSlider.value = targetValue;
@@ -1887,7 +1890,9 @@ function increaseValue() {
     }
 
     // 获取输入框中的当前值
-    let targetValue = parseInt(valueInput.value) || previousStepPropertyValue;
+    let inputValue = parseInt(valueInput.value);
+    // 正确处理输入框值为0的情况
+    let targetValue = (isNaN(inputValue)) ? previousStepPropertyValue : inputValue;
 
     // 对输入框中的值进行加一操作
     targetValue += currentQuantity;
@@ -1895,6 +1900,7 @@ function increaseValue() {
     // 根据属性类型限制范围（使用calAttrMaxLimit和calAttrMinLimit函数）
     const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
     const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
+    targetValue = Math.max(targetValue, minValue);
     targetValue = Math.min(targetValue, maxValue);
 
     valueInput.value = targetValue;
