@@ -1758,11 +1758,11 @@ function showEditPropertyModal() {
         const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
         previousPropertyValue = previousStep.currentProperties[propertyId] || 0;
     }
-    
+
     // 获取当前步骤的目标属性值
     const targetPropertyValue = step.currentProperties[propertyId] || 0;
-    
-    document.getElementById('actualValueDisplay').textContent = 
+
+    document.getElementById('actualValueDisplay').textContent =
         `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${previousPropertyValue} → ${targetPropertyValue}`;
 
     // 显示弹窗
@@ -1801,7 +1801,7 @@ function setMinValue() {
         previousStepPropertyValue = previousStep.currentProperties[propertyId] || 0;
     }
     const actualPreviousStepValue = attrNumToActualNum(property, previousStepPropertyValue);
-    document.getElementById('actualValueDisplay').textContent = 
+    document.getElementById('actualValueDisplay').textContent =
         `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousStepValue} → ${actualValue}`;
 
     // 计算属性变化值（目标值 - 上一步中该属性的值）
@@ -1834,9 +1834,12 @@ function decreaseValue() {
         const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
         previousStepPropertyValue = previousStep.currentProperties[propertyId] || 0;
     }
-    
-    // 基于上一步的属性值减少指定数量的值
-    let targetValue = previousStepPropertyValue - currentQuantity;
+
+    // 获取输入框中的当前值
+    let targetValue = parseInt(valueInput.value) || previousStepPropertyValue;
+
+    // 对输入框中的值进行减一操作
+    targetValue -= currentQuantity;
 
     // 根据属性类型限制范围（使用calAttrMaxLimit和calAttrMinLimit函数）
     const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
@@ -1882,9 +1885,12 @@ function increaseValue() {
         const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
         previousStepPropertyValue = previousStep.currentProperties[propertyId] || 0;
     }
-    
-    // 基于上一步的属性值增加指定数量的值
-    let targetValue = previousStepPropertyValue + currentQuantity;
+
+    // 获取输入框中的当前值
+    let targetValue = parseInt(valueInput.value) || previousStepPropertyValue;
+
+    // 对输入框中的值进行加一操作
+    targetValue += currentQuantity;
 
     // 根据属性类型限制范围（使用calAttrMaxLimit和calAttrMinLimit函数）
     const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
