@@ -1,6 +1,6 @@
 import EnchantRecord from './modules/EnchantRecord.js';
 import PropertyManager from './modules/PropertyManager.js';
-import { attrNumToActualNum } from './modules/PotentialCalculator.js';
+import { attrNumToActualNum, calAttrMaxLimit, calAttrMinLimit } from './modules/PotentialCalculator.js';
 import EquipmentType from './modules/EquipmentType.js';
 import EnchantType from './modules/EnchantType.js';
 
@@ -85,6 +85,8 @@ function bindEvents() {
 
     // 表格事件
     document.getElementById('enchantTable').addEventListener('click', onTableClick);
+    document.getElementById('enchantTable').addEventListener('dblclick', onTableDblClick);
+    document.getElementById('enchantTable').addEventListener('touchend', onTableTouchEnd);
 
     // 悬浮工具栏事件
     document.getElementById('addStepBtn').addEventListener('click', onAddStep);
@@ -137,7 +139,7 @@ function bindEvents() {
     document.getElementById('pasteStepBelowBtn').addEventListener('click', pasteStepBelow);
 
     // 点击模态框外部关闭
-    document.addEventListener('click', function(event) {
+    document.addEventListener('click', function (event) {
         const operationMenuModal = document.getElementById('operationMenuModal');
         const clearOptionsModal = document.getElementById('clearOptionsModal');
         const addStepOptionsModal = document.getElementById('addStepOptionsModal');
@@ -219,6 +221,25 @@ function loadPropertyCategoryList() {
                     <label for="prop_${property.id}">${property.nameChsFull}${property.isPercentage ? '(%)' : ''}</label>
                 `;
                 propertyList.appendChild(propertyItem);
+
+                // 添加点击事件，使点击整个属性项都能切换复选框状态
+                propertyItem.addEventListener('click', function (e) {
+                    // 如果点击的是复选框本身或标签，则不处理（避免重复处理）
+                    if (e.target === this.querySelector('input[type="checkbox"]') ||
+                        e.target === this.querySelector('label')) {
+                        return;
+                    }
+
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    checkbox.checked = !checkbox.checked;
+
+                    // 手动触发change事件
+                    const event = new Event('change', { bubbles: true });
+                    checkbox.dispatchEvent(event);
+
+                    // 阻止事件冒泡
+                    e.stopPropagation();
+                });
             });
 
             categoryContent.appendChild(propertyList);
@@ -493,11 +514,19 @@ function updateTableContent() {
                 case 'value':
                     // 显示附魔后的属性值
                     const currentValue = step.currentProperties[property.id] || 0;
-                    // 只有当属性值不为0时才显示
-                    if (currentValue !== 0) {
+                    // 获取上一步的属性值
+                    let previousValue = 0;
+                    if (index > 0) {
+                        const previousStep = enchantRecord.enchantmentSteps[index - 1];
+                        previousValue = previousStep.currentProperties[property.id] || 0;
+                    }
+
+                    // 只有当属性值发生变化时才显示
+                    if (currentValue !== previousValue) {
                         // 使用attrNumToActualNum转化数值
-                        const actualValue = attrNumToActualNum(property, currentValue);
-                        cell.textContent = actualValue;
+                        const actualCurrentValue = attrNumToActualNum(property, currentValue);
+                        const actualPreviousValue = attrNumToActualNum(property, previousValue);
+                        cell.textContent = `${actualPreviousValue} → ${actualCurrentValue}`;
                     } else {
                         cell.textContent = '';
                     }
@@ -544,7 +573,7 @@ function updateTableContent() {
                                             materialName = '魔素';
                                             break;
                                     }
-                                    materialValues.push(`${materialName}${materialCost[key]}`);
+                                    materialValues.push(`${materialName} ${materialCost[key]}`);
                                 }
                             }
                             cell.textContent = materialValues.length > 0 ? materialValues.join(', ') : '';
@@ -797,25 +826,100 @@ function saveConfig() {
     updateDisplay();
 }
 
+// 表格点击事件处理
 function onTableClick(event) {
     const cell = event.target;
+    if (cell.tagName !== 'TD') return;
 
-    // 如果点击的是表格单元格
-    if (cell.tagName === 'TD' && cell.dataset.stepIndex !== undefined) {
-        // 取消之前选中的单元格
+    // 移除之前选中的样式
+    if (selectedCell) {
+        selectedCell.classList.remove('selected');
+    }
+
+    // 添加选中样式
+    cell.classList.add('selected');
+    selectedCell = cell;
+
+    // 更新忽略按钮文本
+    updateIgnoreButton();
+}
+
+// 用于检测双击的变量
+let lastTap = 0;
+let lastTapCell = null;
+
+// 表格双击事件处理
+function onTableDblClick(event) {
+    const cell = event.target;
+    if (cell.tagName !== 'TD') return;
+
+    // 移除之前选中的样式
+    if (selectedCell) {
+        selectedCell.classList.remove('selected');
+    }
+
+    // 添加选中样式
+    cell.classList.add('selected');
+    selectedCell = cell;
+
+    // 更新忽略按钮文本
+    updateIgnoreButton();
+
+    // 如果是属性单元格，则打开属性编辑弹窗
+    if (selectedCell.dataset.propertyId !== undefined) {
+        showEditPropertyModal();
+    }
+}
+
+// 表格触摸事件处理（用于移动端双击支持）
+function onTableTouchEnd(event) {
+    const cell = event.target;
+    if (cell.tagName !== 'TD') return;
+
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    
+    // 检查是否为同一单元格且时间间隔小于300ms
+    if (lastTapCell === cell && tapLength < 300 && tapLength > 0) {
+        // 触发双击事件
+        event.preventDefault();
+        
+        // 移除之前选中的样式
         if (selectedCell) {
             selectedCell.classList.remove('selected');
         }
 
-        // 选中当前单元格
-        selectedCell = cell;
+        // 添加选中样式
         cell.classList.add('selected');
-    } else if (cell.tagName !== 'TD') {
-        // 如果点击的不是表格单元格，取消选中
+        selectedCell = cell;
+
+        // 更新忽略按钮文本
+        updateIgnoreButton();
+
+        // 如果是属性单元格，则打开属性编辑弹窗
+        if (selectedCell.dataset.propertyId !== undefined) {
+            showEditPropertyModal();
+        }
+        
+        // 重置计时器
+        lastTap = 0;
+        lastTapCell = null;
+    } else {
+        // 单击处理
+        lastTap = currentTime;
+        lastTapCell = cell;
+        
+        // 移除之前选中的样式
         if (selectedCell) {
             selectedCell.classList.remove('selected');
-            selectedCell = null;
         }
+
+        // 添加选中样式
+        cell.classList.add('selected');
+        selectedCell = cell;
+
+        // 更新忽略按钮文本
+        updateIgnoreButton();
     }
 }
 
@@ -855,9 +959,9 @@ function updateIgnoreButton() {
 
     if (step) {
         if (step.isIgnored) {
-            toggleIgnoreBtn.textContent = '取消忽略';
+            toggleIgnoreBtn.textContent = '取消忽略此步骤';
         } else {
-            toggleIgnoreBtn.textContent = '忽略';
+            toggleIgnoreBtn.textContent = '忽略此步骤';
         }
     }
 }
@@ -1412,13 +1516,13 @@ function onAddStep() {
 
     // 更新显示并保持选中状态
     updateDisplay();
-    
+
     // 重新选中单元格
     setTimeout(() => {
         const tbody = document.querySelector('#enchantTable tbody');
         const cells = tbody.querySelectorAll('td');
         cells.forEach(cell => {
-            if (cell.dataset.stepIndex === stepIndex.toString() && 
+            if (cell.dataset.stepIndex === stepIndex.toString() &&
                 cell.dataset.propertyId === propertyId) {
                 cell.classList.add('selected');
                 selectedCell = cell;
@@ -1465,13 +1569,13 @@ function onSubtractStep() {
 
     // 更新显示并保持选中状态
     updateDisplay();
-    
+
     // 重新选中单元格
     setTimeout(() => {
         const tbody = document.querySelector('#enchantTable tbody');
         const cells = tbody.querySelectorAll('td');
         cells.forEach(cell => {
-            if (cell.dataset.stepIndex === stepIndex.toString() && 
+            if (cell.dataset.stepIndex === stepIndex.toString() &&
                 cell.dataset.propertyId === propertyId) {
                 cell.classList.add('selected');
                 selectedCell = cell;
@@ -1630,32 +1734,34 @@ function showEditPropertyModal() {
     // 设置输入框的值
     const valueInput = document.getElementById('propertyValueInput');
     valueInput.value = enchantment.value;
-    
+
     // 设置滑块的值和范围
     const valueSlider = document.getElementById('propertyValueSlider');
     valueSlider.value = enchantment.value;
-    
-    // 根据属性类型设置最大值和最小值
-    let minValue, maxValue;
-    if (property.isPercentage) {
-        minValue = -100;
-        maxValue = 100;
-    } else {
-        minValue = -1000;
-        maxValue = 1000;
-    }
-    
+
+    // 根据属性类型设置最大值和最小值（使用calAttrMaxLimit和calAttrMinLimit函数）
+    const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
+    const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
+
     valueSlider.min = minValue;
     valueSlider.max = maxValue;
-    
+
     // 设置滑块标签
     document.getElementById('minSliderValue').textContent = minValue;
     document.getElementById('maxSliderValue').textContent = maxValue;
-    
-    // 显示实际属性值
+
+    // 显示变化量范围
     const actualValue = attrNumToActualNum(property, enchantment.value);
-    document.getElementById('actualValueDisplay').textContent = actualValue;
-    
+    // 获取上一步的属性值
+    let previousValue = 0;
+    if (stepIndex > 0) {
+        const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
+        previousValue = previousStep.currentProperties[propertyId] || 0;
+    }
+    const actualPreviousValue = attrNumToActualNum(property, previousValue);
+    document.getElementById('actualValueDisplay').textContent = 
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+
     // 显示弹窗
     document.getElementById('editPropertyModal').classList.remove('hidden');
 }
@@ -1670,27 +1776,39 @@ function setMinValue() {
     const valueInput = document.getElementById('propertyValueInput');
     const valueSlider = document.getElementById('propertyValueSlider');
     const propertyId = selectedCell.dataset.propertyId;
-    
+
     // 获取当前步骤和属性
     const stepIndex = parseInt(selectedCell.dataset.stepIndex);
     const step = enchantRecord.enchantmentSteps[stepIndex];
     const enchantment = step.enchantments.find(e => e.property.id === propertyId);
     const property = enchantment.property;
-    
-    // 根据属性类型设置最小值
-    let minValue;
-    if (property.isPercentage) {
-        minValue = -100;
-    } else {
-        minValue = -1000;
-    }
-    
+
+    // 根据属性类型设置最小值（使用calAttrMinLimit函数）
+    const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
+
     valueInput.value = minValue;
     valueSlider.value = minValue;
-    
+
     // 更新实际属性值显示
     const actualValue = attrNumToActualNum(property, minValue);
-    document.getElementById('actualValueDisplay').textContent = actualValue;
+    // 获取上一步的属性值
+    let previousValue = 0;
+    if (stepIndex > 0) {
+        const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
+        previousValue = previousStep.currentProperties[propertyId] || 0;
+    }
+    const actualPreviousValue = attrNumToActualNum(property, previousValue);
+    document.getElementById('actualValueDisplay').textContent = 
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+
+    // 实时更新属性值
+    enchantment.value = minValue;
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
 }
 
 // 减少值
@@ -1698,29 +1816,43 @@ function decreaseValue() {
     const valueInput = document.getElementById('propertyValueInput');
     const valueSlider = document.getElementById('propertyValueSlider');
     const propertyId = selectedCell.dataset.propertyId;
-    
+
     // 获取当前步骤和属性
     const stepIndex = parseInt(selectedCell.dataset.stepIndex);
     const step = enchantRecord.enchantmentSteps[stepIndex];
     const enchantment = step.enchantments.find(e => e.property.id === propertyId);
     const property = enchantment.property;
-    
+
     let currentValue = parseInt(valueInput.value) || 0;
     currentValue -= 1;
-    
-    // 根据属性类型限制范围
-    if (property.isPercentage) {
-        currentValue = Math.max(currentValue, -100);
-    } else {
-        currentValue = Math.max(currentValue, -1000);
-    }
-    
+
+    // 根据属性类型限制范围（使用calAttrMinLimit函数）
+    const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
+    currentValue = Math.max(currentValue, minValue);
+
     valueInput.value = currentValue;
     valueSlider.value = currentValue;
-    
+
     // 更新实际属性值显示
     const actualValue = attrNumToActualNum(property, currentValue);
-    document.getElementById('actualValueDisplay').textContent = actualValue;
+    // 获取上一步的属性值
+    let previousValue = 0;
+    if (stepIndex > 0) {
+        const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
+        previousValue = previousStep.currentProperties[propertyId] || 0;
+    }
+    const actualPreviousValue = attrNumToActualNum(property, previousValue);
+    document.getElementById('actualValueDisplay').textContent = 
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+
+    // 实时更新属性值
+    enchantment.value = currentValue;
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
 }
 
 // 增加值
@@ -1728,29 +1860,43 @@ function increaseValue() {
     const valueInput = document.getElementById('propertyValueInput');
     const valueSlider = document.getElementById('propertyValueSlider');
     const propertyId = selectedCell.dataset.propertyId;
-    
+
     // 获取当前步骤和属性
     const stepIndex = parseInt(selectedCell.dataset.stepIndex);
     const step = enchantRecord.enchantmentSteps[stepIndex];
     const enchantment = step.enchantments.find(e => e.property.id === propertyId);
     const property = enchantment.property;
-    
+
     let currentValue = parseInt(valueInput.value) || 0;
     currentValue += 1;
-    
-    // 根据属性类型限制范围
-    if (property.isPercentage) {
-        currentValue = Math.min(currentValue, 100);
-    } else {
-        currentValue = Math.min(currentValue, 1000);
-    }
-    
+
+    // 根据属性类型限制范围（使用calAttrMaxLimit函数）
+    const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
+    currentValue = Math.min(currentValue, maxValue);
+
     valueInput.value = currentValue;
     valueSlider.value = currentValue;
-    
+
     // 更新实际属性值显示
     const actualValue = attrNumToActualNum(property, currentValue);
-    document.getElementById('actualValueDisplay').textContent = actualValue;
+    // 获取上一步的属性值
+    let previousValue = 0;
+    if (stepIndex > 0) {
+        const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
+        previousValue = previousStep.currentProperties[propertyId] || 0;
+    }
+    const actualPreviousValue = attrNumToActualNum(property, previousValue);
+    document.getElementById('actualValueDisplay').textContent = 
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+
+    // 实时更新属性值
+    enchantment.value = currentValue;
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
 }
 
 // 设置最大值
@@ -1758,81 +1904,37 @@ function setMaxValue() {
     const valueInput = document.getElementById('propertyValueInput');
     const valueSlider = document.getElementById('propertyValueSlider');
     const propertyId = selectedCell.dataset.propertyId;
-    
+
     // 获取当前步骤和属性
     const stepIndex = parseInt(selectedCell.dataset.stepIndex);
     const step = enchantRecord.enchantmentSteps[stepIndex];
     const enchantment = step.enchantments.find(e => e.property.id === propertyId);
     const property = enchantment.property;
-    
-    // 根据属性类型设置最大值
-    let maxValue;
-    if (property.isPercentage) {
-        maxValue = 100;
-    } else {
-        maxValue = 1000;
-    }
-    
+
+    // 根据属性类型设置最大值（使用calAttrMaxLimit函数）
+    const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
+
     valueInput.value = maxValue;
     valueSlider.value = maxValue;
-    
+
     // 更新实际属性值显示
     const actualValue = attrNumToActualNum(property, maxValue);
-    document.getElementById('actualValueDisplay').textContent = actualValue;
-}
-
-// 输入框输入事件处理
-function onPropertyValueInput() {
-    const valueInput = document.getElementById('propertyValueInput');
-    const valueSlider = document.getElementById('propertyValueSlider');
-    const propertyId = selectedCell.dataset.propertyId;
-    
-    // 获取当前步骤和属性
-    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
-    const step = enchantRecord.enchantmentSteps[stepIndex];
-    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
-    const property = enchantment.property;
-    
-    let value = parseInt(valueInput.value);
-    
-    // 检查是否为有效数字
-    if (isNaN(value)) {
-        value = 0;
+    // 获取上一步的属性值
+    let previousValue = 0;
+    if (stepIndex > 0) {
+        const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
+        previousValue = previousStep.currentProperties[propertyId] || 0;
     }
-    
-    // 根据属性类型限制范围
-    if (property.isPercentage) {
-        value = Math.max(Math.min(value, 100), -100);
-    } else {
-        value = Math.max(Math.min(value, 1000), -1000);
-    }
-    
-    // 更新输入框和滑块
-    valueInput.value = value;
-    valueSlider.value = value;
-    
-    // 更新实际属性值显示
-    const actualValue = attrNumToActualNum(property, value);
-    document.getElementById('actualValueDisplay').textContent = actualValue;
-}
+    const actualPreviousValue = attrNumToActualNum(property, previousValue);
+    document.getElementById('actualValueDisplay').textContent = 
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
 
-// 输入框值改变事件处理
-function onPropertyValueChanged() {
-    const valueInput = document.getElementById('propertyValueInput');
-    const propertyId = selectedCell.dataset.propertyId;
-    
-    // 获取当前步骤和属性
-    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
-    const step = enchantRecord.enchantmentSteps[stepIndex];
-    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
-    
-    // 更新属性值
-    const value = parseInt(valueInput.value) || 0;
-    enchantment.value = value;
-    
+    // 实时更新属性值
+    enchantment.value = maxValue;
+
     // 重新计算步骤
     enchantRecord.updateEnchantmentStep(step.id, step);
-    
+
     // 更新显示
     updateDisplay();
 }
@@ -1842,19 +1944,93 @@ function onPropertyValueSliderChange() {
     const valueSlider = document.getElementById('propertyValueSlider');
     const valueInput = document.getElementById('propertyValueInput');
     const propertyId = selectedCell.dataset.propertyId;
-    
+
     // 获取当前步骤和属性
     const stepIndex = parseInt(selectedCell.dataset.stepIndex);
     const step = enchantRecord.enchantmentSteps[stepIndex];
     const enchantment = step.enchantments.find(e => e.property.id === propertyId);
     const property = enchantment.property;
-    
+
     const value = parseInt(valueSlider.value);
-    
+
     // 更新输入框和滑块
     valueInput.value = value;
-    
+
     // 更新实际属性值显示
     const actualValue = attrNumToActualNum(property, value);
-    document.getElementById('actualValueDisplay').textContent = actualValue;
+    // 获取上一步的属性值
+    let previousValue = 0;
+    if (stepIndex > 0) {
+        const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
+        previousValue = previousStep.currentProperties[propertyId] || 0;
+    }
+    const actualPreviousValue = attrNumToActualNum(property, previousValue);
+    document.getElementById('actualValueDisplay').textContent = 
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+
+    // 实时更新属性值
+    enchantment.value = value;
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
+}
+
+// 输入框输入事件处理
+function onPropertyValueInput() {
+    const valueInput = document.getElementById('propertyValueInput');
+    const valueSlider = document.getElementById('propertyValueSlider');
+    const propertyId = selectedCell.dataset.propertyId;
+
+    // 获取当前步骤和属性
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+    const property = enchantment.property;
+
+    let value = parseInt(valueInput.value);
+
+    // 检查是否为有效数字
+    if (isNaN(value)) {
+        value = 0;
+    }
+
+    // 根据属性类型限制范围（使用calAttrMaxLimit和calAttrMinLimit函数）
+    const minValue = calAttrMinLimit(property, enchantRecord.playerLevel);
+    const maxValue = calAttrMaxLimit(property, enchantRecord.playerLevel);
+    value = Math.max(Math.min(value, maxValue), minValue);
+
+    // 更新输入框和滑块
+    valueInput.value = value;
+    valueSlider.value = value;
+
+    // 更新实际属性值显示
+    const actualValue = attrNumToActualNum(property, value);
+    // 获取上一步的属性值
+    let previousValue = 0;
+    if (stepIndex > 0) {
+        const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
+        previousValue = previousStep.currentProperties[propertyId] || 0;
+    }
+    const actualPreviousValue = attrNumToActualNum(property, previousValue);
+    document.getElementById('actualValueDisplay').textContent = 
+        `${property.nameChsFull}${property.isPercentage ? '(%)' : ''} ${actualPreviousValue} → ${actualValue}`;
+
+    // 实时更新属性值
+    enchantment.value = value;
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
+}
+
+// 输入框值改变事件处理
+function onPropertyValueChanged() {
+    // 移除重复的更新逻辑，因为已经在onPropertyValueInput中处理了
+    // 这里只需要关闭弹窗
+    closeEditPropertyModal();
 }
