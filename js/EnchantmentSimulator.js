@@ -461,6 +461,77 @@ function updateDisplay() {
     updateResultDisplay();
 }
 
+// 检查两个步骤是否具有相同的附魔变化值
+function areStepsEqual(step1, step2) {
+    // 如果步骤数量不同，则不相等
+    if (step1.enchantments.length !== step2.enchantments.length) {
+        return false;
+    }
+
+    // 检查步骤有效性，如果有效性不同，则不视为重复步骤
+    if (step1.isValid !== step2.isValid) {
+        return false;
+    }
+
+    // 检查是否为空步骤（所有属性值都为0）
+    const isStep1Empty = step1.enchantments.every(enchant => enchant.value === 0);
+    const isStep2Empty = step2.enchantments.every(enchant => enchant.value === 0);
+    
+    // 如果其中一个是空步骤，则不视为重复步骤
+    if (isStep1Empty || isStep2Empty) {
+        return false;
+    }
+
+    // 检查每个附魔属性的值是否相同
+    for (let i = 0; i < step1.enchantments.length; i++) {
+        const enchant1 = step1.enchantments[i];
+        const enchant2 = step2.enchantments[i];
+
+        // 检查属性ID和值是否都相同
+        if (enchant1.property.id !== enchant2.property.id || enchant1.value !== enchant2.value) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// 将连续的重复步骤分组
+function groupRepeatedSteps(steps) {
+    if (steps.length === 0) return [];
+
+    const groupedSteps = [];
+    let currentGroup = [steps[0]];
+
+    for (let i = 1; i < steps.length; i++) {
+        // 检查当前步骤是否与前一个步骤相同
+        if (areStepsEqual(steps[i], steps[i - 1])) {
+            // 相同则添加到当前组
+            currentGroup.push(steps[i]);
+        } else {
+            // 不同则结束当前组，开始新组
+            groupedSteps.push({
+                steps: currentGroup,
+                isRepeated: currentGroup.length > 1,
+                count: currentGroup.length
+            });
+            currentGroup = [steps[i]];
+        }
+    }
+
+    // 添加最后一组
+    groupedSteps.push({
+        steps: currentGroup,
+        isRepeated: currentGroup.length > 1,
+        count: currentGroup.length
+    });
+
+    return groupedSteps;
+}
+
+// 用于跟踪展开的重复步骤组
+let expandedGroups = {};
+
 // 更新表格内容
 function updateTableContent() {
     // 保存当前选中的单元格信息
@@ -476,120 +547,425 @@ function updateTableContent() {
     const tbody = document.querySelector('#enchantTable tbody');
     tbody.innerHTML = '';
 
-    // 现有步骤行
-    enchantRecord.enchantmentSteps.forEach((step, index) => {
-        const row = document.createElement('tr');
+    // 对步骤进行分组，将连续的重复步骤合并
+    const groupedSteps = groupRepeatedSteps(enchantRecord.enchantmentSteps);
 
-        // 添加忽略/无效步骤的样式类
-        if (step.isIgnored) {
-            row.classList.add('ignored');
-        } else if (!step.isValid) {
-            row.classList.add('invalid');
-        }
+    let displayedIndex = 0; // 用于显示的索引
+    let actualIndex = 0; // 实际步骤索引
 
-        // 潜力值列
-        const potentialCell = document.createElement('td');
-        potentialCell.textContent = step.postEnchantmentPotential;
-        potentialCell.dataset.stepIndex = index;
-        potentialCell.dataset.columnType = 'potential';
-        row.appendChild(potentialCell);
+    // 遍历分组后的步骤
+    groupedSteps.forEach((group, groupIndex) => {
+        if (group.isRepeated) {
+            // 为重复步骤组添加控制行
+            const controlRow = document.createElement('tr');
+            controlRow.classList.add('repeat-control-row');
 
-        // 属性列
-        selectedProperties.forEach(property => {
-            const cell = document.createElement('td');
-            cell.dataset.stepIndex = index;
-            cell.dataset.propertyId = property.id;
-
-            switch (currentViewMode) {
-                case 'change':
-                    // 显示属性变化值
-                    const enchantment = step.enchantments.find(e => e.property.id === property.id);
-                    // 只有当属性值不为0时才显示
-                    if (enchantment && enchantment.value !== 0) {
-                        const value = enchantment.value;
-                        cell.textContent = value > 0 ? `+${value}` : value.toString();
-                    } else {
-                        cell.textContent = '';
-                    }
-                    break;
-                case 'value':
-                    // 显示附魔后的属性值
-                    const currentValue = step.currentProperties[property.id] || 0;
-                    // 获取上一步的属性值
-                    let previousValue = 0;
-                    if (index > 0) {
-                        const previousStep = enchantRecord.enchantmentSteps[index - 1];
-                        previousValue = previousStep.currentProperties[property.id] || 0;
-                    }
-
-                    // 只有当属性值发生变化时才显示
-                    if (currentValue !== previousValue) {
-                        // 使用attrNumToActualNum转化数值，直接显示附魔后的值
-                        const actualCurrentValue = attrNumToActualNum(property, currentValue);
-                        cell.textContent = actualCurrentValue;
-                    } else {
-                        cell.textContent = '';
-                    }
-                    break;
-                case 'potential':
-                    // 显示各属性消耗潜力
-                    const potentialChange = step.propertyPotentialChanges[property.id] || 0;
-                    // 只有当潜力变化不为0时才显示
-                    if (potentialChange !== 0) {
-                        cell.textContent = potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString();
-                    } else {
-                        cell.textContent = '';
-                    }
-                    break;
-                case 'material':
-                    // 显示各属性消耗素材
-                    const materialCost = step.propertyMaterialCosts[property.id] || 0;
-                    // 只有当素材消耗不为0时才显示
-                    if (materialCost !== 0) {
-                        // 如果是对象，提取其中的值显示
-                        if (typeof materialCost === 'object') {
-                            const materialValues = [];
-                            for (const key in materialCost) {
-                                if (materialCost[key] !== 0) {
-                                    // 使用中文表示素材类型
-                                    let materialName = key;
-                                    switch (key) {
-                                        case 'metal':
-                                            materialName = '金属';
-                                            break;
-                                        case 'cloth':
-                                            materialName = '布料';
-                                            break;
-                                        case 'beast':
-                                            materialName = '兽品';
-                                            break;
-                                        case 'wood':
-                                            materialName = '木材';
-                                            break;
-                                        case 'medicine':
-                                            materialName = '药品';
-                                            break;
-                                        case 'mana':
-                                            materialName = '魔素';
-                                            break;
-                                    }
-                                    materialValues.push(`${materialName} ${materialCost[key]}`);
-                                }
-                            }
-                            cell.textContent = materialValues.length > 0 ? materialValues.join(', ') : '';
-                        } else {
-                            cell.textContent = materialCost;
-                        }
-                    } else {
-                        cell.textContent = '';
-                    }
-                    break;
+            // 检查组内是否有无效步骤，如果有则添加invalid类
+            const hasInvalidStep = group.steps.some(step => !step.isValid);
+            if (hasInvalidStep) {
+                controlRow.classList.add('invalid');
             }
 
-            row.appendChild(cell);
-        });
+            // 控制行的单元格
+            const controlCell = document.createElement('td');
+            controlCell.colSpan = selectedProperties.length + 1;
+            controlCell.classList.add('repeat-control-cell');
+            controlCell.style.textAlign = 'center';
+            controlCell.style.cursor = 'pointer';
+            controlCell.style.backgroundColor = hasInvalidStep ? '#ff9999' : '#d0e6ff';
+            controlCell.style.color = hasInvalidStep ? '#cc0000' : '';
+            controlCell.style.fontWeight = 'bold';
+            controlCell.dataset.groupIndex = groupIndex;
 
-        tbody.appendChild(row);
+            // 检查是否展开显示
+            const isExpanded = !!expandedGroups[groupIndex];
+
+            // 设置初始状态文本
+            if (isExpanded) {
+                controlCell.textContent = `↑ 以下步骤重复${group.count}次 (点击折叠)`;
+            } else {
+                controlCell.textContent = `↓ 以下步骤重复${group.count}次 (点击展开)`;
+            }
+
+            // 添加点击事件来切换展开/折叠状态
+            controlCell.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const groupIdx = this.dataset.groupIndex;
+
+                // 切换展开状态
+                if (expandedGroups[groupIdx]) {
+                    delete expandedGroups[groupIdx];
+                    this.textContent = `↓ 以下步骤重复${group.count}次 (点击展开)`;
+                } else {
+                    expandedGroups[groupIdx] = true;
+                    this.textContent = `↑ 以下步骤重复${group.count}次 (点击折叠)`;
+                }
+
+                updateTableContent(); // 重新渲染表格
+            });
+
+            controlRow.appendChild(controlCell);
+            tbody.appendChild(controlRow);
+
+            if (isExpanded) {
+                // 展开状态 - 显示所有重复步骤
+                group.steps.forEach((step, indexInGroup) => {
+                    const row = document.createElement('tr');
+
+                    // 添加忽略/无效步骤的样式类
+                    if (step.isIgnored) {
+                        row.classList.add('ignored');
+                    } else if (!step.isValid) {
+                        row.classList.add('invalid');
+                    }
+
+                    // 潜力值列
+                    const potentialCell = document.createElement('td');
+                    potentialCell.textContent = step.postEnchantmentPotential;
+                    potentialCell.dataset.stepIndex = actualIndex; // 使用实际索引
+                    potentialCell.dataset.actualIndex = actualIndex; // 保存实际索引
+                    potentialCell.dataset.columnType = 'potential';
+                    row.appendChild(potentialCell);
+
+                    // 属性列
+                    selectedProperties.forEach(property => {
+                        const cell = document.createElement('td');
+                        cell.dataset.stepIndex = actualIndex; // 使用实际索引
+                        cell.dataset.actualIndex = actualIndex; // 保存实际索引
+                        cell.dataset.propertyId = property.id;
+
+                        switch (currentViewMode) {
+                            case 'change':
+                                // 显示属性变化值
+                                const enchantment = step.enchantments.find(e => e.property.id === property.id);
+                                // 只有当属性值不为0时才显示
+                                if (enchantment && enchantment.value !== 0) {
+                                    const value = enchantment.value;
+                                    cell.textContent = value > 0 ? `+${value}` : value.toString();
+                                } else {
+                                    cell.textContent = '';
+                                }
+                                break;
+                            case 'value':
+                                // 显示附魔后的属性值
+                                const currentValue = step.currentProperties[property.id] || 0;
+                                // 获取上一步的属性值
+                                let previousValue = 0;
+                                const stepIndexInRecord = enchantRecord.enchantmentSteps.findIndex(s => s.id === step.id);
+                                if (stepIndexInRecord > 0) {
+                                    const previousStep = enchantRecord.enchantmentSteps[stepIndexInRecord - 1];
+                                    previousValue = previousStep.currentProperties[property.id] || 0;
+                                }
+
+                                // 只有当属性值发生变化时才显示
+                                if (currentValue !== previousValue) {
+                                    // 使用attrNumToActualNum转化数值，直接显示附魔后的值
+                                    const actualCurrentValue = attrNumToActualNum(property, currentValue);
+                                    cell.textContent = actualCurrentValue;
+                                } else {
+                                    cell.textContent = '';
+                                }
+                                break;
+                            case 'potential':
+                                // 显示各属性消耗潜力
+                                const potentialChange = step.propertyPotentialChanges[property.id] || 0;
+                                // 只有当潜力变化不为0时才显示
+                                if (potentialChange !== 0) {
+                                    cell.textContent = potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString();
+                                } else {
+                                    cell.textContent = '';
+                                }
+                                break;
+                            case 'material':
+                                // 显示各属性消耗素材
+                                const materialCost = step.propertyMaterialCosts[property.id] || 0;
+                                // 只有当素材消耗不为0时才显示
+                                if (materialCost !== 0) {
+                                    // 如果是对象，提取其中的值显示
+                                    if (typeof materialCost === 'object') {
+                                        const materialValues = [];
+                                        for (const key in materialCost) {
+                                            if (materialCost[key] !== 0) {
+                                                // 使用中文表示素材类型
+                                                let materialName = key;
+                                                switch (key) {
+                                                    case 'metal':
+                                                        materialName = '金属';
+                                                        break;
+                                                    case 'cloth':
+                                                        materialName = '布料';
+                                                        break;
+                                                    case 'beast':
+                                                        materialName = '兽品';
+                                                        break;
+                                                    case 'wood':
+                                                        materialName = '木材';
+                                                        break;
+                                                    case 'medicine':
+                                                        materialName = '药品';
+                                                        break;
+                                                    case 'mana':
+                                                        materialName = '魔素';
+                                                        break;
+                                                }
+                                                materialValues.push(`${materialName} ${materialCost[key]}`);
+                                            }
+                                        }
+                                        cell.textContent = materialValues.length > 0 ? materialValues.join(', ') : '';
+                                    } else {
+                                        cell.textContent = materialCost;
+                                    }
+                                } else {
+                                    cell.textContent = '';
+                                }
+                                break;
+                        }
+
+                        row.appendChild(cell);
+                    });
+
+                    tbody.appendChild(row);
+                    displayedIndex++;
+                    actualIndex++; // 增加实际索引
+                });
+            } else {
+                // 折叠状态 - 显示一行汇总信息
+                const firstStep = group.steps[0];
+                const lastStep = group.steps[group.steps.length - 1];
+                const row = document.createElement('tr');
+                row.classList.add('repeated-steps');
+                
+                // 检查组内是否有无效步骤，如果有则添加invalid类
+                const hasInvalidStep = group.steps.some(step => !step.isValid);
+                if (hasInvalidStep) {
+                    row.classList.add('invalid');
+                }
+                
+                row.dataset.groupIndex = groupIndex;
+
+                // 潜力值列 - 显示最后一个步骤的潜力值
+                const potentialCell = document.createElement('td');
+                potentialCell.textContent = lastStep.postEnchantmentPotential;
+                potentialCell.dataset.groupIndex = groupIndex;
+                potentialCell.dataset.columnType = 'potential';
+                // 保存第一个和最后一个步骤的实际索引
+                potentialCell.dataset.firstIndex = actualIndex;
+                potentialCell.dataset.lastIndex = actualIndex + group.steps.length - 1;
+                row.appendChild(potentialCell);
+
+                // 属性列 - 根据不同视图模式显示信息
+                selectedProperties.forEach(property => {
+                    const cell = document.createElement('td');
+                    cell.dataset.groupIndex = groupIndex;
+                    // 保存第一个和最后一个步骤的实际索引
+                    cell.dataset.firstIndex = actualIndex;
+                    cell.dataset.lastIndex = actualIndex + group.steps.length - 1;
+
+                    switch (currentViewMode) {
+                        case 'change':
+                            // 显示属性变化值和重复次数
+                            const enchantment = firstStep.enchantments.find(e => e.property.id === property.id);
+                            if (enchantment && enchantment.value !== 0) {
+                                const value = enchantment.value;
+                                cell.textContent = `${value > 0 ? `+${value}` : value.toString()} (×${group.count})`;
+                            } else {
+                                cell.textContent = '';
+                            }
+                            break;
+                        case 'value':
+                            // 显示附魔后的属性值
+                            const currentValue = lastStep.currentProperties[property.id] || 0;
+                            if (currentValue !== 0) {
+                                const actualValue = attrNumToActualNum(property, currentValue);
+                                cell.textContent = actualValue;
+                            } else {
+                                cell.textContent = '';
+                            }
+                            break;
+                        case 'potential':
+                            // 显示各属性消耗潜力和重复次数
+                            const potentialChange = firstStep.propertyPotentialChanges[property.id] || 0;
+                            if (potentialChange !== 0) {
+                                const totalPotentialChange = potentialChange * group.count;
+                                cell.textContent = `${potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString()} (×${group.count}, 总计: ${totalPotentialChange > 0 ? `+${totalPotentialChange}` : totalPotentialChange.toString()})`;
+                            } else {
+                                cell.textContent = '';
+                            }
+                            break;
+                        case 'material':
+                            // 显示各属性消耗素材和重复次数
+                            const materialCost = firstStep.propertyMaterialCosts[property.id] || 0;
+                            if (materialCost !== 0) {
+                                if (typeof materialCost === 'object') {
+                                    const materialValues = [];
+                                    for (const key in materialCost) {
+                                        if (materialCost[key] !== 0) {
+                                            const totalMaterialCost = materialCost[key] * group.count;
+                                            // 使用中文表示素材类型
+                                            let materialName = key;
+                                            switch (key) {
+                                                case 'metal':
+                                                    materialName = '金属';
+                                                    break;
+                                                case 'cloth':
+                                                    materialName = '布料';
+                                                    break;
+                                                case 'beast':
+                                                    materialName = '兽品';
+                                                    break;
+                                                case 'wood':
+                                                    materialName = '木材';
+                                                    break;
+                                                case 'medicine':
+                                                    materialName = '药品';
+                                                    break;
+                                                case 'mana':
+                                                    materialName = '魔素';
+                                                    break;
+                                            }
+                                            materialValues.push(`${materialName} ${materialCost[key]} (×${group.count}, 总计: ${totalMaterialCost})`);
+                                        }
+                                    }
+                                    cell.textContent = materialValues.length > 0 ? materialValues.join(', ') : '';
+                                } else {
+                                    const totalMaterialCost = materialCost * group.count;
+                                    cell.textContent = `${materialCost} (×${group.count}, 总计: ${totalMaterialCost})`;
+                                }
+                            } else {
+                                cell.textContent = '';
+                            }
+                            break;
+                    }
+
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+                displayedIndex++;
+                actualIndex += group.steps.length; // 增加实际索引
+            }
+        } else {
+            // 处理普通步骤（非重复步骤）
+            group.steps.forEach((step, indexInGroup) => {
+                const row = document.createElement('tr');
+
+                // 添加忽略/无效步骤的样式类
+                if (step.isIgnored) {
+                    row.classList.add('ignored');
+                } else if (!step.isValid) {
+                    row.classList.add('invalid');
+                }
+
+                // 潜力值列
+                const potentialCell = document.createElement('td');
+                potentialCell.textContent = step.postEnchantmentPotential;
+                potentialCell.dataset.stepIndex = actualIndex; // 使用实际索引
+                potentialCell.dataset.actualIndex = actualIndex; // 保存实际索引
+                potentialCell.dataset.columnType = 'potential';
+                row.appendChild(potentialCell);
+
+                // 属性列
+                selectedProperties.forEach(property => {
+                    const cell = document.createElement('td');
+                    cell.dataset.stepIndex = actualIndex; // 使用实际索引
+                    cell.dataset.actualIndex = actualIndex; // 保存实际索引
+                    cell.dataset.propertyId = property.id;
+
+                    switch (currentViewMode) {
+                        case 'change':
+                            // 显示属性变化值
+                            const enchantment = step.enchantments.find(e => e.property.id === property.id);
+                            // 只有当属性值不为0时才显示
+                            if (enchantment && enchantment.value !== 0) {
+                                const value = enchantment.value;
+                                cell.textContent = value > 0 ? `+${value}` : value.toString();
+                            } else {
+                                cell.textContent = '';
+                            }
+                            break;
+                        case 'value':
+                            // 显示附魔后的属性值
+                            const currentValue = step.currentProperties[property.id] || 0;
+                            // 获取上一步的属性值
+                            let previousValue = 0;
+                            const stepIndexInRecord = enchantRecord.enchantmentSteps.findIndex(s => s.id === step.id);
+                            if (stepIndexInRecord > 0) {
+                                const previousStep = enchantRecord.enchantmentSteps[stepIndexInRecord - 1];
+                                previousValue = previousStep.currentProperties[property.id] || 0;
+                            }
+
+                            // 只有当属性值发生变化时才显示
+                            if (currentValue !== previousValue) {
+                                // 使用attrNumToActualNum转化数值，直接显示附魔后的值
+                                const actualCurrentValue = attrNumToActualNum(property, currentValue);
+                                cell.textContent = actualCurrentValue;
+                            } else {
+                                cell.textContent = '';
+                            }
+                            break;
+                        case 'potential':
+                            // 显示各属性消耗潜力
+                            const potentialChange = step.propertyPotentialChanges[property.id] || 0;
+                            // 只有当潜力变化不为0时才显示
+                            if (potentialChange !== 0) {
+                                cell.textContent = potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString();
+                            } else {
+                                cell.textContent = '';
+                            }
+                            break;
+                        case 'material':
+                            // 显示各属性消耗素材
+                            const materialCost = step.propertyMaterialCosts[property.id] || 0;
+                            // 只有当素材消耗不为0时才显示
+                            if (materialCost !== 0) {
+                                // 如果是对象，提取其中的值显示
+                                if (typeof materialCost === 'object') {
+                                    const materialValues = [];
+                                    for (const key in materialCost) {
+                                        if (materialCost[key] !== 0) {
+                                            // 使用中文表示素材类型
+                                            let materialName = key;
+                                            switch (key) {
+                                                case 'metal':
+                                                    materialName = '金属';
+                                                    break;
+                                                case 'cloth':
+                                                    materialName = '布料';
+                                                    break;
+                                                case 'beast':
+                                                    materialName = '兽品';
+                                                    break;
+                                                case 'wood':
+                                                    materialName = '木材';
+                                                    break;
+                                                case 'medicine':
+                                                    materialName = '药品';
+                                                    break;
+                                                case 'mana':
+                                                    materialName = '魔素';
+                                                    break;
+                                            }
+                                            materialValues.push(`${materialName} ${materialCost[key]}`);
+                                        }
+                                    }
+                                    cell.textContent = materialValues.length > 0 ? materialValues.join(', ') : '';
+                                } else {
+                                    cell.textContent = materialCost;
+                                }
+                            } else {
+                                cell.textContent = '';
+                            }
+                            break;
+                    }
+
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+                displayedIndex++;
+                actualIndex++; // 增加实际索引
+            });
+        }
     });
 
     // 添加新步骤按钮行（移到最后）
@@ -858,6 +1234,14 @@ function onTableClick(event) {
     const cell = event.target;
     if (cell.tagName !== 'TD') return;
 
+    // 检查是否是折叠步骤的单元格
+    const row = cell.parentElement;
+    if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
+        // 不允许选择折叠步骤的单元格进行编辑
+        showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+        return;
+    }
+
     // 移除之前选中的样式
     if (selectedCell) {
         selectedCell.classList.remove('selected');
@@ -879,6 +1263,14 @@ let lastTapCell = null;
 function onTableDblClick(event) {
     const cell = event.target;
     if (cell.tagName !== 'TD') return;
+
+    // 检查是否是折叠步骤的单元格
+    const row = cell.parentElement;
+    if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
+        // 不允许选择折叠步骤的单元格进行编辑
+        showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+        return;
+    }
 
     // 移除之前选中的样式
     if (selectedCell) {
@@ -902,6 +1294,14 @@ function onTableDblClick(event) {
 function onTableTouchEnd(event) {
     const cell = event.target;
     if (cell.tagName !== 'TD') return;
+
+    // 检查是否是折叠步骤的单元格
+    const row = cell.parentElement;
+    if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
+        // 不允许选择折叠步骤的单元格进行编辑
+        showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+        return;
+    }
 
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
@@ -1732,12 +2132,20 @@ function showEditPropertyModal() {
     }
 
     // 获取选中单元格的信息
-    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const stepIndex = parseInt(selectedCell.dataset.actualIndex !== undefined ?
+        selectedCell.dataset.actualIndex :
+        selectedCell.dataset.stepIndex);
     const propertyId = selectedCell.dataset.propertyId;
 
     // 检查是否是属性单元格
     if (propertyId === undefined) {
         showMessage('请选择一个属性单元格');
+        return;
+    }
+
+    // 检查步骤索引是否有效
+    if (isNaN(stepIndex)) {
+        showMessage('无法编辑折叠状态下的步骤，请先展开再编辑');
         return;
     }
 
@@ -2166,3 +2574,4 @@ function onPropertyValueSliderChange(event) {
     // 更新显示
     updateDisplay();
 }
+

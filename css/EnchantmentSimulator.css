@@ -648,6 +648,53 @@ body {
     border-bottom: none;
 }
 
+/* 包含无效步骤的重复步骤控制行样式 */
+.repeat-control-row.invalid td {
+    background-color: #ff9999;
+    color: #cc0000;
+}
+
+.repeat-control-row.invalid:hover td {
+    background-color: #ff6666;
+}
+
+/* 重复步骤样式 */
+.repeated-steps td {
+    background-color: #e6f3ff;
+    font-weight: bold;
+    text-align: center;
+}
+
+.repeated-steps:hover td {
+    background-color: #cce6ff;
+}
+
+/* 无效的重复步骤样式 */
+.repeated-steps.invalid td {
+    background-color: #ffcccc;
+    color: #ff0000;
+}
+
+.repeated-steps.invalid:hover td {
+    background-color: #ff9999;
+}
+
+.repeat-count {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.repeat-control-row td {
+    background-color: #d0e6ff;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+}
+
+.repeat-control-row:hover td {
+    background-color: #b8d9ff;
+}
+
 /* 忽略/无效步骤样式 */
 .enchant-table tr.ignored td {
     background-color: #f0f0f0;
