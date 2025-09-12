@@ -41,6 +41,7 @@ export default class EnchantRecord {
      * @param {number} [config.finalRemainingPotential] - 最终剩余潜力值
      * @param {number} [config.finalSingleSuccessRate] - 最终单条成功率
      * @param {number} [config.finalExpectedSuccessRate] - 最终期望成功率
+     * @param {Object} [config.finalProperties] - 最终属性值对象
      */
     constructor(config = {}) {
         // 基础信息（只出现一次的固定数据）
@@ -77,6 +78,13 @@ export default class EnchantRecord {
         this.finalRemainingPotential = this.equipmentPotential;
         this.finalSingleSuccessRate = null;
         this.finalExpectedSuccessRate = null;
+        this.finalProperties = {};
+
+        // 初始化finalProperties
+        const properties = PM.properties;
+        for (const propId in properties) {
+            this.finalProperties[propId] = 0;
+        }
     }
 
     /**
@@ -645,6 +653,7 @@ export default class EnchantRecord {
         this.finalRemainingPotential = data.finalRemainingPotential !== undefined ? data.finalRemainingPotential : this.equipmentPotential;
         this.finalSingleSuccessRate = data.finalSingleSuccessRate || 0;
         this.finalExpectedSingleSuccessRate = data.finalExpectedSingleSuccessRate || 0;
+        this.finalProperties = data.finalProperties || {};
 
         // 重新计算所有步骤
         this._recalculateAllSteps();
@@ -666,6 +675,7 @@ export default class EnchantRecord {
      * @returns {number} return.finalRemainingPotential - 最终剩余潜力值
      * @returns {number} return.finalSingleSuccessRate - 最终单条成功率
      * @returns {number} return.finalExpectedSingleSuccessRate - 最终期望成功率
+     * @returns {Object} return.finalProperties - 最终属性值对象
      */
     exportData() {
         // 返回包含所有必要数据的对象
@@ -703,7 +713,8 @@ export default class EnchantRecord {
             finalTotalMaterialCosts: this.finalTotalMaterialCosts,
             finalRemainingPotential: this.finalRemainingPotential,
             finalSingleSuccessRate: this.finalSingleSuccessRate,
-            finalExpectedSingleSuccessRate: this.finalExpectedSingleSuccessRate
+            finalExpectedSingleSuccessRate: this.finalExpectedSingleSuccessRate,
+            finalProperties: this.finalProperties
         };
     }
 
@@ -845,11 +856,11 @@ export default class EnchantRecord {
             }
         }
 
-        // 更新最终总材料消耗（取最后一个未被忽略步骤的结果，无论步骤是否有效）
+        // 更新最终总材料消耗（取最后一个未被忽略且有效的步骤的结果）
         let lastValidStep = null;
         for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
             const step = this.enchantmentSteps[i];
-            if (!step.isIgnored) {
+            if (!step.isIgnored && step.isValid) {
                 lastValidStep = step;
                 break;
             }
@@ -885,7 +896,7 @@ export default class EnchantRecord {
 
         // 计算最终单条成功率
         if (lastValidStep) {
-            // 从最后一个未被忽略的步骤获取成功率
+            // 从最后一个未被忽略且有效的步骤获取成功率
             this.finalSingleSuccessRate = lastValidStep.singleSuccessRate;
         } else {
             // 如果没有有效步骤，返回null
@@ -894,11 +905,23 @@ export default class EnchantRecord {
 
         // 计算最终期望成功率
         if (lastValidStep) {
-            // 从最后一个未被忽略的步骤获取期望成功率
+            // 从最后一个未被忽略且有效的步骤获取期望成功率
             this.finalExpectedSuccessRate = lastValidStep.expectedSuccessRate;
         } else {
             // 如果没有有效步骤，返回null
             this.finalExpectedSuccessRate = null;
+        }
+
+        // 更新最终属性值
+        if (lastValidStep) {
+            this.finalProperties = { ...lastValidStep.currentProperties };
+        } else {
+            // 重置为默认属性值
+            const properties = PM.properties;
+            this.finalProperties = {};
+            for (const propId in properties) {
+                this.finalProperties[propId] = 0;
+            }
         }
     }
 
@@ -965,6 +988,46 @@ export default class EnchantRecord {
         // 返回指定属性的当前值，如果不存在则返回null
         const currentProperties = this.getCurrentProperties();
         return currentProperties[property.id] || null;
+    }
+
+    /**
+     * 获取最终所有属性值（取自最后一个未被忽略且有效的步骤）
+     * @returns {Object} 最终属性值对象
+     */
+    getFinalProperties() {
+        // 查找最后一个未被忽略且有效的步骤
+        let lastValidStep = null;
+        for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
+            const step = this.enchantmentSteps[i];
+            if (!step.isIgnored && step.isValid) {
+                lastValidStep = step;
+                break;
+            }
+        }
+
+        // 如果有未被忽略且有效的步骤，返回该步骤的属性值，否则返回空对象
+        if (lastValidStep) {
+            return { ...lastValidStep.currentProperties };
+        }
+
+        // 返回默认属性值
+        const properties = PM.properties;
+        const finalProperties = {};
+        for (const propId in properties) {
+            finalProperties[propId] = 0;
+        }
+        return finalProperties;
+    }
+
+    /**
+     * 获取最终指定属性值（取自最后一个未被忽略且有效的步骤）
+     * @param {Object} property - 属性对象
+     * @returns {number} 最终属性值
+     */
+    getFinalProperty(property) {
+        // 返回指定属性的最终值，如果不存在则返回null
+        const finalProperties = this.getFinalProperties();
+        return finalProperties[property.id] || null;
     }
 
     /**
