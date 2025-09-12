@@ -229,6 +229,18 @@ export default class EnchantRecord {
             return;
         }
 
+        // 检查身体装备上附属性觉醒，为无效步骤
+        if (this.equipmentType === EquipmentType.EQUIPMENT_TYPE_ARMOR) {
+            for (const enchantment of step.enchantments) {
+                const property = enchantment.property;
+                if (property && property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                    step.isValid = false;
+                    step.invalidReason = '身体装备不能附魔属性觉醒';
+                    return;
+                }
+            }
+        }
+
         // 获取已附魔的属性数量
         const enchantedPropertiesCount = this.enchantmentSteps.length > 0 ?
             Object.values(this.enchantmentSteps[this.enchantmentSteps.length - 1].enchantedProperties)

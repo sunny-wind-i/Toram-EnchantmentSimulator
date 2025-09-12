@@ -102,6 +102,7 @@ function bindEvents() {
     document.getElementById('decreaseValueBtn').addEventListener('click', decreaseValue);
     document.getElementById('increaseValueBtn').addEventListener('click', increaseValue);
     document.getElementById('maxValueBtn').addEventListener('click', setMaxValue);
+    document.getElementById('deleteValueBtn').addEventListener('click', deleteValue);
     document.getElementById('propertyValueInput').addEventListener('input', onPropertyValueInput);
     document.getElementById('propertyValueInput').addEventListener('change', onPropertyValueChanged);
     document.getElementById('propertyValueSlider').addEventListener('input', onPropertyValueSliderChange);
@@ -763,6 +764,7 @@ function onEquipmentTypeChange(event) {
     enchantRecord.setEquipmentType(
         type === 'armor' ? EquipmentType.EQUIPMENT_TYPE_ARMOR : EquipmentType.EQUIPMENT_TYPE_WEAPON
     );
+    enchantRecord._recalculateAllSteps();
     updateDisplay();
 }
 
@@ -770,6 +772,7 @@ function onPlayerLevelChange(event) {
     const level = parseInt(event.target.value);
     if (!isNaN(level) && level >= 200) {
         enchantRecord.playerLevel = level;
+        enchantRecord._recalculateAllSteps();
         updateDisplay();
     }
 }
@@ -778,6 +781,7 @@ function onEquipmentPotentialChange(event) {
     const potential = parseInt(event.target.value);
     if (!isNaN(potential) && potential > 0) {
         enchantRecord.equipmentPotential = potential;
+        enchantRecord._recalculateAllSteps();
         updateDisplay();
     }
 }
@@ -786,6 +790,7 @@ function onSmithingLevelChange(event) {
     const level = parseInt(event.target.value);
     if (!isNaN(level) && level >= 0) {
         enchantRecord.smithingLevel = level;
+        enchantRecord._recalculateAllSteps();
         updateDisplay();
     }
 }
@@ -811,6 +816,13 @@ function closeMoreConfig() {
 
 function saveConfig() {
     // 保存配置
+    const oldConfig = {
+        baseEquipmentPotential: enchantRecord.baseEquipmentPotential,
+        anvilLevel: enchantRecord.anvilLevel,
+        masterEnhancement2Level: enchantRecord.masterEnhancement2Level,
+        understandingSkills: { ...enchantRecord.understandingSkills }
+    };
+
     enchantRecord.baseEquipmentPotential = parseInt(document.getElementById('baseEquipmentPotential').value);
     enchantRecord.anvilLevel = parseInt(document.getElementById('anvilLevel').value);
     enchantRecord.masterEnhancement2Level = parseInt(document.getElementById('masterEnhancement2Level').value);
@@ -820,6 +832,22 @@ function saveConfig() {
     enchantRecord.understandingSkills.wood = parseInt(document.getElementById('understandingWood').value);
     enchantRecord.understandingSkills.medicine = parseInt(document.getElementById('understandingMedicine').value);
     enchantRecord.understandingSkills.mana = parseInt(document.getElementById('understandingMana').value);
+
+    // 检查配置是否发生变化
+    const configChanged =
+        oldConfig.baseEquipmentPotential !== enchantRecord.baseEquipmentPotential ||
+        oldConfig.anvilLevel !== enchantRecord.anvilLevel ||
+        oldConfig.masterEnhancement2Level !== enchantRecord.masterEnhancement2Level ||
+        oldConfig.understandingSkills.metal !== enchantRecord.understandingSkills.metal ||
+        oldConfig.understandingSkills.cloth !== enchantRecord.understandingSkills.cloth ||
+        oldConfig.understandingSkills.beast !== enchantRecord.understandingSkills.beast ||
+        oldConfig.understandingSkills.wood !== enchantRecord.understandingSkills.wood ||
+        oldConfig.understandingSkills.medicine !== enchantRecord.understandingSkills.medicine ||
+        oldConfig.understandingSkills.mana !== enchantRecord.understandingSkills.mana;
+
+    if (configChanged) {
+        enchantRecord._recalculateAllSteps();
+    }
 
     closeMoreConfig();
     updateDisplay();
@@ -1607,12 +1635,12 @@ function createViewModeModal() {
     modal.innerHTML = `
         <div class="modal-content view-mode-modal">
             <span class="close">&times;</span>
-            <h2>选择显示模式</h2>
+            <h2>选择视图</h2>
             <ul>
-                <li data-mode="change">各属性变化值</li>
-                <li data-mode="value">附魔完后的属性值</li>
-                <li data-mode="potential">各属性消耗潜力</li>
-                <li data-mode="material">各属性消耗素材</li>
+                <li data-mode="change">属性变化</li>
+                <li data-mode="value">属性</li>
+                <li data-mode="potential">潜力</li>
+                <li data-mode="material">素材</li>
             </ul>
         </div>
     `;
@@ -1964,6 +1992,35 @@ function setMaxValue() {
 
     // 更新显示
     updateDisplay();
+}
+
+// 删除属性值（还原为上一步结束后的属性值）
+function deleteValue() {
+    const propertyId = selectedCell.dataset.propertyId;
+
+    // 获取当前步骤和属性
+    const stepIndex = parseInt(selectedCell.dataset.stepIndex);
+    const step = enchantRecord.enchantmentSteps[stepIndex];
+    const enchantment = step.enchantments.find(e => e.property.id === propertyId);
+
+    // 获取上一步的属性值
+    let previousStepPropertyValue = 0;
+    if (stepIndex > 0) {
+        const previousStep = enchantRecord.enchantmentSteps[stepIndex - 1];
+        previousStepPropertyValue = previousStep.currentProperties[propertyId] || 0;
+    }
+
+    // 将属性值设置为0（表示没有变化）
+    enchantment.value = 0;
+
+    // 重新计算步骤
+    enchantRecord.updateEnchantmentStep(step.id, step);
+
+    // 更新显示
+    updateDisplay();
+
+    // 关闭弹窗
+    closeEditPropertyModal();
 }
 
 // 输入框输入事件处理

@@ -123,7 +123,6 @@
     <!-- 工作区 -->
     <div class="workspace-section">
         <div class="workspace-header">
-            <h2>附魔工作区</h2>
             <button id="selectPropertiesBtn" class="select-properties-btn">选择属性</button>
             <div class="view-mode-selector">
                 <button class="view-mode-btn active" data-mode="vertical">纵向表格</button>
@@ -162,25 +161,24 @@
 
     <!-- 属性编辑弹窗 -->
     <div id="editPropertyModal" class="modal hidden">
-        <div class="modal-content edit-property-modal">
+        <div class="modal-content">
             <span class="close">&times;</span>
             <h2>编辑属性值</h2>
-            <div class="property-info">
-                <div class="actual-value-display">
-                    <span id="actualValueDisplay"></span>
+            <div class="property-edit-content">
+                <div id="actualValueDisplay" class="actual-value-display"></div>
+                <div class="value-controls">
+                    <button id="minValueBtn" class="value-btn" title="最小值">min</button>
+                    <button id="decreaseValueBtn" class="value-btn" title="减少">-</button>
+                    <input type="number" id="propertyValueInput" class="value-input" placeholder="0">
+                    <button id="increaseValueBtn" class="value-btn" title="增加">+</button>
+                    <button id="maxValueBtn" class="value-btn" title="最大值">max</button>
+                    <button id="deleteValueBtn" class="value-btn delete-btn" title="删除">×</button>
                 </div>
-                <div class="property-value-editor">
-                    <button id="minValueBtn" class="value-btn">⌊⌋</button>
-                    <button id="decreaseValueBtn" class="value-btn">-</button>
-                    <input type="number" id="propertyValueInput" class="property-value-input">
-                    <button id="increaseValueBtn" class="value-btn">+</button>
-                    <button id="maxValueBtn" class="value-btn">⌈⌉</button>
-                </div>
-                <div class="property-slider-container">
-                    <input type="range" id="propertyValueSlider" class="property-value-slider">
+                <div class="slider-container">
+                    <input type="range" id="propertyValueSlider" class="value-slider">
                     <div class="slider-labels">
-                        <span id="minSliderValue"></span>
-                        <span id="maxSliderValue"></span>
+                        <span id="minSliderValue" class="slider-value">0</span>
+                        <span id="maxSliderValue" class="slider-value">100</span>
                     </div>
                 </div>
             </div>
@@ -248,7 +246,6 @@
 
     <!-- 附魔结果展示区 -->
     <div class="result-section">
-        <h2>附魔结果</h2>
         <div id="resultDisplay" class="result-display">
             <!-- 结果将通过JavaScript动态生成 -->
         </div>

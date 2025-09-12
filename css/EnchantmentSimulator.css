@@ -16,7 +16,7 @@ body {
 .basic-info-section {
     background-color: #fff;
     padding: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -148,7 +148,7 @@ body {
 .workspace-section {
     background-color: #fff;
     padding: 20px;
-    margin-bottom: 70px;
+    margin-bottom: 5px;
     /* 为悬浮工具栏留出空间 */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -436,6 +436,7 @@ body {
 .result-section {
     background-color: #fff;
     padding: 20px;
+    margin-bottom: 40px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -660,7 +661,7 @@ body {
 }
 
 /* 属性编辑弹窗 */
-.edit-property-modal {
+#editPropertyModal .modal-content {
     background-color: #fff;
     margin: 10% auto;
     padding: 20px;
@@ -669,15 +670,15 @@ body {
     max-width: 500px;
 }
 
-.edit-property-modal h2 {
+#editPropertyModal .modal-content h2 {
     margin-top: 0;
     text-align: center;
 }
 
-.property-info {
+.property-edit-content {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
 }
 
 .actual-value-display {
@@ -689,47 +690,135 @@ body {
     border-radius: 4px;
 }
 
-.property-value-editor {
+.value-controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 5px;
+    flex-wrap: wrap;
 }
 
-.property-value-input {
-    width: 100px;
-    padding: 8px;
+#propertyValueInput {
+    width: 80px;
+    padding: 6px;
     text-align: center;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 3px;
+    font-size: 14px;
 }
 
 .value-btn {
-    padding: 8px 12px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
+    padding: 6px 8px;
+    margin: 0 2px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
     cursor: pointer;
+    border-radius: 3px;
+    font-size: 14px;
+    min-width: 40px;
 }
 
 .value-btn:hover {
-    background-color: #0056b3;
+    background-color: #e0e0e0;
 }
 
-.property-slider-container {
+.delete-btn {
+    background-color: #ff6666;
+    color: white;
+    border: 1px solid #cc0000;
+    min-width: 30px;
+}
+
+.delete-btn:hover {
+    background-color: #ff3333;
+}
+
+.slider-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
 }
 
-.property-value-slider {
+#propertyValueSlider {
     width: 100%;
 }
 
 .slider-labels {
     display: flex;
     justify-content: space-between;
-    font-size: 14px;
+    font-size: 12px;
     color: #666;
+}
+
+.slider-value {
+    font-size: 12px;
+    color: #666;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    #editPropertyModal .modal-content {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .value-controls {
+        gap: 3px;
+    }
+
+    #propertyValueInput {
+        width: 70px;
+        padding: 5px;
+        font-size: 13px;
+    }
+
+    .value-btn {
+        padding: 5px 6px;
+        font-size: 13px;
+        min-width: 35px;
+    }
+
+    .delete-btn {
+        min-width: 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    #editPropertyModal .modal-content {
+        width: 95%;
+        padding: 10px;
+    }
+
+    .property-edit-content {
+        gap: 10px;
+    }
+
+    .actual-value-display {
+        font-size: 16px;
+        padding: 8px;
+    }
+
+    #propertyValueInput {
+        width: 60px;
+        padding: 4px;
+        font-size: 12px;
+    }
+
+    .value-btn {
+        padding: 4px 5px;
+        font-size: 12px;
+        min-width: 30px;
+    }
+
+    .delete-btn {
+        min-width: 20px;
+    }
+
+    .slider-labels {
+        font-size: 11px;
+    }
+
+    .slider-value {
+        font-size: 11px;
+    }
 }
