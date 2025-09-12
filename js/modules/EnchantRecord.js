@@ -759,8 +759,8 @@ export default class EnchantRecord {
             // 检查步骤是否为空（所有属性值都为0）
             const isEmptyStep = step.enchantments.every(e => e.value === 0);
 
-            // 只有当步骤有效且未被忽略且不为空时才应用附魔
-            if (step.isValid && !step.isIgnored && !isEmptyStep) {
+            // 只有当步骤未被忽略且不为空时才应用附魔（无论步骤是否有效）
+            if (!step.isIgnored && !isEmptyStep) {
                 // 应用当前步骤的附魔
                 for (const enchantment of step.enchantments) {
                     // 检查属性对象是否存在
@@ -801,9 +801,9 @@ export default class EnchantRecord {
                 mana: 0
             };
 
-            // 如果是第一步，直接使用当前步骤的材料消耗（仅当步骤有效且未被忽略时）
+            // 如果是第一步，直接使用当前步骤的材料消耗（仅当步骤未被忽略时）
             if (i === 0) {
-                if (this.enchantmentSteps[i].isValid && !this.enchantmentSteps[i].isIgnored) {
+                if (!this.enchantmentSteps[i].isIgnored) {
                     this.enchantmentSteps[i].totalMaterialCosts.metal = this.enchantmentSteps[i].materialCosts?.metal || 0;
                     this.enchantmentSteps[i].totalMaterialCosts.cloth = this.enchantmentSteps[i].materialCosts?.cloth || 0;
                     this.enchantmentSteps[i].totalMaterialCosts.beast = this.enchantmentSteps[i].materialCosts?.beast || 0;
@@ -812,44 +812,44 @@ export default class EnchantRecord {
                     this.enchantmentSteps[i].totalMaterialCosts.mana = this.enchantmentSteps[i].materialCosts?.mana || 0;
                 }
             } else {
-                // 否则，累加上一步的总材料消耗和当前步骤的材料消耗（仅当步骤有效且未被忽略时）
+                // 否则，累加上一步的总材料消耗和当前步骤的材料消耗（仅当步骤未被忽略时）
                 this.enchantmentSteps[i].totalMaterialCosts.metal =
                     (this.enchantmentSteps[i - 1].totalMaterialCosts?.metal || 0) +
-                    ((this.enchantmentSteps[i].isValid && !this.enchantmentSteps[i].isIgnored) ?
+                    ((!this.enchantmentSteps[i].isIgnored) ?
                         (this.enchantmentSteps[i].materialCosts?.metal || 0) : 0);
 
                 this.enchantmentSteps[i].totalMaterialCosts.cloth =
                     (this.enchantmentSteps[i - 1].totalMaterialCosts?.cloth || 0) +
-                    ((this.enchantmentSteps[i].isValid && !this.enchantmentSteps[i].isIgnored) ?
+                    ((!this.enchantmentSteps[i].isIgnored) ?
                         (this.enchantmentSteps[i].materialCosts?.cloth || 0) : 0);
 
                 this.enchantmentSteps[i].totalMaterialCosts.beast =
                     (this.enchantmentSteps[i - 1].totalMaterialCosts?.beast || 0) +
-                    ((this.enchantmentSteps[i].isValid && !this.enchantmentSteps[i].isIgnored) ?
+                    ((!this.enchantmentSteps[i].isIgnored) ?
                         (this.enchantmentSteps[i].materialCosts?.beast || 0) : 0);
 
                 this.enchantmentSteps[i].totalMaterialCosts.wood =
                     (this.enchantmentSteps[i - 1].totalMaterialCosts?.wood || 0) +
-                    ((this.enchantmentSteps[i].isValid && !this.enchantmentSteps[i].isIgnored) ?
+                    ((!this.enchantmentSteps[i].isIgnored) ?
                         (this.enchantmentSteps[i].materialCosts?.wood || 0) : 0);
 
                 this.enchantmentSteps[i].totalMaterialCosts.medicine =
                     (this.enchantmentSteps[i - 1].totalMaterialCosts?.medicine || 0) +
-                    ((this.enchantmentSteps[i].isValid && !this.enchantmentSteps[i].isIgnored) ?
+                    ((!this.enchantmentSteps[i].isIgnored) ?
                         (this.enchantmentSteps[i].materialCosts?.medicine || 0) : 0);
 
                 this.enchantmentSteps[i].totalMaterialCosts.mana =
                     (this.enchantmentSteps[i - 1].totalMaterialCosts?.mana || 0) +
-                    ((this.enchantmentSteps[i].isValid && !this.enchantmentSteps[i].isIgnored) ?
+                    ((!this.enchantmentSteps[i].isIgnored) ?
                         (this.enchantmentSteps[i].materialCosts?.mana || 0) : 0);
             }
         }
 
-        // 更新最终总材料消耗（取最后一个有效且未被忽略步骤的结果）
+        // 更新最终总材料消耗（取最后一个未被忽略步骤的结果，无论步骤是否有效）
         let lastValidStep = null;
         for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
             const step = this.enchantmentSteps[i];
-            if (step.isValid && !step.isIgnored) {
+            if (!step.isIgnored) {
                 lastValidStep = step;
                 break;
             }
@@ -885,7 +885,7 @@ export default class EnchantRecord {
 
         // 计算最终单条成功率
         if (lastValidStep) {
-            // 从最后一个有效且未被忽略的步骤获取成功率
+            // 从最后一个未被忽略的步骤获取成功率
             this.finalSingleSuccessRate = lastValidStep.singleSuccessRate;
         } else {
             // 如果没有有效步骤，返回null
@@ -894,7 +894,7 @@ export default class EnchantRecord {
 
         // 计算最终期望成功率
         if (lastValidStep) {
-            // 从最后一个有效且未被忽略的步骤获取期望成功率
+            // 从最后一个未被忽略的步骤获取期望成功率
             this.finalExpectedSuccessRate = lastValidStep.expectedSuccessRate;
         } else {
             // 如果没有有效步骤，返回null
@@ -933,9 +933,18 @@ export default class EnchantRecord {
      * @returns {Object} 当前属性值对象
      */
     getCurrentProperties() {
-        // 如果有步骤，返回最后一步的属性值，否则返回空对象
-        if (this.enchantmentSteps.length > 0) {
-            return { ...this.enchantmentSteps[this.enchantmentSteps.length - 1].currentProperties };
+        // 查找最后一个未被忽略的步骤
+        let lastUnignoredStep = null;
+        for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
+            if (!this.enchantmentSteps[i].isIgnored) {
+                lastUnignoredStep = this.enchantmentSteps[i];
+                break;
+            }
+        }
+
+        // 如果有未被忽略的步骤，返回该步骤的属性值，否则返回空对象
+        if (lastUnignoredStep) {
+            return { ...lastUnignoredStep.currentProperties };
         }
 
         // 返回默认属性值
