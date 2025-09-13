@@ -784,23 +784,76 @@ function updateTableContent() {
                             break;
                         case 'potential':
                             // 显示各属性消耗潜力和重复次数
-                            const potentialChange = firstStep.propertyPotentialChanges[property.id] || 0;
-                            if (potentialChange !== 0) {
-                                const totalPotentialChange = potentialChange * group.count;
-                                cell.textContent = `${potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString()} (×${group.count}, 总计: ${totalPotentialChange > 0 ? `+${totalPotentialChange}` : totalPotentialChange.toString()})`;
+                            // 修复：计算所有折叠步骤的潜力消耗总和，而不是简单乘以firstStep的消耗
+                            let totalGroupPotentialChange = 0;
+                            let individualPotentialChanges = [];
+                            
+                            // 计算所有步骤的潜力变化总和
+                            group.steps.forEach(step => {
+                                const stepPotentialChange = step.propertyPotentialChanges[property.id] || 0;
+                                totalGroupPotentialChange += stepPotentialChange;
+                                if (stepPotentialChange !== 0) {
+                                    individualPotentialChanges.push(stepPotentialChange);
+                                }
+                            });
+                            
+                            if (totalGroupPotentialChange !== 0) {
+                                if (individualPotentialChanges.length > 0 && individualPotentialChanges.every(change => change === individualPotentialChanges[0])) {
+                                    // 如果所有步骤的潜力消耗相同
+                                    const potentialChange = individualPotentialChanges[0];
+                                    cell.textContent = `${potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString()} (×${group.count}, 总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()})`;
+                                } else {
+                                    // 如果步骤间的潜力消耗不同
+                                    cell.textContent = `总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}`;
+                                }
                             } else {
                                 cell.textContent = '';
                             }
                             break;
                         case 'material':
                             // 显示各属性消耗素材和重复次数
-                            const materialCost = firstStep.propertyMaterialCosts[property.id] || 0;
-                            if (materialCost !== 0) {
-                                if (typeof materialCost === 'object') {
+                            // 修复：计算所有折叠步骤的素材消耗总和，而不是简单乘以firstStep的消耗
+                            let totalGroupMaterialCost = 0;
+                            let materialCostDetails = {};
+                            let hasVaryingMaterialCosts = false;
+                            
+                            // 计算所有步骤的素材消耗总和
+                            group.steps.forEach(step => {
+                                const stepMaterialCost = step.propertyMaterialCosts[property.id] || 0;
+                                if (typeof stepMaterialCost === 'object') {
+                                    // 累加对象类型的素材消耗
+                                    for (const key in stepMaterialCost) {
+                                        if (stepMaterialCost[key] !== 0) {
+                                            if (!materialCostDetails[key]) {
+                                                materialCostDetails[key] = [];
+                                            }
+                                            materialCostDetails[key].push(stepMaterialCost[key]);
+                                            totalGroupMaterialCost += stepMaterialCost[key];
+                                        }
+                                    }
+                                } else if (stepMaterialCost !== 0) {
+                                    // 累加数值类型的素材消耗
+                                    totalGroupMaterialCost += stepMaterialCost;
+                                }
+                            });
+                            
+                            // 检查是否有不同的素材消耗
+                            for (const key in materialCostDetails) {
+                                if (materialCostDetails[key].length > 0) {
+                                    const firstValue = materialCostDetails[key][0];
+                                    if (!materialCostDetails[key].every(value => value === firstValue)) {
+                                        hasVaryingMaterialCosts = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (totalGroupMaterialCost !== 0) {
+                                if (Object.keys(materialCostDetails).length > 0) {
+                                    // 处理对象类型的素材消耗
                                     const materialValues = [];
-                                    for (const key in materialCost) {
-                                        if (materialCost[key] !== 0) {
-                                            const totalMaterialCost = materialCost[key] * group.count;
+                                    for (const key in materialCostDetails) {
+                                        if (materialCostDetails[key].length > 0) {
                                             // 使用中文表示素材类型
                                             let materialName = key;
                                             switch (key) {
@@ -823,13 +876,20 @@ function updateTableContent() {
                                                     materialName = '魔素';
                                                     break;
                                             }
-                                            materialValues.push(`${materialName} ${materialCost[key]} (×${group.count}, 总计: ${totalMaterialCost})`);
+                                            
+                                            const totalForKey = materialCostDetails[key].reduce((sum, val) => sum + val, 0);
+                                            if (hasVaryingMaterialCosts) {
+                                                materialValues.push(`${materialName} 总计: ${totalForKey}`);
+                                            } else {
+                                                const firstValue = materialCostDetails[key][0];
+                                                materialValues.push(`${materialName} ${firstValue} (×${group.count}, 总计: ${totalForKey})`);
+                                            }
                                         }
                                     }
                                     cell.textContent = materialValues.length > 0 ? materialValues.join(', ') : '';
                                 } else {
-                                    const totalMaterialCost = materialCost * group.count;
-                                    cell.textContent = `${materialCost} (×${group.count}, 总计: ${totalMaterialCost})`;
+                                    // 处理数值类型的素材消耗
+                                    cell.textContent = `总计: ${totalGroupMaterialCost}`;
                                 }
                             } else {
                                 cell.textContent = '';
