@@ -476,7 +476,7 @@ function areStepsEqual(step1, step2) {
     // 检查是否为空步骤（所有属性值都为0）
     const isStep1Empty = step1.enchantments.every(enchant => enchant.value === 0);
     const isStep2Empty = step2.enchantments.every(enchant => enchant.value === 0);
-    
+
     // 如果其中一个是空步骤，则不视为重复步骤
     if (isStep1Empty || isStep2Empty) {
         return false;
@@ -641,7 +641,13 @@ function updateTableContent() {
                                 // 只有当属性值不为0时才显示
                                 if (enchantment && enchantment.value !== 0) {
                                     const value = enchantment.value;
-                                    cell.textContent = value > 0 ? `+${value}` : value.toString();
+                                    // 属性觉醒类型特殊处理
+                                    if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                                        cell.textContent = property.nameChsAbbr;
+                                    } else {
+                                        // 正数显示+号
+                                        cell.textContent = value >= 0 ? `+${value}` : value.toString();
+                                    }
                                 } else {
                                     cell.textContent = '';
                                 }
@@ -659,9 +665,16 @@ function updateTableContent() {
 
                                 // 只有当属性值发生变化时才显示
                                 if (currentValue !== previousValue) {
-                                    // 使用attrNumToActualNum转化数值，直接显示附魔后的值
-                                    const actualCurrentValue = attrNumToActualNum(property, currentValue);
-                                    cell.textContent = actualCurrentValue;
+                                    // 属性觉醒类型特殊处理
+                                    if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                                        cell.textContent = property.nameChsAbbr;
+                                    } else {
+                                        // 使用attrNumToActualNum转化数值，直接显示附魔后的值
+                                        const actualCurrentValue = attrNumToActualNum(property, currentValue);
+                                        // 正数显示+号
+                                        const sign = actualCurrentValue >= 0 ? '+' : '';
+                                        cell.textContent = `${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
+                                    }
                                 } else {
                                     cell.textContent = '';
                                 }
@@ -734,13 +747,13 @@ function updateTableContent() {
                 const lastStep = group.steps[group.steps.length - 1];
                 const row = document.createElement('tr');
                 row.classList.add('repeated-steps');
-                
+
                 // 检查组内是否有无效步骤，如果有则添加invalid类
                 const hasInvalidStep = group.steps.some(step => !step.isValid);
                 if (hasInvalidStep) {
                     row.classList.add('invalid');
                 }
-                
+
                 row.dataset.groupIndex = groupIndex;
 
                 // 潜力值列 - 显示最后一个步骤的潜力值
@@ -787,7 +800,7 @@ function updateTableContent() {
                             // 修复：计算所有折叠步骤的潜力消耗总和，而不是简单乘以firstStep的消耗
                             let totalGroupPotentialChange = 0;
                             let individualPotentialChanges = [];
-                            
+
                             // 计算所有步骤的潜力变化总和
                             group.steps.forEach(step => {
                                 const stepPotentialChange = step.propertyPotentialChanges[property.id] || 0;
@@ -796,7 +809,7 @@ function updateTableContent() {
                                     individualPotentialChanges.push(stepPotentialChange);
                                 }
                             });
-                            
+
                             if (totalGroupPotentialChange !== 0) {
                                 if (individualPotentialChanges.length > 0 && individualPotentialChanges.every(change => change === individualPotentialChanges[0])) {
                                     // 如果所有步骤的潜力消耗相同
@@ -816,7 +829,7 @@ function updateTableContent() {
                             let totalGroupMaterialCost = 0;
                             let materialCostDetails = {};
                             let hasVaryingMaterialCosts = false;
-                            
+
                             // 计算所有步骤的素材消耗总和
                             group.steps.forEach(step => {
                                 const stepMaterialCost = step.propertyMaterialCosts[property.id] || 0;
@@ -836,7 +849,7 @@ function updateTableContent() {
                                     totalGroupMaterialCost += stepMaterialCost;
                                 }
                             });
-                            
+
                             // 检查是否有不同的素材消耗
                             for (const key in materialCostDetails) {
                                 if (materialCostDetails[key].length > 0) {
@@ -847,7 +860,7 @@ function updateTableContent() {
                                     }
                                 }
                             }
-                            
+
                             if (totalGroupMaterialCost !== 0) {
                                 if (Object.keys(materialCostDetails).length > 0) {
                                     // 处理对象类型的素材消耗
@@ -876,7 +889,7 @@ function updateTableContent() {
                                                     materialName = '魔素';
                                                     break;
                                             }
-                                            
+
                                             const totalForKey = materialCostDetails[key].reduce((sum, val) => sum + val, 0);
                                             if (hasVaryingMaterialCosts) {
                                                 materialValues.push(`${materialName} 总计: ${totalForKey}`);
@@ -1081,115 +1094,443 @@ function updateResultDisplay() {
     // 构建结果文本
     let resultText = '';
 
-    // 1. 最终附魔的属性状态总览
-    resultText += '=== 最终属性状态 ===\n';
+    // 顶部属性总览（使用中文简写名）
     const finalProperties = enchantRecord.getCurrentProperties();
+    let propertyOverview = '附魔结果';
     for (const propId in finalProperties) {
         const property = propertyManager.getProperty(propId);
         const value = finalProperties[propId];
 
         // 只显示非零属性
         if (value !== 0) {
-            resultText += `${property.nameChsFull}: ${value}${property.isPercentage ? '%' : ''}\n`;
+            const actualValue = attrNumToActualNum(property, value);
+            // 属性觉醒类型直接显示"原属性"或"非原属性"
+            if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                propertyOverview += `｜${property.nameChsAbbr}`;
+            } else {
+                // 其他属性显示实际值，正数加+号
+                const sign = actualValue > 0 ? '+' : '';
+                propertyOverview += `｜${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
+            }
         }
     }
+    resultText += propertyOverview + '\n\n';
 
-    resultText += '\n';
-
-    // 2. 基础信息
-    resultText += '=== 基础信息 ===\n';
-    resultText += `装备类型: ${enchantRecord.equipmentType.nameChsFull}\n`;
-    resultText += `装备潜力: ${enchantRecord.equipmentPotential}\n`;
-    resultText += `锻冶熟练度: ${enchantRecord.smithingLevel}\n`;
+    // 基础信息
+    resultText += `装备类型｜${enchantRecord.equipmentType.nameChsFull}\n`;
+    resultText += `初始潜力｜${enchantRecord.equipmentPotential}\n`;
 
     // 只有非默认值才显示
     if (enchantRecord.baseEquipmentPotential !== 1) {
-        resultText += `基础潜力: ${enchantRecord.baseEquipmentPotential}\n`;
+        resultText += `基础潜力｜${enchantRecord.baseEquipmentPotential}\n`;
+    }
+
+    if (enchantRecord.smithingLevel !== 0) {
+        resultText += `锻冶熟练度｜${enchantRecord.smithingLevel}\n`;
+    }
+
+    // 理解技能等级（只有非默认值才显示）
+    const understandingSkills = enchantRecord.understandingSkills;
+    let understandingText = '';
+    if (understandingSkills.metal !== 0) {
+        understandingText += `金属Lv.${understandingSkills.metal}｜`;
+    }
+    if (understandingSkills.beast !== 0) {
+        understandingText += `兽品Lv.${understandingSkills.beast}｜`;
+    }
+    if (understandingSkills.wood !== 0) {
+        understandingText += `木材Lv.${understandingSkills.wood}｜`;
+    }
+    if (understandingSkills.cloth !== 0) {
+        understandingText += `布料Lv.${understandingSkills.cloth}｜`;
+    }
+    if (understandingSkills.medicine !== 0) {
+        understandingText += `药品Lv.${understandingSkills.medicine}｜`;
+    }
+    if (understandingSkills.mana !== 0) {
+        understandingText += `魔素Lv.${understandingSkills.mana}｜`;
+    }
+
+    if (understandingText) {
+        // 去掉末尾的"｜"
+        understandingText = understandingText.slice(0, -1);
+        resultText += `理解素材｜${understandingText}\n`;
     }
 
     if (enchantRecord.anvilLevel !== 40) {
-        resultText += `铁砧技能等级: ${enchantRecord.anvilLevel}\n`;
+        resultText += `铁砧等级｜${enchantRecord.anvilLevel}\n`;
     }
 
     if (enchantRecord.masterEnhancement2Level !== 10) {
-        resultText += `大师II等级: ${enchantRecord.masterEnhancement2Level}\n`;
-    }
-
-    // 理解技能等级
-    const understandingSkills = enchantRecord.understandingSkills;
-    let hasUnderstandingSkills = false;
-    let understandingText = '';
-
-    if (understandingSkills.metal !== 0) {
-        understandingText += `理解金属: ${understandingSkills.metal} `;
-        hasUnderstandingSkills = true;
-    }
-
-    if (understandingSkills.cloth !== 0) {
-        understandingText += `理解布料: ${understandingSkills.cloth} `;
-        hasUnderstandingSkills = true;
-    }
-
-    if (understandingSkills.beast !== 0) {
-        understandingText += `理解兽品: ${understandingSkills.beast} `;
-        hasUnderstandingSkills = true;
-    }
-
-    if (understandingSkills.wood !== 0) {
-        understandingText += `理解木材: ${understandingSkills.wood} `;
-        hasUnderstandingSkills = true;
-    }
-
-    if (understandingSkills.medicine !== 0) {
-        understandingText += `理解药品: ${understandingSkills.medicine} `;
-        hasUnderstandingSkills = true;
-    }
-
-    if (understandingSkills.mana !== 0) {
-        understandingText += `理解魔素: ${understandingSkills.mana} `;
-        hasUnderstandingSkills = true;
-    }
-
-    if (hasUnderstandingSkills) {
-        resultText += `理解技能: ${understandingText.trim()}\n`;
+        resultText += `大师级强化技术II等级｜${enchantRecord.masterEnhancement2Level}\n`;
     }
 
     resultText += '\n';
 
-    // 3. 附魔总素材消耗
-    resultText += '=== 总素材消耗 ===\n';
+    // 素材消耗
+    resultText += '素材消耗';
     const totalMaterialCosts = enchantRecord.finalTotalMaterialCosts;
-    if (totalMaterialCosts.metal > 0) resultText += `金属: ${totalMaterialCosts.metal}\n`;
-    if (totalMaterialCosts.cloth > 0) resultText += `布料: ${totalMaterialCosts.cloth}\n`;
-    if (totalMaterialCosts.beast > 0) resultText += `兽品: ${totalMaterialCosts.beast}\n`;
-    if (totalMaterialCosts.wood > 0) resultText += `木材: ${totalMaterialCosts.wood}\n`;
-    if (totalMaterialCosts.medicine > 0) resultText += `药品: ${totalMaterialCosts.medicine}\n`;
-    if (totalMaterialCosts.mana > 0) resultText += `魔素: ${totalMaterialCosts.mana}\n`;
+    if (totalMaterialCosts.metal > 0) resultText += `｜金属${totalMaterialCosts.metal}`;
+    if (totalMaterialCosts.beast > 0) resultText += `｜兽品${totalMaterialCosts.beast}`;
+    if (totalMaterialCosts.wood > 0) resultText += `｜木材${totalMaterialCosts.wood}`;
+    if (totalMaterialCosts.cloth > 0) resultText += `｜布料${totalMaterialCosts.cloth}`;
+    if (totalMaterialCosts.medicine > 0) resultText += `｜药品${totalMaterialCosts.medicine}`;
+    if (totalMaterialCosts.mana > 0) resultText += `｜魔素${totalMaterialCosts.mana}`;
+    resultText += '\n\n';
 
-    if (Object.values(totalMaterialCosts).every(cost => cost === 0)) {
-        resultText += '无素材消耗\n';
+    // 附魔步骤
+    let validStepIndex = 1;
+    let repeatSteps = []; // 用于记录连续的重复步骤
+
+    for (let i = 0; i < enchantRecord.enchantmentSteps.length; i++) {
+        const step = enchantRecord.enchantmentSteps[i];
+
+        // 跳过空步骤和无效步骤
+        if (!step.isValid || step.enchantments.every(e => e.value === 0)) {
+            // 处理可能未完成的重复步骤组
+            if (repeatSteps.length > 1) {
+                // 显示重复步骤组
+                resultText += `${validStepIndex}. 分次附、每次附`;
+
+                // 获取第一个步骤的附魔属性（所有重复步骤应该相同）
+                const firstStep = repeatSteps[0];
+                const enchantments = firstStep.enchantments.filter(enchant => enchant.value !== 0);
+
+                // 显示每次附的属性变化值
+                const enchantmentText = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        const actualValue = attrNumToActualNum(property, enchant.value);
+
+                        // 属性觉醒类型特殊处理
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            // 正数显示+号
+                            const sign = actualValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('、');
+
+                resultText += enchantmentText;
+
+                // 显示直到的最终结果
+                resultText += `、直到`;
+
+                // 显示最终属性值
+                const lastStep = repeatSteps[repeatSteps.length - 1];
+                const finalEnchantments = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        // 获取最终步骤该属性的值
+                        const finalValue = lastStep.currentProperties[property.id] || 0;
+                        const actualFinalValue = attrNumToActualNum(property, finalValue);
+
+                        // 属性觉醒类型特殊处理
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            // 正数显示+号
+                            const sign = actualFinalValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualFinalValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('、');
+
+                resultText += finalEnchantments;
+
+                // 显示结束时的剩余潜力值
+                resultText += `｜${lastStep.postEnchantmentPotential}pt\n`;
+                validStepIndex++;
+            } else if (repeatSteps.length === 1) {
+                // 只有一个步骤，当作普通步骤处理
+                const singleStep = repeatSteps[0];
+                resultText += `${validStepIndex}. 附 `;
+
+                // 显示该步骤附魔后的当前总属性（而非变化值）
+                const enchantments = singleStep.enchantments.filter(enchant => enchant.value !== 0);
+                const enchantmentText = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        // 获取当前步骤该属性的值（附魔后的总属性）
+                        const currentValue = singleStep.currentProperties[property.id] || 0;
+                        const actualCurrentValue = attrNumToActualNum(property, currentValue);
+
+                        // 属性觉醒类型特殊处理
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            // 正数显示+号
+                            const sign = actualCurrentValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('｜');
+
+                resultText += enchantmentText;
+
+                // 显示结束时的剩余潜力值
+                resultText += `｜${singleStep.postEnchantmentPotential}pt\n`;
+                validStepIndex++;
+            }
+
+            // 重置重复步骤数组
+            repeatSteps = [];
+            continue;
+        }
+
+        // 检查是否为分次附魔步骤
+        let isRepeatedStep = false;
+        if (i > 0) {
+            const prevStep = enchantRecord.enchantmentSteps[i - 1];
+            // 检查是否与前一步骤具有相同的附魔属性
+            isRepeatedStep = areStepsEqual(step, prevStep);
+        }
+
+        if (isRepeatedStep) {
+            // 如果是重复步骤，添加到数组中
+            // 如果repeatSteps为空，说明是第一次遇到重复步骤，需要把前一个步骤也加入
+            if (repeatSteps.length === 0) {
+                repeatSteps.push(enchantRecord.enchantmentSteps[i - 1]);
+            }
+            repeatSteps.push(step);
+        } else {
+            // 不是重复步骤
+            // 先处理可能存在的重复步骤序列
+            if (repeatSteps.length > 1) {
+                // 显示重复步骤组
+                resultText += `${validStepIndex}. 分次附、每次附`;
+
+                // 获取第一个步骤的附魔属性（所有重复步骤应该相同）
+                const firstStep = repeatSteps[0];
+                const enchantments = firstStep.enchantments.filter(enchant => enchant.value !== 0);
+
+                // 显示每次附的属性变化值
+                const enchantmentText = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        const actualValue = attrNumToActualNum(property, enchant.value);
+
+                        // 属性觉醒类型特殊处理
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            // 正数显示+号
+                            const sign = actualValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('、');
+
+                resultText += enchantmentText;
+
+                // 显示直到的最终结果
+                resultText += `、直到`;
+
+                // 显示最终属性值
+                const lastStep = repeatSteps[repeatSteps.length - 1];
+                const finalEnchantments = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        // 获取最终步骤该属性的值
+                        const finalValue = lastStep.currentProperties[property.id] || 0;
+                        const actualFinalValue = attrNumToActualNum(property, finalValue);
+
+                        // 属性觉醒类型特殊处理
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            // 正数显示+号
+                            const sign = actualFinalValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualFinalValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('、');
+
+                resultText += finalEnchantments;
+
+                // 显示结束时的剩余潜力值
+                resultText += `｜${lastStep.postEnchantmentPotential}pt\n`;
+                validStepIndex++;
+            } else if (repeatSteps.length === 1) {
+                // 只有一个步骤，当作普通步骤处理
+                const singleStep = repeatSteps[0];
+                resultText += `${validStepIndex}. 附 `;
+
+                // 显示该步骤附魔后的当前总属性（而非变化值）
+                const enchantments = singleStep.enchantments.filter(enchant => enchant.value !== 0);
+                const enchantmentText = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        // 获取当前步骤该属性的值（附魔后的总属性）
+                        const currentValue = singleStep.currentProperties[property.id] || 0;
+                        const actualCurrentValue = attrNumToActualNum(property, currentValue);
+
+                        // 属性觉醒类型特殊处理
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            // 正数显示+号
+                            const sign = actualCurrentValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('｜');
+
+                resultText += enchantmentText;
+
+                // 显示结束时的剩余潜力值
+                resultText += `｜${singleStep.postEnchantmentPotential}pt\n`;
+                validStepIndex++;
+            }
+
+            // 重置重复步骤数组
+            repeatSteps = [];
+
+            // 如果当前步骤不是重复步骤，需要单独显示
+            if (!isRepeatedStep) {
+                resultText += `${validStepIndex}. 附 `;
+
+                // 显示该步骤附魔后的当前总属性（而非变化值）
+                const currentEnchantments = step.enchantments.filter(enchant => enchant.value !== 0);
+                const currentEnchantmentText = currentEnchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        // 获取当前步骤该属性的值（附魔后的总属性）
+                        const currentValue = step.currentProperties[property.id] || 0;
+                        const actualCurrentValue = attrNumToActualNum(property, currentValue);
+
+                        // 属性觉醒类型特殊处理
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            // 正数显示+号
+                            const sign = actualCurrentValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('｜');
+
+                resultText += currentEnchantmentText;
+
+                // 显示结束时的剩余潜力值
+                resultText += `｜${step.postEnchantmentPotential}pt\n`;
+                validStepIndex++;
+            }
+        }
+    }
+
+    // 处理最后可能未处理的重复步骤
+    if (repeatSteps.length > 1) {
+        // 显示重复步骤组
+        resultText += `${validStepIndex}. 分次附、每次附`;
+
+        // 获取第一个步骤的附魔属性（所有重复步骤应该相同）
+        const firstStep = repeatSteps[0];
+        const enchantments = firstStep.enchantments.filter(enchant => enchant.value !== 0);
+
+        // 显示每次附的属性变化值
+        const enchantmentText = enchantments
+            .map(enchant => {
+                const property = enchant.property;
+                const actualValue = attrNumToActualNum(property, enchant.value);
+
+                // 属性觉醒类型特殊处理
+                if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                    return `${property.nameChsAbbr}`;
+                } else {
+                    // 正数显示+号
+                    const sign = actualValue >= 0 ? '+' : '';
+                    return `${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
+                }
+            })
+            .join('、');
+
+        resultText += enchantmentText;
+
+        // 显示直到的最终结果
+        resultText += `、直到`;
+
+        // 显示最终属性值
+        const lastStep = repeatSteps[repeatSteps.length - 1];
+        const finalEnchantments = enchantments
+            .map(enchant => {
+                const property = enchant.property;
+                // 获取最终步骤该属性的值
+                const finalValue = lastStep.currentProperties[property.id] || 0;
+                const actualFinalValue = attrNumToActualNum(property, finalValue);
+
+                // 属性觉醒类型特殊处理
+                if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                    return `${property.nameChsAbbr}`;
+                } else {
+                    // 正数显示+号
+                    const sign = actualFinalValue >= 0 ? '+' : '';
+                    return `${property.nameChsAbbr}${sign}${actualFinalValue}${property.isPercentage ? '%' : ''}`;
+                }
+            })
+            .join('、');
+
+        resultText += finalEnchantments;
+
+        // 显示结束时的剩余潜力值
+        resultText += `｜${lastStep.postEnchantmentPotential}pt\n`;
+        validStepIndex++;
+    } else if (repeatSteps.length === 1) {
+        // 只有一个步骤，当作普通步骤处理
+        const singleStep = repeatSteps[0];
+        resultText += `${validStepIndex}. 附 `;
+
+        // 显示该步骤附魔后的当前总属性（而非变化值）
+        const enchantments = singleStep.enchantments.filter(enchant => enchant.value !== 0);
+        const enchantmentText = enchantments
+            .map(enchant => {
+                const property = enchant.property;
+                // 获取当前步骤该属性的值（附魔后的总属性）
+                const currentValue = singleStep.currentProperties[property.id] || 0;
+                const actualCurrentValue = attrNumToActualNum(property, currentValue);
+
+                // 属性觉醒类型特殊处理
+                if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                    return `${property.nameChsAbbr}`;
+                } else {
+                    // 正数显示+号
+                    const sign = actualCurrentValue >= 0 ? '+' : '';
+                    return `${property.nameChsAbbr}${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
+                }
+            })
+            .join('｜');
+
+        resultText += enchantmentText;
+
+        // 显示结束时的剩余潜力值
+        resultText += `｜${singleStep.postEnchantmentPotential}pt\n`;
+        validStepIndex++;
     }
 
     resultText += '\n';
 
-    // 4. 附魔的所有步骤展示
-    resultText += '=== 附魔步骤 ===\n';
-    enchantRecord.enchantmentSteps.forEach((step, index) => {
-        resultText += `${index + 1}. 潜力: ${step.postEnchantmentPotential}\n`;
+    // 成功率
+    if (enchantRecord.finalSingleSuccessRate !== null) {
+        let singleRateText = Math.round(enchantRecord.finalSingleSuccessRate);
+        if (singleRateText > 999) {
+            singleRateText = '>999';
+        }
+        resultText += `单条成功率｜${singleRateText}%\n`;
+    } else {
+        resultText += `单条成功率｜N/A\n`;
+    }
 
-        // 显示该步骤的属性变化
-        step.enchantments.forEach(enchantment => {
-            const property = enchantment.property;
-            const value = enchantment.value;
-
-            // 只显示非零变化
-            if (value !== 0) {
-                resultText += `   ${property.nameChsFull}: ${value > 0 ? '+' : ''}${value}${property.isPercentage ? '%' : ''}\n`;
-            }
-        });
-
-        resultText += '\n';
-    });
+    if (enchantRecord.finalExpectedSuccessRate !== null) {
+        let expectedRateText = Math.round(enchantRecord.finalExpectedSuccessRate);
+        if (expectedRateText > 999) {
+            expectedRateText = '>999';
+        }
+        resultText += `期望成功率｜${expectedRateText}%\n`;
+    } else {
+        resultText += `期望成功率｜N/A\n`;
+    }
 
     resultDisplay.textContent = resultText;
 }
