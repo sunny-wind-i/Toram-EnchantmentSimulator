@@ -1180,333 +1180,132 @@ function updateResultDisplay() {
 
     // 附魔步骤
     let validStepIndex = 1;
-    let repeatSteps = []; // 用于记录连续的重复步骤
 
-    for (let i = 0; i < enchantRecord.enchantmentSteps.length; i++) {
-        const step = enchantRecord.enchantmentSteps[i];
+    // 使用预读方式处理步骤显示，解决重复步骤聚合问题
+    let i = 0;
+    while (i < enchantRecord.enchantmentSteps.length) {
+        const currentStep = enchantRecord.enchantmentSteps[i];
 
         // 跳过空步骤和无效步骤
-        if (!step.isValid || step.enchantments.every(e => e.value === 0)) {
-            // 处理可能未完成的重复步骤组
-            if (repeatSteps.length > 1) {
-                // 显示重复步骤组
-                resultText += `${validStepIndex}. 分次附、每次附`;
-
-                // 获取第一个步骤的附魔属性（所有重复步骤应该相同）
-                const firstStep = repeatSteps[0];
-                const enchantments = firstStep.enchantments.filter(enchant => enchant.value !== 0);
-
-                // 显示每次附的属性变化值
-                const enchantmentText = enchantments
-                    .map(enchant => {
-                        const property = enchant.property;
-                        const actualValue = attrNumToActualNum(property, enchant.value);
-
-                        // 属性觉醒类型特殊处理
-                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
-                            return `${property.nameChsAbbr}`;
-                        } else {
-                            // 正数显示+号
-                            const sign = actualValue >= 0 ? '+' : '';
-                            return `${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
-                        }
-                    })
-                    .join('、');
-
-                resultText += enchantmentText;
-
-                // 显示直到的最终结果
-                resultText += `、直到`;
-
-                // 显示最终属性值
-                const lastStep = repeatSteps[repeatSteps.length - 1];
-                const finalEnchantments = enchantments
-                    .map(enchant => {
-                        const property = enchant.property;
-                        // 获取最终步骤该属性的值
-                        const finalValue = lastStep.currentProperties[property.id] || 0;
-                        const actualFinalValue = attrNumToActualNum(property, finalValue);
-
-                        // 属性觉醒类型特殊处理
-                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
-                            return `${property.nameChsAbbr}`;
-                        } else {
-                            // 正数显示+号
-                            const sign = actualFinalValue >= 0 ? '+' : '';
-                            return `${property.nameChsAbbr}${sign}${actualFinalValue}${property.isPercentage ? '%' : ''}`;
-                        }
-                    })
-                    .join('、');
-
-                resultText += finalEnchantments;
-
-                // 显示结束时的剩余潜力值
-                resultText += `｜${lastStep.postEnchantmentPotential}pt\n`;
-                validStepIndex++;
-            } else if (repeatSteps.length === 1) {
-                // 只有一个步骤，当作普通步骤处理
-                const singleStep = repeatSteps[0];
-                resultText += `${validStepIndex}. 附 `;
-
-                // 显示该步骤附魔后的当前总属性（而非变化值）
-                const enchantments = singleStep.enchantments.filter(enchant => enchant.value !== 0);
-                const enchantmentText = enchantments
-                    .map(enchant => {
-                        const property = enchant.property;
-                        // 获取当前步骤该属性的值（附魔后的总属性）
-                        const currentValue = singleStep.currentProperties[property.id] || 0;
-                        const actualCurrentValue = attrNumToActualNum(property, currentValue);
-
-                        // 属性觉醒类型特殊处理
-                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
-                            return `${property.nameChsAbbr}`;
-                        } else {
-                            // 正数显示+号
-                            const sign = actualCurrentValue >= 0 ? '+' : '';
-                            return `${property.nameChsAbbr}${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
-                        }
-                    })
-                    .join('｜');
-
-                resultText += enchantmentText;
-
-                // 显示结束时的剩余潜力值
-                resultText += `｜${singleStep.postEnchantmentPotential}pt\n`;
-                validStepIndex++;
-            }
-
-            // 重置重复步骤数组
-            repeatSteps = [];
+        if (!currentStep.isValid || currentStep.enchantments.every(e => e.value === 0)) {
+            i++;
             continue;
         }
 
-        // 检查是否为分次附魔步骤
-        let isRepeatedStep = false;
-        if (i > 0) {
-            const prevStep = enchantRecord.enchantmentSteps[i - 1];
-            // 检查是否与前一步骤具有相同的附魔属性
-            isRepeatedStep = areStepsEqual(step, prevStep);
+        // 预读后续步骤，查找连续的重复步骤
+        let repeatCount = 1;
+        let j = i + 1;
+
+        // 查找连续的重复步骤
+        while (j < enchantRecord.enchantmentSteps.length) {
+            const nextStep = enchantRecord.enchantmentSteps[j];
+
+            // 跳过空步骤和无效步骤
+            if (!nextStep.isValid || nextStep.enchantments.every(e => e.value === 0)) {
+                j++;
+                continue;
+            }
+
+            // 检查是否与当前步骤具有相同的附魔属性
+            if (areStepsEqual(currentStep, nextStep)) {
+                repeatCount++;
+                j++;
+            } else {
+                break;
+            }
         }
 
-        if (isRepeatedStep) {
-            // 如果是重复步骤，添加到数组中
-            // 如果repeatSteps为空，说明是第一次遇到重复步骤，需要把前一个步骤也加入
-            if (repeatSteps.length === 0) {
-                repeatSteps.push(enchantRecord.enchantmentSteps[i - 1]);
-            }
-            repeatSteps.push(step);
+        // 如果有重复步骤，显示为分次附
+        if (repeatCount > 1) {
+            // 显示重复步骤组
+            resultText += `${validStepIndex}. 分次附、每次附`;
+
+            // 获取当前步骤的附魔属性（所有重复步骤应该相同）
+            const enchantments = currentStep.enchantments.filter(enchant => enchant.value !== 0);
+
+            // 显示每次附的属性变化值
+            const enchantmentText = enchantments
+                .map(enchant => {
+                    const property = enchant.property;
+                    const actualValue = attrNumToActualNum(property, enchant.value);
+
+                    // 属性觉醒类型特殊处理
+                    if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                        return `${property.nameChsAbbr}`;
+                    } else {
+                        // 正数显示+号
+                        const sign = actualValue >= 0 ? '+' : '';
+                        return `${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
+                    }
+                })
+                .join('、');
+
+            resultText += enchantmentText;
+
+            // 显示直到的最终结果
+            resultText += `、直到`;
+
+            // 显示最终属性值（取最后一个重复步骤）
+            const lastStep = enchantRecord.enchantmentSteps[i + repeatCount - 1];
+            const finalEnchantments = enchantments
+                .map(enchant => {
+                    const property = enchant.property;
+                    // 获取最终步骤该属性的值
+                    const finalValue = lastStep.currentProperties[property.id] || 0;
+                    const actualFinalValue = attrNumToActualNum(property, finalValue);
+
+                    // 属性觉醒类型特殊处理
+                    if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                        return `${property.nameChsAbbr}`;
+                    } else {
+                        // 正数显示+号
+                        const sign = actualFinalValue >= 0 ? '+' : '';
+                        return `${property.nameChsAbbr}${sign}${actualFinalValue}${property.isPercentage ? '%' : ''}`;
+                    }
+                })
+                .join('、');
+
+            resultText += finalEnchantments;
+
+            // 显示结束时的剩余潜力值
+            resultText += `｜${lastStep.postEnchantmentPotential}pt\n`;
+            validStepIndex++;
+
+            // 跳过已处理的重复步骤
+            i = j;
         } else {
-            // 不是重复步骤
-            // 先处理可能存在的重复步骤序列
-            if (repeatSteps.length > 1) {
-                // 显示重复步骤组
-                resultText += `${validStepIndex}. 分次附、每次附`;
+            // 单个步骤，当作普通步骤处理
+            resultText += `${validStepIndex}. 附 `;
 
-                // 获取第一个步骤的附魔属性（所有重复步骤应该相同）
-                const firstStep = repeatSteps[0];
-                const enchantments = firstStep.enchantments.filter(enchant => enchant.value !== 0);
+            // 显示该步骤附魔后的当前总属性（而非变化值）
+            const enchantments = currentStep.enchantments.filter(enchant => enchant.value !== 0);
+            const enchantmentText = enchantments
+                .map(enchant => {
+                    const property = enchant.property;
+                    // 获取当前步骤该属性的值（附魔后的总属性）
+                    const currentValue = currentStep.currentProperties[property.id] || 0;
+                    const actualCurrentValue = attrNumToActualNum(property, currentValue);
 
-                // 显示每次附的属性变化值
-                const enchantmentText = enchantments
-                    .map(enchant => {
-                        const property = enchant.property;
-                        const actualValue = attrNumToActualNum(property, enchant.value);
+                    // 属性觉醒类型特殊处理
+                    if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                        return `${property.nameChsAbbr}`;
+                    } else {
+                        // 正数显示+号
+                        const sign = actualCurrentValue >= 0 ? '+' : '';
+                        return `${property.nameChsAbbr}${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
+                    }
+                })
+                .join('｜');
 
-                        // 属性觉醒类型特殊处理
-                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
-                            return `${property.nameChsAbbr}`;
-                        } else {
-                            // 正数显示+号
-                            const sign = actualValue >= 0 ? '+' : '';
-                            return `${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
-                        }
-                    })
-                    .join('、');
+            resultText += enchantmentText;
 
-                resultText += enchantmentText;
+            // 显示结束时的剩余潜力值
+            resultText += `｜${currentStep.postEnchantmentPotential}pt\n`;
+            validStepIndex++;
 
-                // 显示直到的最终结果
-                resultText += `、直到`;
-
-                // 显示最终属性值
-                const lastStep = repeatSteps[repeatSteps.length - 1];
-                const finalEnchantments = enchantments
-                    .map(enchant => {
-                        const property = enchant.property;
-                        // 获取最终步骤该属性的值
-                        const finalValue = lastStep.currentProperties[property.id] || 0;
-                        const actualFinalValue = attrNumToActualNum(property, finalValue);
-
-                        // 属性觉醒类型特殊处理
-                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
-                            return `${property.nameChsAbbr}`;
-                        } else {
-                            // 正数显示+号
-                            const sign = actualFinalValue >= 0 ? '+' : '';
-                            return `${property.nameChsAbbr}${sign}${actualFinalValue}${property.isPercentage ? '%' : ''}`;
-                        }
-                    })
-                    .join('、');
-
-                resultText += finalEnchantments;
-
-                // 显示结束时的剩余潜力值
-                resultText += `｜${lastStep.postEnchantmentPotential}pt\n`;
-                validStepIndex++;
-            } else if (repeatSteps.length === 1) {
-                // 只有一个步骤，当作普通步骤处理
-                const singleStep = repeatSteps[0];
-                resultText += `${validStepIndex}. 附 `;
-
-                // 显示该步骤附魔后的当前总属性（而非变化值）
-                const enchantments = singleStep.enchantments.filter(enchant => enchant.value !== 0);
-                const enchantmentText = enchantments
-                    .map(enchant => {
-                        const property = enchant.property;
-                        // 获取当前步骤该属性的值（附魔后的总属性）
-                        const currentValue = singleStep.currentProperties[property.id] || 0;
-                        const actualCurrentValue = attrNumToActualNum(property, currentValue);
-
-                        // 属性觉醒类型特殊处理
-                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
-                            return `${property.nameChsAbbr}`;
-                        } else {
-                            // 正数显示+号
-                            const sign = actualCurrentValue >= 0 ? '+' : '';
-                            return `${property.nameChsAbbr}${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
-                        }
-                    })
-                    .join('｜');
-
-                resultText += enchantmentText;
-
-                // 显示结束时的剩余潜力值
-                resultText += `｜${singleStep.postEnchantmentPotential}pt\n`;
-                validStepIndex++;
-            }
-
-            // 重置重复步骤数组
-            repeatSteps = [];
-
-            // 如果当前步骤不是重复步骤，需要单独显示
-            if (!isRepeatedStep) {
-                resultText += `${validStepIndex}. 附 `;
-
-                // 显示该步骤附魔后的当前总属性（而非变化值）
-                const currentEnchantments = step.enchantments.filter(enchant => enchant.value !== 0);
-                const currentEnchantmentText = currentEnchantments
-                    .map(enchant => {
-                        const property = enchant.property;
-                        // 获取当前步骤该属性的值（附魔后的总属性）
-                        const currentValue = step.currentProperties[property.id] || 0;
-                        const actualCurrentValue = attrNumToActualNum(property, currentValue);
-
-                        // 属性觉醒类型特殊处理
-                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
-                            return `${property.nameChsAbbr}`;
-                        } else {
-                            // 正数显示+号
-                            const sign = actualCurrentValue >= 0 ? '+' : '';
-                            return `${property.nameChsAbbr}${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
-                        }
-                    })
-                    .join('｜');
-
-                resultText += currentEnchantmentText;
-
-                // 显示结束时的剩余潜力值
-                resultText += `｜${step.postEnchantmentPotential}pt\n`;
-                validStepIndex++;
-            }
+            // 处理下一个步骤
+            i++;
         }
-    }
-
-    // 处理最后可能未处理的重复步骤
-    if (repeatSteps.length > 1) {
-        // 显示重复步骤组
-        resultText += `${validStepIndex}. 分次附、每次附`;
-
-        // 获取第一个步骤的附魔属性（所有重复步骤应该相同）
-        const firstStep = repeatSteps[0];
-        const enchantments = firstStep.enchantments.filter(enchant => enchant.value !== 0);
-
-        // 显示每次附的属性变化值
-        const enchantmentText = enchantments
-            .map(enchant => {
-                const property = enchant.property;
-                const actualValue = attrNumToActualNum(property, enchant.value);
-
-                // 属性觉醒类型特殊处理
-                if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
-                    return `${property.nameChsAbbr}`;
-                } else {
-                    // 正数显示+号
-                    const sign = actualValue >= 0 ? '+' : '';
-                    return `${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
-                }
-            })
-            .join('、');
-
-        resultText += enchantmentText;
-
-        // 显示直到的最终结果
-        resultText += `、直到`;
-
-        // 显示最终属性值
-        const lastStep = repeatSteps[repeatSteps.length - 1];
-        const finalEnchantments = enchantments
-            .map(enchant => {
-                const property = enchant.property;
-                // 获取最终步骤该属性的值
-                const finalValue = lastStep.currentProperties[property.id] || 0;
-                const actualFinalValue = attrNumToActualNum(property, finalValue);
-
-                // 属性觉醒类型特殊处理
-                if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
-                    return `${property.nameChsAbbr}`;
-                } else {
-                    // 正数显示+号
-                    const sign = actualFinalValue >= 0 ? '+' : '';
-                    return `${property.nameChsAbbr}${sign}${actualFinalValue}${property.isPercentage ? '%' : ''}`;
-                }
-            })
-            .join('、');
-
-        resultText += finalEnchantments;
-
-        // 显示结束时的剩余潜力值
-        resultText += `｜${lastStep.postEnchantmentPotential}pt\n`;
-        validStepIndex++;
-    } else if (repeatSteps.length === 1) {
-        // 只有一个步骤，当作普通步骤处理
-        const singleStep = repeatSteps[0];
-        resultText += `${validStepIndex}. 附 `;
-
-        // 显示该步骤附魔后的当前总属性（而非变化值）
-        const enchantments = singleStep.enchantments.filter(enchant => enchant.value !== 0);
-        const enchantmentText = enchantments
-            .map(enchant => {
-                const property = enchant.property;
-                // 获取当前步骤该属性的值（附魔后的总属性）
-                const currentValue = singleStep.currentProperties[property.id] || 0;
-                const actualCurrentValue = attrNumToActualNum(property, currentValue);
-
-                // 属性觉醒类型特殊处理
-                if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
-                    return `${property.nameChsAbbr}`;
-                } else {
-                    // 正数显示+号
-                    const sign = actualCurrentValue >= 0 ? '+' : '';
-                    return `${property.nameChsAbbr}${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
-                }
-            })
-            .join('｜');
-
-        resultText += enchantmentText;
-
-        // 显示结束时的剩余潜力值
-        resultText += `｜${singleStep.postEnchantmentPotential}pt\n`;
-        validStepIndex++;
     }
 
     resultText += '\n';
