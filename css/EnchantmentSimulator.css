@@ -12,51 +12,81 @@ body {
     line-height: 1.6;
 }
 
-/* 基础信息区 */
+/* 基础信息区样式 */
 .basic-info-section {
-    background-color: #fff;
-    padding: 20px;
-    margin-bottom: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
 }
 
 .basic-info-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
     align-items: center;
+    gap: 15px;
 }
 
 .basic-info-item {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 5px;
 }
 
 .basic-info-item label {
     font-weight: bold;
-    margin-bottom: 5px;
+    white-space: nowrap;
 }
 
 .basic-info-item input,
 .basic-info-item select {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
 }
 
-.more-config-btn {
-    padding: 8px 16px;
+.export-btn,
+.import-btn {
     background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    padding: 8px 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
     font-size: 14px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.import-btn {
+    background-color: #008CBA;
+}
+
+.export-btn:hover {
+    background-color: #45a049;
+}
+
+.import-btn:hover {
+    background-color: #007B9A;
+}
+
+.more-config-btn {
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-left: auto;
 }
 
 .more-config-btn:hover {
-    background-color: #45a049;
+    background-color: #e68900;
 }
 
 /* 弹窗样式 */

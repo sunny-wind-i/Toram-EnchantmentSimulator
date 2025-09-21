@@ -50,6 +50,123 @@ function initializeEnchantRecord() {
     enchantRecord = new EnchantRecord(config);
 }
 
+// 导出数据
+function exportData() {
+    try {
+        const exportedData = enchantRecord.exportCustomData();
+        // 复制到剪贴板
+        navigator.clipboard.writeText(exportedData).then(() => {
+            alert('导出数据已复制到剪贴板');
+        }).catch(err => {
+            // 如果复制失败，显示数据在弹窗中
+            showExportData(exportedData);
+        });
+    } catch (error) {
+        alert('导出失败: ' + error.message);
+    }
+}
+
+// 显示导出数据
+function showExportData(data) {
+    // 创建弹窗元素
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>导出数据</h2>
+            <p>请复制以下数据:</p>
+            <textarea id="exportDataTextarea" rows="5" cols="50" readonly>${data}</textarea>
+            <button id="copyExportDataBtn">复制</button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // 显示弹窗
+    modal.style.display = 'block';
+
+    // 绑定关闭事件
+    modal.querySelector('.close').onclick = () => {
+        document.body.removeChild(modal);
+    };
+
+    // 绑定复制按钮事件
+    modal.querySelector('#copyExportDataBtn').onclick = () => {
+        const textarea = modal.querySelector('#exportDataTextarea');
+        textarea.select();
+        document.execCommand('copy');
+        alert('已复制到剪贴板');
+    };
+
+    // 点击弹窗外部关闭
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            document.body.removeChild(modal);
+        }
+    };
+}
+
+// 导入数据
+function importData() {
+    // 创建导入弹窗
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>导入数据</h2>
+            <p>请粘贴导出的数据:</p>
+            <textarea id="importDataTextarea" rows="5" cols="50"></textarea>
+            <button id="importDataBtn">导入</button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // 显示弹窗
+    modal.style.display = 'block';
+
+    // 绑定关闭事件
+    modal.querySelector('.close').onclick = () => {
+        document.body.removeChild(modal);
+    };
+
+    // 绑定导入按钮事件
+    modal.querySelector('#importDataBtn').onclick = () => {
+        const textarea = modal.querySelector('#importDataTextarea');
+        const data = textarea.value.trim();
+
+        if (!data) {
+            alert('请输入要导入的数据');
+            return;
+        }
+
+        try {
+            // 导入数据
+            enchantRecord.importCustomData(data);
+
+            // 更新显示
+            updateDisplay();
+            updateBasicInfoDisplay();
+
+            // 关闭弹窗
+            document.body.removeChild(modal);
+
+            alert('导入成功');
+        } catch (error) {
+            alert('导入失败: ' + error.message);
+        }
+    };
+
+    // 点击弹窗外部关闭
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            document.body.removeChild(modal);
+        }
+    };
+}
+
 // 绑定事件
 function bindEvents() {
     // 基础信息事件
@@ -61,8 +178,15 @@ function bindEvents() {
     // 更多配置事件
     document.getElementById('moreConfigBtn').addEventListener('click', showMoreConfig);
     document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
-    document.querySelector('#moreConfigModal .close').addEventListener('click', closeMoreConfig);
 
+    // 添加导出按钮事件监听器
+    document.getElementById('exportBtn').addEventListener('click', exportData);
+
+    // 添加导入按钮事件监听器
+    document.getElementById('importBtn').addEventListener('click', importData);
+
+    // 关闭更多配置弹窗事件
+    document.querySelector('#moreConfigModal .close').addEventListener('click', closeMoreConfig);
     // 属性选择事件
     document.getElementById('selectPropertiesBtn').addEventListener('click', showPropertySelection);
     document.getElementById('confirmPropertiesBtn').addEventListener('click', confirmProperties);
@@ -1369,6 +1493,42 @@ function onSmithingLevelChange(event) {
         enchantRecord._recalculateAllSteps();
         updateDisplay();
     }
+}
+
+// 更新基础信息
+function updateBasicInfo() {
+    const equipmentType = document.getElementById('equipmentType').value === 'weapon' ?
+        EquipmentType.EQUIPMENT_TYPE_WEAPON : EquipmentType.EQUIPMENT_TYPE_ARMOR;
+    const playerLevel = parseInt(document.getElementById('playerLevel').value) || 290;
+    const equipmentPotential = parseInt(document.getElementById('equipmentPotential').value) || 100;
+    const smithingLevel = parseInt(document.getElementById('smithingLevel').value) || 0;
+
+    enchantRecord.equipmentType = equipmentType;
+    enchantRecord.playerLevel = playerLevel;
+    enchantRecord.equipmentPotential = equipmentPotential;
+    enchantRecord.smithingLevel = smithingLevel;
+
+    // 更新显示
+    updateDisplay();
+}
+
+// 更新基础信息显示
+function updateBasicInfoDisplay() {
+    document.getElementById('equipmentType').value = enchantRecord.equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON ? 'weapon' : 'armor';
+    document.getElementById('playerLevel').value = enchantRecord.playerLevel;
+    document.getElementById('equipmentPotential').value = enchantRecord.equipmentPotential;
+    document.getElementById('smithingLevel').value = enchantRecord.smithingLevel;
+
+    // 更新更多配置显示
+    document.getElementById('baseEquipmentPotential').value = enchantRecord.baseEquipmentPotential;
+    document.getElementById('anvilLevel').value = enchantRecord.anvilLevel;
+    document.getElementById('masterEnhancement2Level').value = enchantRecord.masterEnhancement2Level;
+    document.getElementById('understandingMetal').value = enchantRecord.understandingSkills.metal;
+    document.getElementById('understandingCloth').value = enchantRecord.understandingSkills.cloth;
+    document.getElementById('understandingBeast').value = enchantRecord.understandingSkills.beast;
+    document.getElementById('understandingWood').value = enchantRecord.understandingSkills.wood;
+    document.getElementById('understandingMedicine').value = enchantRecord.understandingSkills.medicine;
+    document.getElementById('understandingMana').value = enchantRecord.understandingSkills.mana;
 }
 
 function showMoreConfig() {
@@ -2774,4 +2934,5 @@ function onPropertyValueSliderChange(event) {
     // 更新显示
     updateDisplay();
 }
+
 
