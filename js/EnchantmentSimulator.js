@@ -12,6 +12,7 @@ let currentViewMode = 'change'; // change, value, potential, material
 let selectedCell = null;
 let currentQuantity = 1;
 let copiedStepData = null;
+const PM = new PropertyManager();
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function () {
@@ -146,9 +147,13 @@ function importData() {
             // 导入数据
             enchantRecord.importCustomData(data);
 
+            // 更新选中属性
+            updateSelectedPropertiesFromImport();
+
             // 更新显示
             updateDisplay();
             updateBasicInfoDisplay();
+            updateTableHeader(); // 更新表格表头
 
             // 关闭弹窗
             document.body.removeChild(modal);
@@ -165,6 +170,23 @@ function importData() {
             document.body.removeChild(modal);
         }
     };
+}
+
+// 根据导入的数据更新选中属性
+function updateSelectedPropertiesFromImport() {
+    // 获取所有曾经被附魔过的属性
+    const enchantedProperties = enchantRecord.getEnchantedProperties();
+
+    // 清空当前选中的属性
+    selectedProperties = [];
+
+    // 根据导入数据中的附魔属性更新selectedProperties
+    enchantedProperties.forEach(propId => {
+        const property = PM.properties[propId];
+        if (property) {
+            selectedProperties.push(property);
+        }
+    });
 }
 
 // 绑定事件
