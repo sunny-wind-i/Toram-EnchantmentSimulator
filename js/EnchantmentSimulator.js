@@ -27,7 +27,21 @@ document.addEventListener('DOMContentLoaded', function () {
     bindEvents();
 
     // 更新显示
+    // updateDisplay();
+    // updateBasicInfoDisplay();
+    // updatePropertyButtons();
+    // updateTableHeader();
+
+    // 更新选中属性
+    updateSelectedPropertiesFromImport();
+    // 更新显示
     updateDisplay();
+    // 更新基础信息
+    updateBasicInfoDisplay();
+    // 更新表格表头
+    updateTableHeader();
+    // 更新附魔选择器
+    updateEnchantmentSelector();
 });
 
 // 初始化附魔记录
@@ -47,6 +61,8 @@ function initializeEnchantRecord() {
         try {
             enchantRecord = new EnchantRecord({});
             enchantRecord.importCustomData(savedData);
+            // 更新选中属性
+            updateSelectedPropertiesFromImport();
         } catch (e) {
             console.error('加载存储的附魔失败:', e);
             createNewEnchantRecord();
@@ -57,6 +73,11 @@ function initializeEnchantRecord() {
         // 保存到本地存储
         saveCurrentEnchantment();
     }
+
+    // 更新附魔选择器，确保下拉框显示所有附魔
+    updateEnchantmentSelector();
+    console.log({ ...enchantRecord });
+
 }
 
 // 创建新的附魔记录
@@ -255,6 +276,8 @@ function switchToEnchantment(index) {
     try {
         enchantRecord = new EnchantRecord({});
         enchantRecord.importCustomData(savedData);
+        // 更新选中属性
+        updateSelectedPropertiesFromImport();
     } catch (e) {
         console.error('加载附魔失败:', e);
         alert('加载附魔失败');
@@ -264,10 +287,15 @@ function switchToEnchantment(index) {
     // 更新存储的当前索引
     localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
 
+    // 更新选中属性
+    updateSelectedPropertiesFromImport();
     // 更新显示
     updateDisplay();
+    // 更新基础信息
     updateBasicInfoDisplay();
+    // 更新表格表头
     updateTableHeader();
+    // 更新附魔选择器
     updateEnchantmentSelector();
 }
 
@@ -289,6 +317,15 @@ function updateEnchantmentSelector() {
         }
         selector.appendChild(option);
     });
+
+    // 绑定事件
+    selector.addEventListener('change', function () {
+        const newIndex = parseInt(this.value);
+        switchToEnchantment(newIndex);
+    });
+
+    // 确保选中当前附魔
+    selector.value = currentEnchantmentIndex;
 }
 
 // 导出数据
@@ -811,7 +848,7 @@ function confirmProperties() {
     // 更新显示
     updateDisplay();
 
-    // 本地保存
+    // 保存到本地存储
     saveCurrentEnchantment();
 
     // 关闭弹窗
@@ -1804,81 +1841,6 @@ function onSmithingLevelChange(event) {
         saveCurrentEnchantment(); // 保存到本地存储
     }
 }
-
-// function addStep() {
-//     enchantRecord.addEnchantmentStep({
-//         enchantments: selectedProperties.map(property => ({
-//             property: property,
-//             value: 0
-//         }))
-//     });
-//     updateDisplay();
-//     saveCurrentEnchantment(); // 保存到本地存储
-// }
-
-// function deleteStep(stepIndex) {
-//     enchantRecord.deleteEnchantmentStep(stepIndex);
-//     updateDisplay();
-//     saveCurrentEnchantment(); // 保存到本地存储
-// }
-
-// function toggleStepIgnored(stepIndex) {
-//     enchantRecord.toggleEnchantmentStepIgnored(stepIndex);
-//     updateDisplay();
-//     saveCurrentEnchantment(); // 保存到本地存储
-// }
-
-// function updateStepPropertyValue(stepIndex, propertyIndex, value) {
-//     enchantRecord.updateEnchantmentStepPropertyValue(stepIndex, propertyIndex, value);
-//     updateDisplay();
-//     saveCurrentEnchantment(); // 保存到本地存储
-// }
-
-// function onMoreConfigChange() {
-//     const baseEquipmentPotential = parseInt(document.getElementById('baseEquipmentPotential').value);
-//     const anvilLevel = parseInt(document.getElementById('anvilLevel').value);
-//     const masterEnhancement2Level = parseInt(document.getElementById('masterEnhancement2Level').value);
-//     const metalSkill = parseInt(document.getElementById('metalSkill').value);
-//     const clothSkill = parseInt(document.getElementById('clothSkill').value);
-//     const beastSkill = parseInt(document.getElementById('beastSkill').value);
-//     const woodSkill = parseInt(document.getElementById('woodSkill').value);
-//     const medicineSkill = parseInt(document.getElementById('medicineSkill').value);
-//     const manaSkill = parseInt(document.getElementById('manaSkill').value);
-
-//     enchantRecord.baseEquipmentPotential = baseEquipmentPotential;
-//     enchantRecord.anvilLevel = anvilLevel;
-//     enchantRecord.masterEnhancement2Level = masterEnhancement2Level;
-//     enchantRecord.understandingSkills = {
-//         metal: metalSkill,
-//         cloth: clothSkill,
-//         beast: beastSkill,
-//         wood: woodSkill,
-//         medicine: medicineSkill,
-//         mana: manaSkill
-//     };
-
-//     enchantRecord._recalculateAllSteps();
-//     updateDisplay();
-//     saveCurrentEnchantment(); // 保存到本地存储
-// }
-
-// function onPropertySelect(property) {
-//     // 检查属性是否已选择
-//     const index = selectedProperties.findIndex(p => p.id === property.id);
-//     if (index >= 0) {
-//         // 如果已选择，则取消选择
-//         selectedProperties.splice(index, 1);
-//     } else {
-//         // 如果未选择，则添加到选择列表
-//         selectedProperties.push(property);
-//     }
-
-//     // 更新显示
-//     updatePropertyButtons();
-//     updateTableHeader();
-//     updateDisplay();
-//     saveCurrentEnchantment(); // 保存到本地存储
-// }
 
 // 附魔名称更改事件
 function onEnchantmentNameChange() {

@@ -53,7 +53,7 @@ export default class EnchantRecord {
         this.smithingLevel = config.smithingLevel || 0; // 玩家锻冶熟练度
         this.anvilLevel = config.anvilLevel || 40; // 铁砧技能等级，默认为40
         this.masterEnhancement2Level = config.masterEnhancement2Level || 10; // 大师级强化技术2技能等级，默认为10
-        
+
         // 附魔名称
         this.name = config.name || "自定义附魔1";
 
@@ -925,51 +925,51 @@ export default class EnchantRecord {
         }
         return false;
     }
-    
+
     /**
      * 导出数据为自定义编码格式
      * @returns {string} 编码后的数据字符串
      */
     exportCustomData() {
         let data = '';
-        
+
         // 附魔名称长度 (1字节)
         const nameLength = Math.min(this.name.length, 255);
         data += String.fromCharCode(nameLength);
-        
+
         // 附魔名称
         for (let i = 0; i < nameLength; i++) {
             data += String.fromCharCode(this.name.charCodeAt(i));
         }
-        
+
         // 装备类型 (1字节)
         data += String.fromCharCode(this.equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON ? 0 : 1);
-        
+
         // 玩家等级 (2字节)
         const playerLevel = Math.min(Math.max(this.playerLevel, 0), 65535);
         data += String.fromCharCode((playerLevel >> 8) & 0xFF);
         data += String.fromCharCode(playerLevel & 0xFF);
-        
+
         // 装备潜力 (1字节)
         const equipmentPotential = Math.min(Math.max(this.equipmentPotential, 0), 255);
         data += String.fromCharCode(equipmentPotential);
-        
+
         // 锻冶熟练度 (1字节)
         const smithingLevel = Math.min(Math.max(this.smithingLevel, 0), 255);
         data += String.fromCharCode(smithingLevel);
-        
+
         // 装备基础潜力 (1字节)
         const baseEquipmentPotential = Math.min(Math.max(this.baseEquipmentPotential, 0), 255);
         data += String.fromCharCode(baseEquipmentPotential);
-        
+
         // 铁砧技能等级 (1字节)
         const anvilLevel = Math.min(Math.max(this.anvilLevel, 0), 255);
         data += String.fromCharCode(anvilLevel);
-        
+
         // 大师级强化技术II技能等级 (1字节)
         const masterEnhancement2Level = Math.min(Math.max(this.masterEnhancement2Level, 0), 255);
         data += String.fromCharCode(masterEnhancement2Level);
-        
+
         // 理解素材技能等级 (6字节)
         data += String.fromCharCode(Math.min(Math.max(this.understandingSkills.metal, 0), 255));
         data += String.fromCharCode(Math.min(Math.max(this.understandingSkills.cloth, 0), 255));
@@ -977,37 +977,37 @@ export default class EnchantRecord {
         data += String.fromCharCode(Math.min(Math.max(this.understandingSkills.wood, 0), 255));
         data += String.fromCharCode(Math.min(Math.max(this.understandingSkills.medicine, 0), 255));
         data += String.fromCharCode(Math.min(Math.max(this.understandingSkills.mana, 0), 255));
-        
+
         // 附魔步骤数量 (1字节)
         const stepCount = Math.min(this.enchantmentSteps.length, 255);
         data += String.fromCharCode(stepCount);
-        
+
         // 附魔步骤数据
         for (let i = 0; i < stepCount; i++) {
             const step = this.enchantmentSteps[i];
-            
+
             // 是否忽略步骤 (1位) + 属性数量 (7位) 
             const enchantmentCount = Math.min(step.enchantments.length, 127);
             const ignoredFlag = step.isIgnored ? 128 : 0;
             data += String.fromCharCode(ignoredFlag | enchantmentCount);
-            
+
             // 属性数据
             for (let j = 0; j < enchantmentCount; j++) {
                 const enchant = step.enchantments[j];
                 // 属性ID编码 (1字节)
                 data += String.fromCharCode(this._getPropertyIdCode(enchant.property?.id) & 0xFF);
-                
+
                 // 属性值编码 (2字节，支持负数)
                 const value = Math.min(Math.max(enchant.value, -32768), 32767);
                 data += String.fromCharCode((value >> 8) & 0xFF);
                 data += String.fromCharCode(value & 0xFF);
             }
         }
-        
+
         // 使用自定义Base64编码
         return this._customBase64Encode(data);
     }
-    
+
     /**
      * 从自定义编码格式导入数据
      * @param {string} encodedData - 编码后的数据字符串
@@ -1017,42 +1017,42 @@ export default class EnchantRecord {
             // 使用自定义Base64解码
             const data = this._customBase64Decode(encodedData);
             let offset = 0;
-            
+
             // 附魔名称长度
             const nameLength = data.charCodeAt(offset++);
-            
+
             // 附魔名称
             this.name = '';
             for (let i = 0; i < nameLength; i++) {
                 this.name += String.fromCharCode(data.charCodeAt(offset++));
             }
-            
+
             // 装备类型
             const equipmentTypeCode = data.charCodeAt(offset++);
-            this.equipmentType = equipmentTypeCode === 0 ? 
-                EquipmentType.EQUIPMENT_TYPE_WEAPON : 
+            this.equipmentType = equipmentTypeCode === 0 ?
+                EquipmentType.EQUIPMENT_TYPE_WEAPON :
                 EquipmentType.EQUIPMENT_TYPE_ARMOR;
-            
+
             // 玩家等级
             const playerLevelHigh = data.charCodeAt(offset++);
             const playerLevelLow = data.charCodeAt(offset++);
             this.playerLevel = (playerLevelHigh << 8) | playerLevelLow;
-            
+
             // 装备潜力
             this.equipmentPotential = data.charCodeAt(offset++);
-            
+
             // 锻冶熟练度
             this.smithingLevel = data.charCodeAt(offset++);
-            
+
             // 装备基础潜力
             this.baseEquipmentPotential = data.charCodeAt(offset++);
-            
+
             // 铁砧技能等级
             this.anvilLevel = data.charCodeAt(offset++);
-            
+
             // 大师级强化技术II技能等级
             this.masterEnhancement2Level = data.charCodeAt(offset++);
-            
+
             // 理解素材技能等级
             this.understandingSkills = {
                 metal: data.charCodeAt(offset++),
@@ -1062,10 +1062,10 @@ export default class EnchantRecord {
                 medicine: data.charCodeAt(offset++),
                 mana: data.charCodeAt(offset++)
             };
-            
+
             // 附魔步骤数量
             const stepCount = data.charCodeAt(offset++);
-            
+
             // 附魔步骤数据
             this.enchantmentSteps = [];
             for (let i = 0; i < stepCount; i++) {
@@ -1073,7 +1073,7 @@ export default class EnchantRecord {
                 const flag = data.charCodeAt(offset++);
                 const isIgnored = (flag & 128) !== 0;
                 const enchantmentCount = flag & 127;
-                
+
                 const step = {
                     id: this._generateStepId(),
                     enchantments: [],
@@ -1089,14 +1089,14 @@ export default class EnchantRecord {
                         mana: 0
                     }
                 };
-                
+
                 // 属性数据
                 for (let j = 0; j < enchantmentCount; j++) {
                     // 属性ID
                     const propertyIdCode = data.charCodeAt(offset++);
                     const propertyId = this._getPropertyIdFromCode(propertyIdCode);
                     const property = PM.properties[propertyId];
-                    
+
                     if (property) {
                         // 属性值
                         const valueHigh = data.charCodeAt(offset++);
@@ -1104,7 +1104,7 @@ export default class EnchantRecord {
                         const value = (valueHigh << 8) | valueLow;
                         // 处理负数
                         const signedValue = (value & 0x8000) ? value - 0x10000 : value;
-                        
+
                         step.enchantments.push({
                             property: property,
                             value: signedValue
@@ -1114,10 +1114,10 @@ export default class EnchantRecord {
                         offset += 2;
                     }
                 }
-                
+
                 this.enchantmentSteps.push(step);
             }
-            
+
             // 重新计算所有步骤
             this._recalculateAllSteps();
         } catch (error) {
@@ -1125,7 +1125,7 @@ export default class EnchantRecord {
             throw new Error('导入数据格式错误');
         }
     }
-    
+
     /**
      * 将属性ID转换为简化代码
      * @param {string} propertyId - 属性ID
@@ -1133,70 +1133,14 @@ export default class EnchantRecord {
      * @private
      */
     _getPropertyIdCode(propertyId) {
-        // 定义属性ID到代码的映射
-        const propertyMap = {
-            'Str': 1, 'StrRate': 2, 'Dex': 3, 'DexRate': 4, 'Int': 5, 'IntRate': 6,
-            'Vit': 7, 'VitRate': 8, 'Agi': 9, 'AgiRate': 10, 'Luk': 11, 'LukRate': 12,
-            'Atk': 13, 'AtkRate': 14, 'Matk': 15, 'MatkRate': 16, 'Def': 17, 'DefRate': 18,
-            'Mdef': 19, 'MdefRate': 20, 'Hit': 21, 'Flee': 22, 'Cri': 23, 'CriRate': 24,
-            'Critical': 25, 'CriticalDmg': 26, 'CriticalDmgRate': 27, 'MaxHp': 28, 'MaxHpRate': 29,
-            'MaxMp': 30, 'MaxMpRate': 31, 'HpRecovery': 32, 'MpRecovery': 33, 'Aspd': 34,
-            'Mspd': 35, 'KatarCri': 36, 'BowCri': 37, 'Elemental': 38, 'Fire': 39, 'Water': 40,
-            'Earth': 41, 'Wind': 42, 'Light': 43, 'Dark': 44, 'Poison': 45, 'Holy': 46,
-            'Shadow': 47, 'Ghost': 48, 'Undead': 49, 'FireMax': 50, 'WaterMax': 51, 'EarthMax': 52,
-            'WindMax': 53, 'LightMax': 54, 'DarkMax': 55, 'PoisonMax': 56, 'HolyMax': 57,
-            'ShadowMax': 58, 'GhostMax': 59, 'UndeadMax': 60, 'FireRes': 61, 'WaterRes': 62,
-            'EarthRes': 63, 'WindRes': 64, 'LightRes': 65, 'DarkRes': 66, 'PoisonRes': 67,
-            'HolyRes': 68, 'ShadowRes': 69, 'GhostRes': 70, 'UndeadRes': 71, 'AtkEle': 72,
-            'MatkEle': 73, 'DefEle': 74, 'MdefEle': 75, 'DamageChangesToHp': 76, 'DamageChangesToMp': 77,
-            'DamageReduction': 78, 'MeleeDamageReduction': 79, 'RangeDamageReduction': 80,
-            'MagicDamageReduction': 81, 'UndeadDamageReduction': 82, 'AnimalDamageReduction': 83,
-            'PlantDamageReduction': 84, 'InsectDamageReduction': 85, 'MarineDamageReduction': 86,
-            'DragonDamageReduction': 87, 'DemonDamageReduction': 88, 'HumanDamageReduction': 89,
-            'AngelDamageReduction': 90, 'FireDamageReduction': 91, 'WaterDamageReduction': 92,
-            'EarthDamageReduction': 93, 'WindDamageReduction': 94, 'LightDamageReduction': 95,
-            'DarkDamageReduction': 96, 'PoisonDamageReduction': 97, 'HolyDamageReduction': 98,
-            'ShadowDamageReduction': 99, 'GhostDamageReduction': 100, 'UndeadDamageReduction2': 101,
-            'MeleeDamageIncrease': 102, 'RangeDamageIncrease': 103, 'MagicDamageIncrease': 104,
-            'UndeadDamageIncrease': 105, 'AnimalDamageIncrease': 106, 'PlantDamageIncrease': 107,
-            'InsectDamageIncrease': 108, 'MarineDamageIncrease': 109, 'DragonDamageIncrease': 110,
-            'DemonDamageIncrease': 111, 'HumanDamageIncrease': 112, 'AngelDamageIncrease': 113,
-            'FireDamageIncrease': 114, 'WaterDamageIncrease': 115, 'EarthDamageIncrease': 116,
-            'WindDamageIncrease': 117, 'LightDamageIncrease': 118, 'DarkDamageIncrease': 119,
-            'PoisonDamageIncrease': 120, 'HolyDamageIncrease': 121, 'ShadowDamageIncrease': 122,
-            'GhostDamageIncrease': 123, 'UndeadDamageIncrease2': 124, 'StunResistance': 125,
-            'SilenceResistance': 126, 'BlindResistance': 127, 'ConfusionResistance': 128,
-            'CurseResistance': 129, 'PoisonResistance': 130, 'SleepResistance': 131,
-            'FreezeResistance': 132, 'HallucinationResistance': 133, 'BleedResistance': 134,
-            'StoneResistance': 135, 'BreakResistance': 136, 'WeaponDamageIncrease': 137,
-            'MagicWeaponDamageIncrease': 138, 'TwoHandWeaponDamageIncrease': 139,
-            'TwoHandMagicWeaponDamageIncrease': 140, 'KatarDamageIncrease': 141,
-            'BowDamageIncrease': 142, 'SwordDamageIncrease': 143, 'AxeDamageIncrease': 144,
-            'MaceDamageIncrease': 145, 'SpearDamageIncrease': 146, 'StaffDamageIncrease': 147,
-            'WhipDamageIncrease': 148, 'BookDamageIncrease': 149, 'FistDamageIncrease': 150,
-            'ClawDamageIncrease': 151, 'DaggerDamageIncrease': 152, 'RapierDamageIncrease': 153,
-            'KatanaDamageIncrease': 154, 'SwordTwoHandDamageIncrease': 155,
-            'AxeTwoHandDamageIncrease': 156, 'SpearTwoHandDamageIncrease': 157,
-            'StaffTwoHandDamageIncrease': 158, 'BowTwoHandDamageIncrease': 159,
-            'KatarTwoHandDamageIncrease': 160, 'BookTwoHandDamageIncrease': 161,
-            'ClawTwoHandDamageIncrease': 162, 'DaggerTwoHandDamageIncrease': 163,
-            'RapierTwoHandDamageIncrease': 164, 'KatanaTwoHandDamageIncrease': 165,
-            'PhysicalDamageIncrease': 166, 'MagicalDamageIncrease': 167,
-            'BossMonsterDamageIncrease': 168, 'NormalMonsterDamageIncrease': 169,
-            'LargeMonsterDamageIncrease': 170, 'SmallMonsterDamageIncrease': 171,
-            'MediumMonsterDamageIncrease': 172, 'PlayerDamageIncrease': 173,
-            'MonsterDamageIncrease': 174, 'DamageIncrease': 175, 'DamageReduction2': 176,
-            'BossMonsterDamageReduction': 177, 'NormalMonsterDamageReduction': 178,
-            'LargeMonsterDamageReduction': 179, 'SmallMonsterDamageReduction': 180,
-            'MediumMonsterDamageReduction': 181, 'PlayerDamageReduction': 182,
-            'MonsterDamageReduction': 183, 'IgnoreDef': 184, 'IgnoreMdef': 185,
-            'PerfectDodge': 186, 'PerfectHit': 187, 'AutoSpell': 188, 'CastTimeReduction': 189,
-            'CoolTimeReduction': 190, 'SPCostReduction': 191, 'HPDrain': 192, 'MPDrain': 193,
-            'SPDrain': 194, 'ExpRate': 195, 'DropRate': 196, 'GoldRate': 197, 'MoveSpeed': 198,
-            'JumpPower': 199, 'WeightLimit': 200, 'HealPower': 201, 'HealReceived': 202,
-            'StatusResistance': 203, 'ElementalAddition': 204
-        };
-        
+        // 动态生成属性ID到代码的映射
+        const propertyMap = {};
+
+        let index = 1;
+        for (const id in PM.properties) {
+            propertyMap[id] = index++;
+        }
+
         return propertyMap[propertyId] || 0;
     }
 
@@ -1207,73 +1151,17 @@ export default class EnchantRecord {
      * @private
      */
     _getPropertyIdFromCode(code) {
-        // 定义代码到属性ID的映射
-        const codeMap = {
-            1: 'Str', 2: 'StrRate', 3: 'Dex', 4: 'DexRate', 5: 'Int', 6: 'IntRate',
-            7: 'Vit', 8: 'VitRate', 9: 'Agi', 10: 'AgiRate', 11: 'Luk', 12: 'LukRate',
-            13: 'Atk', 14: 'AtkRate', 15: 'Matk', 16: 'MatkRate', 17: 'Def', 18: 'DefRate',
-            19: 'Mdef', 20: 'MdefRate', 21: 'Hit', 22: 'Flee', 23: 'Cri', 24: 'CriRate',
-            25: 'Critical', 26: 'CriticalDmg', 27: 'CriticalDmgRate', 28: 'MaxHp', 29: 'MaxHpRate',
-            30: 'MaxMp', 31: 'MaxMpRate', 32: 'HpRecovery', 33: 'MpRecovery', 34: 'Aspd',
-            35: 'Mspd', 36: 'KatarCri', 37: 'BowCri', 38: 'Elemental', 39: 'Fire', 40: 'Water',
-            41: 'Earth', 42: 'Wind', 43: 'Light', 44: 'Dark', 45: 'Poison', 46: 'Holy',
-            47: 'Shadow', 48: 'Ghost', 49: 'Undead', 50: 'FireMax', 51: 'WaterMax', 52: 'EarthMax',
-            53: 'WindMax', 54: 'LightMax', 55: 'DarkMax', 56: 'PoisonMax', 57: 'HolyMax',
-            58: 'ShadowMax', 59: 'GhostMax', 60: 'UndeadMax', 61: 'FireRes', 62: 'WaterRes',
-            63: 'EarthRes', 64: 'WindRes', 65: 'LightRes', 66: 'DarkRes', 67: 'PoisonRes',
-            68: 'HolyRes', 69: 'ShadowRes', 70: 'GhostRes', 71: 'UndeadRes', 72: 'AtkEle',
-            73: 'MatkEle', 74: 'DefEle', 75: 'MdefEle', 76: 'DamageChangesToHp', 77: 'DamageChangesToMp',
-            78: 'DamageReduction', 79: 'MeleeDamageReduction', 80: 'RangeDamageReduction',
-            81: 'MagicDamageReduction', 82: 'UndeadDamageReduction', 83: 'AnimalDamageReduction',
-            84: 'PlantDamageReduction', 85: 'InsectDamageReduction', 86: 'MarineDamageReduction',
-            87: 'DragonDamageReduction', 88: 'DemonDamageReduction', 89: 'HumanDamageReduction',
-            90: 'AngelDamageReduction', 91: 'FireDamageReduction', 92: 'WaterDamageReduction',
-            93: 'EarthDamageReduction', 94: 'WindDamageReduction', 95: 'LightDamageReduction',
-            96: 'DarkDamageReduction', 97: 'PoisonDamageReduction', 98: 'HolyDamageReduction',
-            99: 'ShadowDamageReduction', 100: 'GhostDamageReduction', 101: 'UndeadDamageReduction2',
-            102: 'MeleeDamageIncrease', 103: 'RangeDamageIncrease', 104: 'MagicDamageIncrease',
-            105: 'UndeadDamageIncrease', 106: 'AnimalDamageIncrease', 107: 'PlantDamageIncrease',
-            108: 'InsectDamageIncrease', 109: 'MarineDamageIncrease', 110: 'DragonDamageIncrease',
-            111: 'DemonDamageIncrease', 112: 'HumanDamageIncrease', 113: 'AngelDamageIncrease',
-            114: 'FireDamageIncrease', 115: 'WaterDamageIncrease', 116: 'EarthDamageIncrease',
-            117: 'WindDamageIncrease', 118: 'LightDamageIncrease', 119: 'DarkDamageIncrease',
-            120: 'PoisonDamageIncrease', 121: 'HolyDamageIncrease', 122: 'ShadowDamageIncrease',
-            123: 'GhostDamageIncrease', 124: 'UndeadDamageIncrease2', 125: 'StunResistance',
-            126: 'SilenceResistance', 127: 'BlindResistance', 128: 'ConfusionResistance',
-            129: 'CurseResistance', 130: 'PoisonResistance', 131: 'SleepResistance',
-            132: 'FreezeResistance', 133: 'HallucinationResistance', 134: 'BleedResistance',
-            135: 'StoneResistance', 136: 'BreakResistance', 137: 'WeaponDamageIncrease',
-            138: 'MagicWeaponDamageIncrease', 139: 'TwoHandWeaponDamageIncrease',
-            140: 'TwoHandMagicWeaponDamageIncrease', 141: 'KatarDamageIncrease',
-            142: 'BowDamageIncrease', 143: 'SwordDamageIncrease', 144: 'AxeDamageIncrease',
-            145: 'MaceDamageIncrease', 146: 'SpearDamageIncrease', 147: 'StaffDamageIncrease',
-            148: 'WhipDamageIncrease', 149: 'BookDamageIncrease', 150: 'FistDamageIncrease',
-            151: 'ClawDamageIncrease', 152: 'DaggerDamageIncrease', 153: 'RapierDamageIncrease',
-            154: 'KatanaDamageIncrease', 155: 'SwordTwoHandDamageIncrease',
-            156: 'AxeTwoHandDamageIncrease', 157: 'SpearTwoHandDamageIncrease',
-            158: 'StaffTwoHandDamageIncrease', 159: 'BowTwoHandDamageIncrease',
-            160: 'KatarTwoHandDamageIncrease', 161: 'BookTwoHandDamageIncrease',
-            162: 'ClawTwoHandDamageIncrease', 163: 'DaggerTwoHandDamageIncrease',
-            164: 'RapierTwoHandDamageIncrease', 165: 'KatanaTwoHandDamageIncrease',
-            166: 'PhysicalDamageIncrease', 167: 'MagicalDamageIncrease',
-            168: 'BossMonsterDamageIncrease', 169: 'NormalMonsterDamageIncrease',
-            170: 'LargeMonsterDamageIncrease', 171: 'SmallMonsterDamageIncrease',
-            172: 'MediumMonsterDamageIncrease', 173: 'PlayerDamageIncrease',
-            174: 'MonsterDamageIncrease', 175: 'DamageIncrease', 176: 'DamageReduction2',
-            177: 'BossMonsterDamageReduction', 178: 'NormalMonsterDamageReduction',
-            179: 'LargeMonsterDamageReduction', 180: 'SmallMonsterDamageReduction',
-            181: 'MediumMonsterDamageReduction', 182: 'PlayerDamageReduction',
-            183: 'MonsterDamageReduction', 184: 'IgnoreDef', 185: 'IgnoreMdef',
-            186: 'PerfectDodge', 187: 'PerfectHit', 188: 'AutoSpell', 189: 'CastTimeReduction',
-            190: 'CoolTimeReduction', 191: 'SPCostReduction', 192: 'HPDrain', 193: 'MPDrain',
-            194: 'SPDrain', 195: 'ExpRate', 196: 'DropRate', 197: 'GoldRate', 198: 'MoveSpeed',
-            199: 'JumpPower', 200: 'WeightLimit', 201: 'HealPower', 202: 'HealReceived',
-            203: 'StatusResistance', 204: 'ElementalAddition'
-        };
-        
+        // 动态生成代码到属性ID的映射
+        const codeMap = {};
+
+        let index = 1;
+        for (const id in PM.properties) {
+            codeMap[index++] = id;
+        }
+
         return codeMap[code] || 'Unknown';
     }
-    
+
     /**
      * 自定义Base64编码
      * @param {string} data - 要编码的数据
@@ -1284,23 +1172,23 @@ export default class EnchantRecord {
         const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         let result = '';
         let i = 0;
-        
+
         while (i < data.length) {
             const byte1 = data.charCodeAt(i++) & 0xFF;
             const byte2 = i < data.length ? data.charCodeAt(i++) & 0xFF : 0;
             const byte3 = i < data.length ? data.charCodeAt(i++) & 0xFF : 0;
-            
+
             const bitmap = (byte1 << 16) | (byte2 << 8) | byte3;
-            
+
             result += base64Chars.charAt((bitmap >> 18) & 63);
             result += base64Chars.charAt((bitmap >> 12) & 63);
             result += (i - 1 < data.length) ? base64Chars.charAt((bitmap >> 6) & 63) : '=';
             result += (i - 2 < data.length) ? base64Chars.charAt(bitmap & 63) : '=';
         }
-        
+
         return result;
     }
-    
+
     /**
      * 自定义Base64编码
      * @param {string} data - 要编码的数据
@@ -1310,27 +1198,27 @@ export default class EnchantRecord {
     _customBase64Encode(data) {
         // 先将字符串转换为UTF-8编码的字节数组
         const utf8Bytes = this._stringToUTF8Bytes(data);
-        
+
         const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         let result = '';
         let i = 0;
-        
+
         while (i < utf8Bytes.length) {
             const byte1 = utf8Bytes[i++];
             const byte2 = i < utf8Bytes.length ? utf8Bytes[i++] : 0;
             const byte3 = i < utf8Bytes.length ? utf8Bytes[i++] : 0;
-            
+
             const bitmap = (byte1 << 16) | (byte2 << 8) | byte3;
-            
+
             result += base64Chars.charAt((bitmap >> 18) & 63);
             result += base64Chars.charAt((bitmap >> 12) & 63);
             result += (i - 1 < utf8Bytes.length) ? base64Chars.charAt((bitmap >> 6) & 63) : '=';
             result += (i - 2 < utf8Bytes.length) ? base64Chars.charAt(bitmap & 63) : '=';
         }
-        
+
         return result;
     }
-    
+
     /**
      * 自定义Base64解码
      * @param {string} data - 要解码的数据
@@ -1341,28 +1229,28 @@ export default class EnchantRecord {
         const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         let result = '';
         let i = 0;
-        
+
         // 移除填充字符
         data = data.replace(/=/g, '');
-        
+
         const bytes = [];
         while (i < data.length) {
             const char1 = base64Chars.indexOf(data.charAt(i++));
             const char2 = base64Chars.indexOf(data.charAt(i++));
             const char3 = (i < data.length) ? base64Chars.indexOf(data.charAt(i++)) : 0;
             const char4 = (i < data.length) ? base64Chars.indexOf(data.charAt(i++)) : 0;
-            
+
             const bitmap = (char1 << 18) | (char2 << 12) | (char3 << 6) | char4;
-            
+
             bytes.push((bitmap >> 16) & 0xFF);
             if (char3 !== -1) bytes.push((bitmap >> 8) & 0xFF);
             if (char4 !== -1) bytes.push(bitmap & 0xFF);
         }
-        
+
         // 将UTF-8字节转换回字符串
         return this._utf8BytesToString(bytes);
     }
-    
+
     /**
      * 将字符串转换为UTF-8字节数组
      * @param {string} str - 要转换的字符串
@@ -1373,7 +1261,7 @@ export default class EnchantRecord {
         const bytes = [];
         for (let i = 0; i < str.length; i++) {
             let charCode = str.charCodeAt(i);
-            
+
             if (charCode < 0x80) {
                 // 单字节字符 (0x00-0x7F)
                 bytes.push(charCode);
@@ -1396,7 +1284,7 @@ export default class EnchantRecord {
         }
         return bytes;
     }
-    
+
     /**
      * 将UTF-8字节数组转换为字符串
      * @param {Array<number>} bytes - UTF-8字节数组
@@ -1406,10 +1294,10 @@ export default class EnchantRecord {
     _utf8BytesToString(bytes) {
         let str = '';
         let i = 0;
-        
+
         while (i < bytes.length) {
             const byte1 = bytes[i++];
-            
+
             if ((byte1 & 0x80) === 0) {
                 // 单字节字符
                 str += String.fromCharCode(byte1);
@@ -1430,7 +1318,7 @@ export default class EnchantRecord {
                 const byte3 = bytes[i++];
                 const byte4 = bytes[i++];
                 let charCode = ((byte1 & 0x07) << 18) | ((byte2 & 0x3F) << 12) | ((byte3 & 0x3F) << 6) | (byte4 & 0x3F);
-                
+
                 // 处理代理对
                 if (charCode > 0xFFFF) {
                     charCode -= 0x10000;
@@ -1442,7 +1330,7 @@ export default class EnchantRecord {
                 }
             }
         }
-        
+
         return str;
     }
 }
