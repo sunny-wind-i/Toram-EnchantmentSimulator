@@ -201,7 +201,7 @@ export default class EnchantRecord {
             this.baseEquipmentPotential
         );
 
-        // 计算期望成功率（暂时为空函数）
+        // 计算期望成功率
         const expectedSuccessRate = calExpectedSuccessRate(
             singleSuccessRate,
             currentProperties,
