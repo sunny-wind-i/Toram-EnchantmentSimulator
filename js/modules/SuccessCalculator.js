@@ -70,5 +70,5 @@ export const calExpectedSuccessRate = (singleSuccessRate, currentProperties, enc
 
     // 转换回百分号前的数字形式并返回
     // 如果大于100，则取100
-    return Math.min(100, Math.floor(expectedSuccessRateDecimal * 100));
+    return Math.min(100, expectedSuccessRateDecimal * 100);
 }

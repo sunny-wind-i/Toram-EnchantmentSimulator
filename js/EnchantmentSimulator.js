@@ -76,8 +76,6 @@ function initializeEnchantRecord() {
 
     // 更新附魔选择器，确保下拉框显示所有附魔
     updateEnchantmentSelector();
-    console.log({ ...enchantRecord });
-
 }
 
 // 创建新的附魔记录
@@ -1789,10 +1787,8 @@ function updateResultDisplay() {
     }
 
     if (enchantRecord.finalExpectedSuccessRate !== null) {
-        let expectedRateText = Math.round(enchantRecord.finalExpectedSuccessRate);
-        if (expectedRateText > 999) {
-            expectedRateText = '>999';
-        }
+        // 保留2位小数
+        let expectedRateText = parseFloat(enchantRecord.finalExpectedSuccessRate.toFixed(2));
         resultText += `期望成功率｜${expectedRateText}%\n`;
     } else {
         resultText += `期望成功率｜N/A\n`;
