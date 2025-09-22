@@ -42,6 +42,7 @@ export default class EnchantRecord {
      * @param {number} [config.finalSingleSuccessRate] - 最终单条成功率
      * @param {number} [config.finalExpectedSuccessRate] - 最终期望成功率
      * @param {Object} [config.finalProperties] - 最终属性值对象
+     * @param {string} [config.name="自定义附魔1"] - 附魔名称
      */
     constructor(config = {}) {
         // 基础信息（只出现一次的固定数据）
@@ -52,6 +53,9 @@ export default class EnchantRecord {
         this.smithingLevel = config.smithingLevel || 0; // 玩家锻冶熟练度
         this.anvilLevel = config.anvilLevel || 40; // 铁砧技能等级，默认为40
         this.masterEnhancement2Level = config.masterEnhancement2Level || 10; // 大师级强化技术2技能等级，默认为10
+        
+        // 附魔名称
+        this.name = config.name || "自定义附魔1";
 
         // 玩家"理解xx"技能等级（减少对应素材消耗量）
         this.understandingSkills = {
@@ -85,6 +89,22 @@ export default class EnchantRecord {
         for (const propId in properties) {
             this.finalProperties[propId] = 0;
         }
+    }
+
+    /**
+     * 获取附魔名称
+     * @returns {string} 附魔名称
+     */
+    getName() {
+        return this.name;
+    }
+
+    /**
+     * 设置附魔名称
+     * @param {string} name - 新的附魔名称
+     */
+    setName(name) {
+        this.name = name;
     }
 
     /**
@@ -913,6 +933,15 @@ export default class EnchantRecord {
     exportCustomData() {
         let data = '';
         
+        // 附魔名称长度 (1字节)
+        const nameLength = Math.min(this.name.length, 255);
+        data += String.fromCharCode(nameLength);
+        
+        // 附魔名称
+        for (let i = 0; i < nameLength; i++) {
+            data += String.fromCharCode(this.name.charCodeAt(i));
+        }
+        
         // 装备类型 (1字节)
         data += String.fromCharCode(this.equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON ? 0 : 1);
         
@@ -988,6 +1017,15 @@ export default class EnchantRecord {
             // 使用自定义Base64解码
             const data = this._customBase64Decode(encodedData);
             let offset = 0;
+            
+            // 附魔名称长度
+            const nameLength = data.charCodeAt(offset++);
+            
+            // 附魔名称
+            this.name = '';
+            for (let i = 0; i < nameLength; i++) {
+                this.name += String.fromCharCode(data.charCodeAt(offset++));
+            }
             
             // 装备类型
             const equipmentTypeCode = data.charCodeAt(offset++);

@@ -12,6 +12,8 @@ let currentViewMode = 'change'; // change, value, potential, material
 let selectedCell = null;
 let currentQuantity = 1;
 let copiedStepData = null;
+let enchantmentList = []; // 存储附魔列表
+let currentEnchantmentIndex = 0; // 当前选中的附魔索引
 const PM = new PropertyManager();
 
 // 初始化
@@ -30,6 +32,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // 初始化附魔记录
 function initializeEnchantRecord() {
+    // 从本地存储加载附魔列表
+    loadEnchantmentListFromStorage();
+
+    // 如果有存储的附魔列表，加载当前选中的附魔
+    if (enchantmentList.length > 0) {
+        // 获取上次选中的附魔索引
+        const lastSelectedIndex = localStorage.getItem('toram_enchant_last_selected');
+        currentEnchantmentIndex = lastSelectedIndex !== null ? parseInt(lastSelectedIndex) : 0;
+        currentEnchantmentIndex = Math.max(0, Math.min(currentEnchantmentIndex, enchantmentList.length - 1));
+
+        // 加载选中的附魔
+        const savedData = enchantmentList[currentEnchantmentIndex].data;
+        try {
+            enchantRecord = new EnchantRecord({});
+            enchantRecord.importCustomData(savedData);
+        } catch (e) {
+            console.error('加载存储的附魔失败:', e);
+            createNewEnchantRecord();
+        }
+    } else {
+        // 创建新的附魔记录
+        createNewEnchantRecord();
+        // 保存到本地存储
+        saveCurrentEnchantment();
+    }
+}
+
+// 创建新的附魔记录
+function createNewEnchantRecord() {
     const config = {
         equipmentType: EquipmentType.EQUIPMENT_TYPE_WEAPON,
         playerLevel: 290,
@@ -45,10 +76,219 @@ function initializeEnchantRecord() {
             wood: 0,
             medicine: 0,
             mana: 0
-        }
+        },
+        name: "自定义附魔1"
     };
 
     enchantRecord = new EnchantRecord(config);
+}
+
+// 从本地存储加载附魔列表
+function loadEnchantmentListFromStorage() {
+    const savedList = localStorage.getItem('toram_enchant_list');
+    if (savedList) {
+        try {
+            enchantmentList = JSON.parse(savedList);
+        } catch (e) {
+            console.error('解析存储的附魔列表失败:', e);
+            enchantmentList = [];
+        }
+    } else {
+        enchantmentList = [];
+    }
+}
+
+// 保存附魔列表到本地存储
+function saveEnchantmentListToStorage() {
+    try {
+        localStorage.setItem('toram_enchant_list', JSON.stringify(enchantmentList));
+    } catch (e) {
+        console.error('保存附魔列表到本地存储失败:', e);
+    }
+}
+
+// 保存当前附魔到本地存储
+function saveCurrentEnchantment() {
+    try {
+        // 导出当前附魔数据
+        const exportedData = enchantRecord.exportCustomData();
+        const enchantName = enchantRecord.getName();
+
+        // 如果当前索引有效，更新现有条目，否则添加新条目
+        if (currentEnchantmentIndex >= 0 && currentEnchantmentIndex < enchantmentList.length) {
+            enchantmentList[currentEnchantmentIndex] = {
+                name: enchantName,
+                data: exportedData
+            };
+        } else {
+            // 添加到列表末尾
+            enchantmentList.push({
+                name: enchantName,
+                data: exportedData
+            });
+            currentEnchantmentIndex = enchantmentList.length - 1;
+        }
+
+        // 保存列表和当前索引
+        saveEnchantmentListToStorage();
+        localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
+    } catch (e) {
+        console.error('保存当前附魔失败:', e);
+    }
+}
+
+// 创建新的附魔
+function createNewEnchantment() {
+    // 确定新附魔的名称
+    let newName = "自定义附魔1";
+    let counter = 1;
+
+    // 检查是否有重复名称
+    while (enchantmentList.some(item => item.name === newName)) {
+        counter++;
+        newName = `自定义附魔${counter}`;
+    }
+
+    // 创建新的附魔记录
+    const config = {
+        equipmentType: EquipmentType.EQUIPMENT_TYPE_WEAPON,
+        playerLevel: 290,
+        equipmentPotential: 100,
+        baseEquipmentPotential: 1,
+        smithingLevel: 0,
+        anvilLevel: 40,
+        masterEnhancement2Level: 10,
+        understandingSkills: {
+            metal: 0,
+            cloth: 0,
+            beast: 0,
+            wood: 0,
+            medicine: 0,
+            mana: 0
+        },
+        name: newName
+    };
+
+    enchantRecord = new EnchantRecord(config);
+
+    // 添加到列表并保存
+    enchantmentList.push({
+        name: newName,
+        data: enchantRecord.exportCustomData()
+    });
+
+    currentEnchantmentIndex = enchantmentList.length - 1;
+    saveEnchantmentListToStorage();
+    localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
+
+    // 更新显示
+    updateDisplay();
+    updateBasicInfoDisplay();
+    updateTableHeader();
+    updateEnchantmentSelector();
+}
+
+// 删除当前附魔
+function deleteCurrentEnchantment() {
+    if (enchantmentList.length <= 1) {
+        alert('至少需要保留一个附魔');
+        return;
+    }
+
+    if (!confirm(`确定要删除附魔"${enchantRecord.getName()}"吗？`)) {
+        return;
+    }
+
+    // 从列表中删除
+    enchantmentList.splice(currentEnchantmentIndex, 1);
+
+    // 调整当前索引
+    if (currentEnchantmentIndex >= enchantmentList.length) {
+        currentEnchantmentIndex = enchantmentList.length - 1;
+    }
+
+    // 加载新的当前附魔
+    if (enchantmentList.length > 0) {
+        const savedData = enchantmentList[currentEnchantmentIndex].data;
+        try {
+            enchantRecord = new EnchantRecord({});
+            enchantRecord.importCustomData(savedData);
+        } catch (e) {
+            console.error('加载附魔失败:', e);
+            createNewEnchantRecord();
+            currentEnchantmentIndex = 0;
+            enchantmentList = [{
+                name: enchantRecord.getName(),
+                data: enchantRecord.exportCustomData()
+            }];
+        }
+    } else {
+        createNewEnchantRecord();
+        currentEnchantmentIndex = 0;
+        enchantmentList = [{
+            name: enchantRecord.getName(),
+            data: enchantRecord.exportCustomData()
+        }];
+    }
+
+    // 保存并更新显示
+    saveEnchantmentListToStorage();
+    localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
+    updateDisplay();
+    updateBasicInfoDisplay();
+    updateTableHeader();
+    updateEnchantmentSelector();
+}
+
+// 切换到指定附魔
+function switchToEnchantment(index) {
+    if (index < 0 || index >= enchantmentList.length) {
+        return;
+    }
+
+    // 保存当前附魔
+    saveCurrentEnchantment();
+
+    // 切换到新附魔
+    currentEnchantmentIndex = index;
+    const savedData = enchantmentList[currentEnchantmentIndex].data;
+    try {
+        enchantRecord = new EnchantRecord({});
+        enchantRecord.importCustomData(savedData);
+    } catch (e) {
+        console.error('加载附魔失败:', e);
+        alert('加载附魔失败');
+        return;
+    }
+
+    // 更新存储的当前索引
+    localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
+
+    // 更新显示
+    updateDisplay();
+    updateBasicInfoDisplay();
+    updateTableHeader();
+    updateEnchantmentSelector();
+}
+
+// 更新附魔选择器
+function updateEnchantmentSelector() {
+    const selector = document.getElementById('enchantmentSelector');
+    if (!selector) return;
+
+    // 清空现有选项
+    selector.innerHTML = '';
+
+    // 添加选项
+    enchantmentList.forEach((item, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = item.name;
+        if (index === currentEnchantmentIndex) {
+            option.selected = true;
+        }
+        selector.appendChild(option);
+    });
 }
 
 // 导出数据
@@ -76,6 +316,7 @@ function showExportData(data) {
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>导出数据</h2>
+            <p>附魔名称: ${enchantRecord.getName()}</p>
             <p>请复制以下数据:</p>
             <textarea id="exportDataTextarea" rows="5" cols="50" readonly>${data}</textarea>
             <button id="copyExportDataBtn">复制</button>
@@ -144,8 +385,38 @@ function importData() {
         }
 
         try {
-            // 导入数据
-            enchantRecord.importCustomData(data);
+            // 创建临时记录来解析名称
+            const tempRecord = new EnchantRecord({});
+            tempRecord.importCustomData(data);
+            const importedName = tempRecord.getName();
+
+            // 询问用户如何处理导入的数据
+            const userChoice = prompt(`导入的附魔名称为: "${importedName}"\n请输入新名称，或留空使用原名称:`, importedName);
+            if (userChoice === null) {
+                // 用户取消导入
+                return;
+            }
+
+            const finalName = userChoice.trim() || importedName;
+            tempRecord.setName(finalName);
+
+            // 导入数据到当前记录
+            enchantRecord.importCustomData(tempRecord.exportCustomData());
+
+            // 检查是否需要添加到列表
+            const existingIndex = enchantmentList.findIndex(item => item.name === finalName);
+            if (existingIndex >= 0) {
+                // 更新现有条目
+                enchantmentList[existingIndex].data = enchantRecord.exportCustomData();
+                currentEnchantmentIndex = existingIndex;
+            } else {
+                // 添加新条目
+                enchantmentList.push({
+                    name: finalName,
+                    data: enchantRecord.exportCustomData()
+                });
+                currentEnchantmentIndex = enchantmentList.length - 1;
+            }
 
             // 更新选中属性
             updateSelectedPropertiesFromImport();
@@ -154,6 +425,11 @@ function importData() {
             updateDisplay();
             updateBasicInfoDisplay();
             updateTableHeader(); // 更新表格表头
+            updateEnchantmentSelector(); // 更新附魔选择器
+
+            // 保存到本地存储
+            saveEnchantmentListToStorage();
+            localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
 
             // 关闭弹窗
             document.body.removeChild(modal);
@@ -196,6 +472,11 @@ function bindEvents() {
     document.getElementById('playerLevel').addEventListener('change', onPlayerLevelChange);
     document.getElementById('equipmentPotential').addEventListener('change', onEquipmentPotentialChange);
     document.getElementById('smithingLevel').addEventListener('change', onSmithingLevelChange);
+    document.getElementById('enchantmentName').addEventListener('change', onEnchantmentNameChange);
+    document.getElementById('enchantmentSelector').addEventListener('change', onEnchantmentSelectorChange);
+    document.getElementById('newEnchantmentBtn').addEventListener('click', createNewEnchantment);
+    document.getElementById('deleteEnchantmentBtn').addEventListener('click', deleteCurrentEnchantment);
+    document.getElementById('saveEnchantmentBtn').addEventListener('click', saveCurrentEnchantment);
 
     // 更多配置事件
     document.getElementById('moreConfigBtn').addEventListener('click', showMoreConfig);
@@ -529,6 +810,9 @@ function confirmProperties() {
 
     // 更新显示
     updateDisplay();
+
+    // 本地保存
+    saveCurrentEnchantment();
 
     // 关闭弹窗
     closePropertySelection();
@@ -1488,6 +1772,7 @@ function onEquipmentTypeChange(event) {
     );
     enchantRecord._recalculateAllSteps();
     updateDisplay();
+    saveCurrentEnchantment(); // 保存到本地存储
 }
 
 function onPlayerLevelChange(event) {
@@ -1496,6 +1781,7 @@ function onPlayerLevelChange(event) {
         enchantRecord.playerLevel = level;
         enchantRecord._recalculateAllSteps();
         updateDisplay();
+        saveCurrentEnchantment(); // 保存到本地存储
     }
 }
 
@@ -1505,6 +1791,7 @@ function onEquipmentPotentialChange(event) {
         enchantRecord.equipmentPotential = potential;
         enchantRecord._recalculateAllSteps();
         updateDisplay();
+        saveCurrentEnchantment(); // 保存到本地存储
     }
 }
 
@@ -1514,25 +1801,123 @@ function onSmithingLevelChange(event) {
         enchantRecord.smithingLevel = level;
         enchantRecord._recalculateAllSteps();
         updateDisplay();
+        saveCurrentEnchantment(); // 保存到本地存储
     }
 }
 
-// 更新基础信息
-function updateBasicInfo() {
-    const equipmentType = document.getElementById('equipmentType').value === 'weapon' ?
-        EquipmentType.EQUIPMENT_TYPE_WEAPON : EquipmentType.EQUIPMENT_TYPE_ARMOR;
-    const playerLevel = parseInt(document.getElementById('playerLevel').value) || 290;
-    const equipmentPotential = parseInt(document.getElementById('equipmentPotential').value) || 100;
-    const smithingLevel = parseInt(document.getElementById('smithingLevel').value) || 0;
+// function addStep() {
+//     enchantRecord.addEnchantmentStep({
+//         enchantments: selectedProperties.map(property => ({
+//             property: property,
+//             value: 0
+//         }))
+//     });
+//     updateDisplay();
+//     saveCurrentEnchantment(); // 保存到本地存储
+// }
 
-    enchantRecord.equipmentType = equipmentType;
-    enchantRecord.playerLevel = playerLevel;
-    enchantRecord.equipmentPotential = equipmentPotential;
-    enchantRecord.smithingLevel = smithingLevel;
+// function deleteStep(stepIndex) {
+//     enchantRecord.deleteEnchantmentStep(stepIndex);
+//     updateDisplay();
+//     saveCurrentEnchantment(); // 保存到本地存储
+// }
 
-    // 更新显示
-    updateDisplay();
+// function toggleStepIgnored(stepIndex) {
+//     enchantRecord.toggleEnchantmentStepIgnored(stepIndex);
+//     updateDisplay();
+//     saveCurrentEnchantment(); // 保存到本地存储
+// }
+
+// function updateStepPropertyValue(stepIndex, propertyIndex, value) {
+//     enchantRecord.updateEnchantmentStepPropertyValue(stepIndex, propertyIndex, value);
+//     updateDisplay();
+//     saveCurrentEnchantment(); // 保存到本地存储
+// }
+
+// function onMoreConfigChange() {
+//     const baseEquipmentPotential = parseInt(document.getElementById('baseEquipmentPotential').value);
+//     const anvilLevel = parseInt(document.getElementById('anvilLevel').value);
+//     const masterEnhancement2Level = parseInt(document.getElementById('masterEnhancement2Level').value);
+//     const metalSkill = parseInt(document.getElementById('metalSkill').value);
+//     const clothSkill = parseInt(document.getElementById('clothSkill').value);
+//     const beastSkill = parseInt(document.getElementById('beastSkill').value);
+//     const woodSkill = parseInt(document.getElementById('woodSkill').value);
+//     const medicineSkill = parseInt(document.getElementById('medicineSkill').value);
+//     const manaSkill = parseInt(document.getElementById('manaSkill').value);
+
+//     enchantRecord.baseEquipmentPotential = baseEquipmentPotential;
+//     enchantRecord.anvilLevel = anvilLevel;
+//     enchantRecord.masterEnhancement2Level = masterEnhancement2Level;
+//     enchantRecord.understandingSkills = {
+//         metal: metalSkill,
+//         cloth: clothSkill,
+//         beast: beastSkill,
+//         wood: woodSkill,
+//         medicine: medicineSkill,
+//         mana: manaSkill
+//     };
+
+//     enchantRecord._recalculateAllSteps();
+//     updateDisplay();
+//     saveCurrentEnchantment(); // 保存到本地存储
+// }
+
+// function onPropertySelect(property) {
+//     // 检查属性是否已选择
+//     const index = selectedProperties.findIndex(p => p.id === property.id);
+//     if (index >= 0) {
+//         // 如果已选择，则取消选择
+//         selectedProperties.splice(index, 1);
+//     } else {
+//         // 如果未选择，则添加到选择列表
+//         selectedProperties.push(property);
+//     }
+
+//     // 更新显示
+//     updatePropertyButtons();
+//     updateTableHeader();
+//     updateDisplay();
+//     saveCurrentEnchantment(); // 保存到本地存储
+// }
+
+// 附魔名称更改事件
+function onEnchantmentNameChange() {
+    const newName = document.getElementById('enchantmentName').value.trim() || '未命名附魔';
+    enchantRecord.setName(newName);
+
+    // 更新列表中的名称
+    if (currentEnchantmentIndex >= 0 && currentEnchantmentIndex < enchantmentList.length) {
+        enchantmentList[currentEnchantmentIndex].name = newName;
+        updateEnchantmentSelector();
+    }
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 }
+
+// 附魔选择器更改事件
+function onEnchantmentSelectorChange() {
+    const selectedIndex = parseInt(document.getElementById('enchantmentSelector').value);
+    switchToEnchantment(selectedIndex);
+}
+
+// // 更新基础信息
+// function updateBasicInfo() {
+//     const equipmentType = document.getElementById('equipmentType').value === 'weapon' ?
+//         EquipmentType.EQUIPMENT_TYPE_WEAPON : EquipmentType.EQUIPMENT_TYPE_ARMOR;
+//     const playerLevel = parseInt(document.getElementById('playerLevel').value) || 290;
+//     const equipmentPotential = parseInt(document.getElementById('equipmentPotential').value) || 100;
+//     const smithingLevel = parseInt(document.getElementById('smithingLevel').value) || 0;
+
+//     enchantRecord.equipmentType = equipmentType;
+//     enchantRecord.playerLevel = playerLevel;
+//     enchantRecord.equipmentPotential = equipmentPotential;
+//     enchantRecord.smithingLevel = smithingLevel;
+
+//     // 更新显示
+//     updateDisplay();
+// }
+
 
 // 更新基础信息显示
 function updateBasicInfoDisplay() {
@@ -1540,6 +1925,7 @@ function updateBasicInfoDisplay() {
     document.getElementById('playerLevel').value = enchantRecord.playerLevel;
     document.getElementById('equipmentPotential').value = enchantRecord.equipmentPotential;
     document.getElementById('smithingLevel').value = enchantRecord.smithingLevel;
+    document.getElementById('enchantmentName').value = enchantRecord.getName();
 
     // 更新更多配置显示
     document.getElementById('baseEquipmentPotential').value = enchantRecord.baseEquipmentPotential;
@@ -1609,6 +1995,7 @@ function saveConfig() {
 
     closeMoreConfig();
     updateDisplay();
+    saveCurrentEnchantment(); // 保存到本地存储
 }
 
 // 表格点击事件处理
@@ -1808,6 +2195,9 @@ function undoStep() {
     // 更新显示
     updateDisplay();
 
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
     closeOperationMenu();
 }
 
@@ -1859,6 +2249,9 @@ function clearCell() {
     // 更新显示
     updateDisplay();
 
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
     closeClearOptions();
 }
 
@@ -1891,6 +2284,9 @@ function clearStepValues() {
     // 更新显示
     updateDisplay();
 
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
     closeClearOptions();
 }
 
@@ -1918,6 +2314,9 @@ function deleteStep() {
     // 更新显示
     updateDisplay();
 
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
     closeClearOptions();
 }
 
@@ -1941,6 +2340,9 @@ function deleteEmptySteps() {
     // 更新显示
     updateDisplay();
 
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
     closeClearOptions();
 }
 
@@ -1959,6 +2361,9 @@ function deleteAllSteps() {
 
     // 更新显示
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 
     closeClearOptions();
 }
@@ -2012,6 +2417,9 @@ function addStepAbove() {
     // 更新显示
     updateDisplay();
 
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
     closeAddStepOptions();
 }
 
@@ -2059,6 +2467,9 @@ function addStepBelow() {
     // 更新显示
     updateDisplay();
 
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
     closeAddStepOptions();
 }
 
@@ -2076,6 +2487,9 @@ function addNewStepAtEnd() {
 
     // 更新显示
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 }
 
 function copyStep() {
@@ -2185,6 +2599,9 @@ function pasteStepAbove() {
     // 更新显示
     updateDisplay();
 
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
     closePasteStepOptions();
 }
 
@@ -2254,6 +2671,9 @@ function pasteStepBelow() {
     // 更新显示
     updateDisplay();
 
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
     closePasteStepOptions();
 }
 
@@ -2283,6 +2703,9 @@ function toggleIgnoreStep() {
 
     // 更新按钮文本
     updateIgnoreButton();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 
     closeOperationMenu();
 }
@@ -2325,6 +2748,9 @@ function onAddStep() {
 
     // 更新显示并保持选中状态
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 
     // 重新选中单元格
     setTimeout(() => {
@@ -2378,6 +2804,9 @@ function onSubtractStep() {
 
     // 更新显示并保持选中状态
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 
     // 重新选中单元格
     setTimeout(() => {
@@ -2632,6 +3061,9 @@ function setMinValue() {
 
     // 更新显示
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 }
 
 // 减少值
@@ -2686,6 +3118,9 @@ function decreaseValue() {
 
     // 更新显示
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 }
 
 // 增加值
@@ -2740,6 +3175,9 @@ function increaseValue() {
 
     // 更新显示
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 }
 
 // 设置最大值
@@ -2782,6 +3220,9 @@ function setMaxValue() {
 
     // 更新显示
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 }
 
 // 删除属性值（还原为上一步结束后的属性值）
@@ -2808,6 +3249,9 @@ function deleteValue() {
 
     // 更新显示
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 
     // 关闭弹窗
     closeEditPropertyModal();
@@ -2859,6 +3303,9 @@ function onPropertyValueInput(event) {
 
     // 更新显示
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 }
 
 // 输入框变化事件处理
@@ -2907,6 +3354,9 @@ function onPropertyValueChanged(event) {
 
     // 更新显示
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 }
 
 // 滑块变化事件处理
@@ -2955,6 +3405,9 @@ function onPropertyValueSliderChange(event) {
 
     // 更新显示
     updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
 }
 
 
