@@ -1302,6 +1302,36 @@ export default class EnchantRecord {
     }
     
     /**
+     * 自定义Base64编码
+     * @param {string} data - 要编码的数据
+     * @returns {string} 编码后的字符串
+     * @private
+     */
+    _customBase64Encode(data) {
+        // 先将字符串转换为UTF-8编码的字节数组
+        const utf8Bytes = this._stringToUTF8Bytes(data);
+        
+        const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+        let result = '';
+        let i = 0;
+        
+        while (i < utf8Bytes.length) {
+            const byte1 = utf8Bytes[i++];
+            const byte2 = i < utf8Bytes.length ? utf8Bytes[i++] : 0;
+            const byte3 = i < utf8Bytes.length ? utf8Bytes[i++] : 0;
+            
+            const bitmap = (byte1 << 16) | (byte2 << 8) | byte3;
+            
+            result += base64Chars.charAt((bitmap >> 18) & 63);
+            result += base64Chars.charAt((bitmap >> 12) & 63);
+            result += (i - 1 < utf8Bytes.length) ? base64Chars.charAt((bitmap >> 6) & 63) : '=';
+            result += (i - 2 < utf8Bytes.length) ? base64Chars.charAt(bitmap & 63) : '=';
+        }
+        
+        return result;
+    }
+    
+    /**
      * 自定义Base64解码
      * @param {string} data - 要解码的数据
      * @returns {string} 解码后的字符串
@@ -1315,6 +1345,7 @@ export default class EnchantRecord {
         // 移除填充字符
         data = data.replace(/=/g, '');
         
+        const bytes = [];
         while (i < data.length) {
             const char1 = base64Chars.indexOf(data.charAt(i++));
             const char2 = base64Chars.indexOf(data.charAt(i++));
@@ -1323,11 +1354,95 @@ export default class EnchantRecord {
             
             const bitmap = (char1 << 18) | (char2 << 12) | (char3 << 6) | char4;
             
-            result += String.fromCharCode((bitmap >> 16) & 0xFF);
-            if (char3 !== -1) result += String.fromCharCode((bitmap >> 8) & 0xFF);
-            if (char4 !== -1) result += String.fromCharCode(bitmap & 0xFF);
+            bytes.push((bitmap >> 16) & 0xFF);
+            if (char3 !== -1) bytes.push((bitmap >> 8) & 0xFF);
+            if (char4 !== -1) bytes.push(bitmap & 0xFF);
         }
         
-        return result;
+        // 将UTF-8字节转换回字符串
+        return this._utf8BytesToString(bytes);
+    }
+    
+    /**
+     * 将字符串转换为UTF-8字节数组
+     * @param {string} str - 要转换的字符串
+     * @returns {Array<number>} UTF-8字节数组
+     * @private
+     */
+    _stringToUTF8Bytes(str) {
+        const bytes = [];
+        for (let i = 0; i < str.length; i++) {
+            let charCode = str.charCodeAt(i);
+            
+            if (charCode < 0x80) {
+                // 单字节字符 (0x00-0x7F)
+                bytes.push(charCode);
+            } else if (charCode < 0x800) {
+                // 双字节字符 (0x80-0x7FF)
+                bytes.push(0xC0 | (charCode >> 6));
+                bytes.push(0x80 | (charCode & 0x3F));
+            } else if (charCode < 0x10000) {
+                // 三字节字符 (0x800-0xFFFF)
+                bytes.push(0xE0 | (charCode >> 12));
+                bytes.push(0x80 | ((charCode >> 6) & 0x3F));
+                bytes.push(0x80 | (charCode & 0x3F));
+            } else {
+                // 四字节字符 (0x10000-0x10FFFF)
+                bytes.push(0xF0 | (charCode >> 18));
+                bytes.push(0x80 | ((charCode >> 12) & 0x3F));
+                bytes.push(0x80 | ((charCode >> 6) & 0x3F));
+                bytes.push(0x80 | (charCode & 0x3F));
+            }
+        }
+        return bytes;
+    }
+    
+    /**
+     * 将UTF-8字节数组转换为字符串
+     * @param {Array<number>} bytes - UTF-8字节数组
+     * @returns {string} 转换后的字符串
+     * @private
+     */
+    _utf8BytesToString(bytes) {
+        let str = '';
+        let i = 0;
+        
+        while (i < bytes.length) {
+            const byte1 = bytes[i++];
+            
+            if ((byte1 & 0x80) === 0) {
+                // 单字节字符
+                str += String.fromCharCode(byte1);
+            } else if ((byte1 & 0xE0) === 0xC0) {
+                // 双字节字符
+                const byte2 = bytes[i++];
+                const charCode = ((byte1 & 0x1F) << 6) | (byte2 & 0x3F);
+                str += String.fromCharCode(charCode);
+            } else if ((byte1 & 0xF0) === 0xE0) {
+                // 三字节字符
+                const byte2 = bytes[i++];
+                const byte3 = bytes[i++];
+                const charCode = ((byte1 & 0x0F) << 12) | ((byte2 & 0x3F) << 6) | (byte3 & 0x3F);
+                str += String.fromCharCode(charCode);
+            } else if ((byte1 & 0xF8) === 0xF0) {
+                // 四字节字符
+                const byte2 = bytes[i++];
+                const byte3 = bytes[i++];
+                const byte4 = bytes[i++];
+                let charCode = ((byte1 & 0x07) << 18) | ((byte2 & 0x3F) << 12) | ((byte3 & 0x3F) << 6) | (byte4 & 0x3F);
+                
+                // 处理代理对
+                if (charCode > 0xFFFF) {
+                    charCode -= 0x10000;
+                    const highSurrogate = 0xD800 | (charCode >> 10);
+                    const lowSurrogate = 0xDC00 | (charCode & 0x3FF);
+                    str += String.fromCharCode(highSurrogate, lowSurrogate);
+                } else {
+                    str += String.fromCharCode(charCode);
+                }
+            }
+        }
+        
+        return str;
     }
 }
