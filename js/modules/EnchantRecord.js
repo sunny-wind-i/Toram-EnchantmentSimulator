@@ -115,7 +115,7 @@ export default class EnchantRecord {
      * @param {Object} step.enchantments[].property - 属性对象
      * @param {string} step.enchantments[].propertyId - 属性ID（可选，如果提供了property则忽略此字段）
      * @param {number} step.enchantments[].value - 属性值变化量
-     * @param {boolean} step.isIgnored - 是否忽略该步骤，默认为false
+     * @param {boolean} [step.isIgnored=false] - 是否忽略该步骤
      * @returns {string} 步骤ID
      */
     addEnchantmentStep(step) {
@@ -134,7 +134,7 @@ export default class EnchantRecord {
                 };
             }),
             // 添加ignored和valid属性，默认值分别为false和true
-            isIgnored: step.isIgnored || false, // 用户可以设置是否忽略该步骤
+            isIgnored: step.isIgnored !== undefined ? step.isIgnored : false, // 用户可以设置是否忽略该步骤
             isValid: true, // 默认为有效步骤
             invalidReason: null, // 无效原因
             totalMaterialCosts: {
@@ -147,12 +147,38 @@ export default class EnchantRecord {
             }
         };
 
+        // 计算该步骤附魔前的潜力值（基于上一个非忽略步骤）
+        let preEnchantmentPotential = this.equipmentPotential;
+        let previousProperties = this.getCurrentProperties();
+        let previousEnchantedProperties = {};
+        
+        // 初始化默认属性状态
+        const properties = PM.properties;
+        for (const propId in properties) {
+            previousEnchantedProperties[propId] = false;
+        }
+
+        if (this.enchantmentSteps.length > 0) {
+            // 寻找上一个非忽略且有效的步骤
+            let lastValidStep = null;
+            for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
+                if (!this.enchantmentSteps[i].isIgnored && this.enchantmentSteps[i].isValid) {
+                    lastValidStep = this.enchantmentSteps[i];
+                    break;
+                }
+            }
+            
+            if (lastValidStep) {
+                preEnchantmentPotential = lastValidStep.postEnchantmentPotential;
+                previousProperties = { ...lastValidStep.currentProperties };
+                previousEnchantedProperties = { ...lastValidStep.enchantedProperties };
+            }
+        }
+
         // 计算该步骤的材料消耗
         const materialCostsResult = calEnchantmentStepMaterialCost(
             enchantmentStep,
-            this.enchantmentSteps.length > 0 ?
-                this.enchantmentSteps[this.enchantmentSteps.length - 1].currentProperties :
-                this.getCurrentProperties(),
+            previousProperties,
             this.smithingLevel,
             this.understandingSkills
         );
@@ -163,24 +189,11 @@ export default class EnchantRecord {
         // 提取每条属性的材料消耗
         const perPropertyMaterialCosts = materialCostsResult.perProperty;
 
-        // 计算该步骤附魔前的潜力值
-        const preEnchantmentPotential = this.enchantmentSteps.length > 0 ?
-            this.enchantmentSteps[this.enchantmentSteps.length - 1].postEnchantmentPotential :
-            this.equipmentPotential;
-
-        // 获取当前属性值和已附魔属性
-        const currentProperties = this.enchantmentSteps.length > 0 ?
-            this.enchantmentSteps[this.enchantmentSteps.length - 1].currentProperties :
-            this.getCurrentProperties();
-        const enchantedProperties = this.enchantmentSteps.length > 0 ?
-            this.enchantmentSteps[this.enchantmentSteps.length - 1].enchantedProperties :
-            this.getEnchantedProperties();
-
         // 计算该步骤附魔后的潜力值和潜力变化值
         const potentialResult = calPostEnchantmentPotentialChanges(
             enchantmentStep,
-            currentProperties,
-            Object.keys(enchantedProperties).filter(key => enchantedProperties[key]),
+            previousProperties,
+            Object.keys(previousEnchantedProperties).filter(key => previousEnchantedProperties[key]),
             preEnchantmentPotential,
             this.equipmentType
         );
@@ -204,13 +217,39 @@ export default class EnchantRecord {
         // 计算期望成功率
         const expectedSuccessRate = calExpectedSuccessRate(
             singleSuccessRate,
-            currentProperties,
+            previousProperties, // 使用正确命名的变量
             enchantmentStep, // 传递当前步骤对象
             this.masterEnhancement2Level
         );
 
         // 检查该步骤是否有效
         this._checkStepValidity(enchantmentStep, preEnchantmentPotential, singleSuccessRate);
+
+        // 只有当步骤未被忽略时才进行后续的属性更新计算
+        if (!enchantmentStep.isIgnored && enchantmentStep.isValid) {
+            // 更新当前属性值和已附魔属性
+            const newCurrentProperties = { ...previousProperties };
+            const newEnchantedProperties = { ...previousEnchantedProperties };
+
+            // 应用当前步骤的附魔
+            for (const enchantment of enchantmentStep.enchantments) {
+                if (enchantment.property && newCurrentProperties.hasOwnProperty(enchantment.property.id)) {
+                    // 如果有附魔值变化，则标记该属性为已附魔
+                    if (enchantment.value !== 0) {
+                        newEnchantedProperties[enchantment.property.id] = true;
+                    }
+                    newCurrentProperties[enchantment.property.id] += enchantment.value;
+                }
+            }
+
+            // 将更新后的属性值添加到步骤中
+            enchantmentStep.currentProperties = newCurrentProperties;
+            enchantmentStep.enchantedProperties = newEnchantedProperties;
+        } else {
+            // 对于被忽略或无效的步骤，仍然需要设置属性值（但不应用变化）
+            enchantmentStep.currentProperties = { ...previousProperties };
+            enchantmentStep.enchantedProperties = { ...previousEnchantedProperties };
+        }
 
         // 完善附魔步骤对象，添加材料消耗、潜力值变化等信息
         enchantmentStep.materialCosts = materialCosts;
@@ -224,10 +263,10 @@ export default class EnchantRecord {
 
         // 将步骤添加到记录中
         this.enchantmentSteps.push(enchantmentStep);
-        // 更新当前属性值
-        this._updateCurrentProperties();
+        
         // 更新总材料消耗等汇总信息
         this._updateSummaryInfo();
+        
         return stepId;
     }
 
@@ -239,18 +278,16 @@ export default class EnchantRecord {
      * @private
      */
     _checkStepValidity(step, preEnchantmentPotential, singleSuccessRate) {
-        // 如果步骤被用户忽略，则标记为无效，原因为用户忽略
-        if (step.isIgnored) {
-            step.isValid = false;
-            step.invalidReason = '用户忽略';
-            return;
+        // 获取前一步骤（忽略被用户忽略的步骤）
+        let previousStep = null;
+        for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
+            if (!this.enchantmentSteps[i].isIgnored) {
+                previousStep = this.enchantmentSteps[i];
+                break;
+            }
         }
 
-        // 获取前一步骤
-        const previousStep = this.enchantmentSteps.length > 0 ?
-            this.enchantmentSteps[this.enchantmentSteps.length - 1] : null;
-
-        // 检查上一步是否无效
+        // 检查上一步是否无效（忽略被用户忽略的步骤）
         if (previousStep && !previousStep.isValid) {
             step.isValid = false;
             step.invalidReason = '上一步无效';
@@ -269,10 +306,12 @@ export default class EnchantRecord {
             }
         }
 
-        // 获取已附魔的属性数量
-        const enchantedPropertiesCount = this.enchantmentSteps.length > 0 ?
-            Object.values(this.enchantmentSteps[this.enchantmentSteps.length - 1].enchantedProperties)
-                .filter(isEnchanted => isEnchanted).length : 0;
+        // 获取已附魔的属性数量（基于上一个非忽略步骤）
+        let enchantedPropertiesCount = 0;
+        if (previousStep) {
+            enchantedPropertiesCount = Object.values(previousStep.enchantedProperties)
+                .filter(isEnchanted => isEnchanted).length;
+        }
 
         // 检查已附魔属性是否已满8条
         if (enchantedPropertiesCount >= 8) {
@@ -295,10 +334,11 @@ export default class EnchantRecord {
             return;
         }
 
-        // 获取当前属性值（基于上一步的结果）
-        const currentProperties = this.enchantmentSteps.length > 0 ?
-            { ...this.enchantmentSteps[this.enchantmentSteps.length - 1].currentProperties } :
-            this.getCurrentProperties();
+        // 获取当前属性值（基于上一个非忽略步骤的结果）
+        let currentProperties = this.getCurrentProperties();
+        if (previousStep) {
+            currentProperties = { ...previousStep.currentProperties };
+        }
 
         // 计算应用当前步骤附魔后的属性值
         const propertiesWithCurrentStep = { ...currentProperties };
@@ -390,7 +430,13 @@ export default class EnchantRecord {
             step.isIgnored = isIgnored;
             // 重新计算所有步骤
             this._recalculateAllSteps();
+            // 保存到本地存储
+            if (typeof saveCurrentEnchantment === 'function') {
+                saveCurrentEnchantment();
+            }
+            return true;
         }
+        return false;
     }
 
     /**
@@ -439,6 +485,11 @@ export default class EnchantRecord {
         // 查找要更新的步骤索引
         const stepIndex = this.enchantmentSteps.findIndex(step => step.id === stepId);
         if (stepIndex !== -1) {
+            // 保存原始的isIgnored状态（如果未提供新值）
+            const isIgnored = updatedStep.isIgnored !== undefined 
+                ? updatedStep.isIgnored 
+                : this.enchantmentSteps[stepIndex].isIgnored;
+
             // 更新步骤数据
             this.enchantmentSteps[stepIndex] = {
                 id: stepId,
@@ -450,10 +501,9 @@ export default class EnchantRecord {
                         value: enchant.value
                     };
                 }),
-                isIgnored: updatedStep.isIgnored !== undefined ? updatedStep.isIgnored : this.enchantmentSteps[stepIndex].isIgnored,
+                isIgnored: isIgnored,
                 isValid: updatedStep.isValid !== undefined ? updatedStep.isValid : true,
                 invalidReason: updatedStep.invalidReason || null,
-
                 totalMaterialCosts: {
                     metal: 0,
                     cloth: 0,
@@ -600,71 +650,6 @@ export default class EnchantRecord {
     }
 
 
-    /**
-     * 根据附魔步骤更新当前属性值
-     * @private
-     */
-    _updateCurrentProperties() {
-        // 如果没有步骤，不需要更新
-        if (this.enchantmentSteps.length === 0) {
-            // 更新汇总信息
-            this._updateSummaryInfo();
-            return;
-        }
-
-        // 重置属性值（仅用于第一步）
-        const properties = PM.properties;
-        const defaultProperties = {};
-        const defaultEnchantedProperties = {};
-
-        for (const propId in properties) {
-            defaultProperties[propId] = 0;
-            defaultEnchantedProperties[propId] = false;
-        }
-
-        // 处理每一步骤，基于前一步骤的结果进行计算
-        for (let i = 0; i < this.enchantmentSteps.length; i++) {
-            const step = this.enchantmentSteps[i];
-
-            // 获取基准属性值（前一步的currentProperties）
-            let currentProperties, enchantedProperties;
-            if (i === 0) {
-                // 第一步使用默认值
-                currentProperties = { ...defaultProperties };
-                enchantedProperties = { ...defaultEnchantedProperties };
-            } else {
-                // 后续步骤使用前一步的结果
-                currentProperties = { ...this.enchantmentSteps[i - 1].currentProperties };
-                enchantedProperties = { ...this.enchantmentSteps[i - 1].enchantedProperties };
-            }
-
-            // 检查步骤是否为空（所有属性值都为0）
-            const isEmptyStep = step.enchantments.every(e => e.value === 0);
-
-            // 只有当步骤未被忽略且不为空时才应用附魔（无论步骤是否有效）
-            if (!step.isIgnored && !isEmptyStep) {
-                // 应用当前步骤的附魔
-                for (const enchantment of step.enchantments) {
-                    // 检查属性对象是否存在
-                    if (enchantment.property && currentProperties.hasOwnProperty(enchantment.property.id)) {
-                        // 如果有附魔值变化，则标记该属性为已附魔
-                        if (enchantment.value !== 0) {
-                            enchantedProperties[enchantment.property.id] = true;
-                        }
-
-                        currentProperties[enchantment.property.id] += enchantment.value;
-                    }
-                }
-            }
-
-            // 更新步骤中的属性值和附魔历史
-            step.currentProperties = currentProperties;
-            step.enchantedProperties = enchantedProperties;
-        }
-
-        // 更新汇总信息
-        this._updateSummaryInfo();
-    }
 
     /**
      * 更新汇总信息（总材料消耗、最终剩余潜力值、最终单条成功率、最终期望成功率）
@@ -807,7 +792,8 @@ export default class EnchantRecord {
             enchantments: step.enchantments.map(enchant => ({
                 property: enchant.property,
                 value: enchant.value
-            }))
+            })),
+            isIgnored: step.isIgnored
         }));
 
         // 清空当前步骤
