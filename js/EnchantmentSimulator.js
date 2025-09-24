@@ -819,6 +819,7 @@ function confirmProperties() {
     // 保存当前步骤数据
     const previousSteps = JSON.parse(JSON.stringify(enchantRecord.enchantmentSteps.map(step => ({
         id: step.id,
+        isIgnored: step.isIgnored, // 保存忽略状态
         enchantments: step.enchantments.map(enchant => ({
             propertyId: enchant.property.id,
             value: enchant.value
@@ -843,6 +844,7 @@ function confirmProperties() {
         previousSteps.forEach(stepData => {
             const newStep = {
                 id: stepData.id,
+                isIgnored: stepData.isIgnored, // 恢复忽略状态
                 enchantments: selectedProperties.map(property => {
                     // 查找原有数据
                     const existingEnchant = stepData.enchantments.find(e => e.propertyId === property.id);
