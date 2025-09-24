@@ -1616,7 +1616,7 @@ function updateResultDisplay() {
     let resultText = '';
 
     // 顶部属性总览（使用中文简写名）
-    const finalProperties = enchantRecord.getCurrentProperties();
+    const finalProperties = enchantRecord.getFinalProperties();
     let propertyOverview = '附魔结果';
     for (const propId in finalProperties) {
         const property = propertyManager.getProperty(propId);
@@ -1707,8 +1707,8 @@ function updateResultDisplay() {
     while (i < enchantRecord.enchantmentSteps.length) {
         const currentStep = enchantRecord.enchantmentSteps[i];
 
-        // 跳过空步骤和无效步骤
-        if (!currentStep.isValid || currentStep.enchantments.every(e => e.value === 0)) {
+        // 跳过空步骤、无效步骤和被忽略的步骤
+        if (!currentStep.isValid || currentStep.enchantments.every(e => e.value === 0) || currentStep.isIgnored) {
             i++;
             continue;
         }
@@ -1721,8 +1721,8 @@ function updateResultDisplay() {
         while (j < enchantRecord.enchantmentSteps.length) {
             const nextStep = enchantRecord.enchantmentSteps[j];
 
-            // 跳过空步骤和无效步骤
-            if (!nextStep.isValid || nextStep.enchantments.every(e => e.value === 0)) {
+            // 跳过空步骤、无效步骤和被忽略的步骤
+            if (!nextStep.isValid || nextStep.enchantments.every(e => e.value === 0) || nextStep.isIgnored) {
                 j++;
                 continue;
             }
