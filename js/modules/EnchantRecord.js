@@ -31,6 +31,7 @@ export default class EnchantRecord {
      * @param {number} [config.understandingSkills.medicine=0] - 理解药品技能等级
      * @param {number} [config.understandingSkills.mana=0] - 理解魔素技能等级
      * @param {Array} [config.enchantmentSteps=[]] - 附魔步骤数组
+     * @param {Array} [config.selectedProperties=[]] - 选中的属性数组，保持选择顺序
      * @param {Object} [config.finalTotalMaterialCosts] - 最终总材料消耗对象
      * @param {number} [config.finalTotalMaterialCosts.metal=0] - 金属材料总消耗
      * @param {number} [config.finalTotalMaterialCosts.cloth=0] - 布料材料总消耗
@@ -66,6 +67,9 @@ export default class EnchantRecord {
             medicine: config.understandingSkills?.medicine || 0, // 理解药品
             mana: config.understandingSkills?.mana || 0         // 理解魔素
         };
+
+        // 选中的属性，保持选择顺序，最多8个
+        this.selectedProperties = config.selectedProperties || [];
 
         // 附魔操作步骤记录
         this.enchantmentSteps = [];
@@ -649,7 +653,51 @@ export default class EnchantRecord {
         return 'step_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
     }
 
+    /**
+     * 获取选中的属性
+     * @returns {Array} 选中的属性数组
+     */
+    getSelectedProperties() {
+        return this.selectedProperties;
+    }
 
+    /**
+     * 设置选中的属性
+     * @param {Array} properties - 选中的属性数组
+     */
+    setSelectedProperties(properties) {
+        // 限制最多8个属性
+        this.selectedProperties = properties.slice(0, 8);
+    }
+
+    /**
+     * 添加选中的属性
+     * @param {Object} property - 要添加的属性对象
+     */
+    addSelectedProperty(property) {
+        // 检查是否已存在
+        const exists = this.selectedProperties.some(prop => prop.id === property.id);
+        
+        // 如果不存在且未达到上限，则添加
+        if (!exists && this.selectedProperties.length < 8) {
+            this.selectedProperties.push(property);
+        }
+    }
+
+    /**
+     * 移除选中的属性
+     * @param {Object} property - 要移除的属性对象
+     */
+    removeSelectedProperty(property) {
+        this.selectedProperties = this.selectedProperties.filter(prop => prop.id !== property.id);
+    }
+
+    /**
+     * 清空选中的属性
+     */
+    clearSelectedProperties() {
+        this.selectedProperties = [];
+    }
 
     /**
      * 更新汇总信息（总材料消耗、最终剩余潜力值、最终单条成功率、最终期望成功率）
@@ -994,6 +1042,17 @@ export default class EnchantRecord {
         data += String.fromCharCode(Math.min(Math.max(this.understandingSkills.medicine, 0), 255));
         data += String.fromCharCode(Math.min(Math.max(this.understandingSkills.mana, 0), 255));
 
+        // 导出选中的属性列表（保持顺序）
+        // 选中属性数量 (1字节)
+        const selectedPropertiesCount = Math.min(this.selectedProperties.length, 8);
+        data += String.fromCharCode(selectedPropertiesCount);
+        
+        // 选中属性ID
+        for (let i = 0; i < selectedPropertiesCount; i++) {
+            const propId = this.selectedProperties[i].id;
+            data += String.fromCharCode(this._getPropertyIdCode(propId) & 0xFF);
+        }
+
         // 附魔步骤数量 (1字节)
         const stepCount = Math.min(this.enchantmentSteps.length, 255);
         data += String.fromCharCode(stepCount);
@@ -1002,36 +1061,25 @@ export default class EnchantRecord {
         for (let i = 0; i < stepCount; i++) {
             const step = this.enchantmentSteps[i];
 
-            // 是否忽略步骤 (1位) + 属性数量 (7位) 
-            const enchantmentCount = Math.min(step.enchantments.length, 127);
+            // 是否忽略步骤 (1位) + 属性数量 (7位)
+            // 过滤出有变化的属性（值不为0的属性）
+            const changedEnchants = step.enchantments.filter(enchant => enchant.value !== 0);
+            const enchantmentCount = Math.min(changedEnchants.length, 127);
             const ignoredFlag = step.isIgnored ? 128 : 0;
             data += String.fromCharCode(ignoredFlag | enchantmentCount);
 
-            // 属性数据
+            // 只记录有变化的属性数据
             for (let j = 0; j < enchantmentCount; j++) {
-                const enchant = step.enchantments[j];
-                // 属性ID编码 (1字节)
-                data += String.fromCharCode(this._getPropertyIdCode(enchant.property?.id) & 0xFF);
+                const enchant = changedEnchants[j];
+                // 属性在选中列表中的索引 (1字节)
+                const propertyIndex = this.selectedProperties.findIndex(prop => prop.id === enchant.property.id);
+                data += String.fromCharCode(propertyIndex & 0xFF);
 
                 // 属性值编码 (2字节，支持负数)
                 const value = Math.min(Math.max(enchant.value, -32768), 32767);
                 data += String.fromCharCode((value >> 8) & 0xFF);
                 data += String.fromCharCode(value & 0xFF);
             }
-        }
-
-        // 导出选中的属性ID列表
-        // 获取所有曾经被附魔过的属性
-        const enchantedProperties = this.getEnchantedProperties();
-        
-        // 选中属性数量 (1字节)
-        const selectedPropertiesCount = Math.min(enchantedProperties.length, 255);
-        data += String.fromCharCode(selectedPropertiesCount);
-        
-        // 选中属性ID
-        for (let i = 0; i < selectedPropertiesCount; i++) {
-            const propId = enchantedProperties[i];
-            data += String.fromCharCode(this._getPropertyIdCode(propId) & 0xFF);
         }
 
         // 使用自定义Base64编码
@@ -1093,6 +1141,28 @@ export default class EnchantRecord {
                 mana: data.charCodeAt(offset++)
             };
 
+            // 导入选中的属性列表（保持顺序）
+            const selectedPropertiesCount = data.charCodeAt(offset++);
+            this.selectedProperties = [];
+            
+            // 创建一个临时数组存储属性ID，稍后转换为属性对象
+            const selectedPropertyIds = [];
+            for (let i = 0; i < selectedPropertiesCount; i++) {
+                const propertyIdCode = data.charCodeAt(offset++);
+                const propertyId = this._getPropertyIdFromCode(propertyIdCode);
+                if (propertyId !== 'Unknown') {
+                    selectedPropertyIds.push(propertyId);
+                }
+            }
+
+            // 将属性ID转换为属性对象
+            for (const propId of selectedPropertyIds) {
+                const property = PM.properties[propId];
+                if (property) {
+                    this.selectedProperties.push(property);
+                }
+            }
+
             // 附魔步骤数量
             const stepCount = data.charCodeAt(offset++);
 
@@ -1120,44 +1190,36 @@ export default class EnchantRecord {
                     }
                 };
 
-                // 属性数据
+                // 初始化所有选中属性，值默认为0
+                for (const property of this.selectedProperties) {
+                    step.enchantments.push({
+                        property: property,
+                        value: 0
+                    });
+                }
+
+                // 读取有变化的属性数据
                 for (let j = 0; j < enchantmentCount; j++) {
-                    // 属性ID
-                    const propertyIdCode = data.charCodeAt(offset++);
-                    const propertyId = this._getPropertyIdFromCode(propertyIdCode);
-                    const property = PM.properties[propertyId];
+                    // 属性在选中列表中的索引
+                    const propertyIndex = data.charCodeAt(offset++);
+                    // 属性值
+                    const valueHigh = data.charCodeAt(offset++);
+                    const valueLow = data.charCodeAt(offset++);
+                    const value = (valueHigh << 8) | valueLow;
+                    // 处理负数
+                    const signedValue = (value & 0x8000) ? value - 0x10000 : value;
 
-                    if (property) {
-                        // 属性值
-                        const valueHigh = data.charCodeAt(offset++);
-                        const valueLow = data.charCodeAt(offset++);
-                        const value = (valueHigh << 8) | valueLow;
-                        // 处理负数
-                        const signedValue = (value & 0x8000) ? value - 0x10000 : value;
-
-                        step.enchantments.push({
-                            property: property,
-                            value: signedValue
-                        });
-                    } else {
-                        // 跳过无效属性值
-                        offset += 2;
+                    // 更新对应属性的值
+                    if (propertyIndex < this.selectedProperties.length) {
+                        const property = this.selectedProperties[propertyIndex];
+                        const enchant = step.enchantments.find(e => e.property.id === property.id);
+                        if (enchant) {
+                            enchant.value = signedValue;
+                        }
                     }
                 }
 
                 this.enchantmentSteps.push(step);
-            }
-
-            // 导入选中的属性ID列表
-            const selectedPropertiesCount = data.charCodeAt(offset++);
-            const importedEnchantedProperties = [];
-            
-            for (let i = 0; i < selectedPropertiesCount; i++) {
-                const propertyIdCode = data.charCodeAt(offset++);
-                const propertyId = this._getPropertyIdFromCode(propertyIdCode);
-                if (propertyId !== 'Unknown') {
-                    importedEnchantedProperties.push(propertyId);
-                }
             }
 
             // 重新计算所有步骤

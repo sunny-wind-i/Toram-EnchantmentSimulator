@@ -488,22 +488,8 @@ function importData() {
 
 // 根据导入的数据更新选中属性
 function updateSelectedPropertiesFromImport() {
-    // 获取所有曾经被附魔过的属性
-    const enchantedProperties = enchantRecord.getEnchantedProperties();
-
-    // 清空当前选中的属性
-    selectedProperties = [];
-
-    // 根据导入数据中的附魔属性更新selectedProperties
-    enchantedProperties.forEach(propId => {
-        const property = PM.properties[propId];
-        if (property) {
-            // 检查属性是否已经在selectedProperties中
-            if (!selectedProperties.some(prop => prop.id === property.id)) {
-                selectedProperties.push(property);
-            }
-        }
-    });
+    // 直接从EnchantRecord中获取选中的属性（保持顺序）
+    selectedProperties = [...enchantRecord.getSelectedProperties()];
 }
 
 // 绑定事件
@@ -747,6 +733,8 @@ function onPropertyCheckboxChange(event) {
         // 添加到已选择属性
         if (!isAlreadySelected && selectedProperties.length < 8) {
             selectedProperties.push(property);
+            // 同时更新EnchantRecord中的selectedProperties
+            enchantRecord.addSelectedProperty(property);
         } else if (!isAlreadySelected) {
             // 超过8个，取消选择
             checkbox.checked = false;
@@ -758,6 +746,8 @@ function onPropertyCheckboxChange(event) {
         const index = selectedProperties.findIndex(p => p.id === propertyId);
         if (index !== -1) {
             selectedProperties.splice(index, 1);
+            // 同时更新EnchantRecord中的selectedProperties
+            enchantRecord.removeSelectedProperty(property);
         }
     }
 
