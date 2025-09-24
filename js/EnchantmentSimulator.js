@@ -462,7 +462,7 @@ function importData() {
             // 更新显示
             updateDisplay();
             updateBasicInfoDisplay();
-            
+
             // 注意：这里不需要手动调用updateTableHeader和updateEnchantmentSelector
             // 因为updateDisplay已经包含了这些操作
 
@@ -480,7 +480,7 @@ function importData() {
     };
 
     // 点击弹窗外部关闭
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target === modal) {
             document.body.removeChild(modal);
         }
@@ -491,17 +491,17 @@ function importData() {
 function updateSelectedPropertiesFromImport() {
     // 直接从EnchantRecord中获取选中的属性（保持顺序）
     selectedProperties = [...enchantRecord.getSelectedProperties()];
-    
+
     // 同步更新属性选择弹窗中的复选框状态
     document.querySelectorAll('#propertyCategoryList input[type="checkbox"]').forEach(checkbox => {
         const propertyId = checkbox.dataset.propertyId;
         const isSelected = selectedProperties.some(prop => prop.id === propertyId);
         checkbox.checked = isSelected;
     });
-    
+
     // 更新已选择属性显示
     updateSelectedPropertiesDisplay();
-    
+
     // 更新表格头部
     updateTableHeader();
 }
@@ -1178,7 +1178,18 @@ function updateTableContent() {
                                     if (potentialChange !== 0) {
                                         cell.textContent = potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString();
                                     } else {
-                                        cell.textContent = '';
+                                        // 潜力无变化时，根据属性值变化显示-0或+0
+                                        const enchantment = step.enchantments.find(e => e.property.id === property.id);
+                                        if (enchantment && enchantment.value !== 0) {
+                                            // 属性值有变化但潜力无变化
+                                            if (enchantment.value > 0) {
+                                                cell.textContent = '-0'; // 消耗0点潜力但属性值增加
+                                            } else {
+                                                cell.textContent = '+0'; // 返还0点潜力但属性值减少
+                                            }
+                                        } else {
+                                            cell.textContent = '';
+                                        }
                                     }
                                 }
                                 break;
@@ -1255,7 +1266,11 @@ function updateTableContent() {
 
                 // 潜力值列 - 显示最后一个步骤的潜力值
                 const potentialCell = document.createElement('td');
-                potentialCell.textContent = lastStep.postEnchantmentPotential;
+                if (lastStep.isIgnored) {
+                    potentialCell.textContent = 'N/A';
+                } else {
+                    potentialCell.textContent = lastStep.postEnchantmentPotential;
+                }
                 potentialCell.dataset.groupIndex = groupIndex;
                 potentialCell.dataset.columnType = 'potential';
                 // 保存第一个和最后一个步骤的实际索引
@@ -1294,30 +1309,45 @@ function updateTableContent() {
                             break;
                         case 'potential':
                             // 显示各属性消耗潜力和重复次数
-                            // 修复：计算所有折叠步骤的潜力消耗总和，而不是简单乘以firstStep的消耗
-                            let totalGroupPotentialChange = 0;
-                            let individualPotentialChanges = [];
-
-                            // 计算所有步骤的潜力变化总和
-                            group.steps.forEach(step => {
-                                const stepPotentialChange = step.propertyPotentialChanges[property.id] || 0;
-                                totalGroupPotentialChange += stepPotentialChange;
-                                if (stepPotentialChange !== 0) {
-                                    individualPotentialChanges.push(stepPotentialChange);
-                                }
-                            });
-
-                            if (totalGroupPotentialChange !== 0) {
-                                if (individualPotentialChanges.length > 0 && individualPotentialChanges.every(change => change === individualPotentialChanges[0])) {
-                                    // 如果所有步骤的潜力消耗相同
-                                    const potentialChange = individualPotentialChanges[0];
-                                    cell.textContent = `${potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString()} (×${group.count}, 总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()})`;
-                                } else {
-                                    // 如果步骤间的潜力消耗不同
-                                    cell.textContent = `总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}`;
-                                }
+                            if (firstStep.isIgnored) {
+                                // 如果是忽略的步骤，显示N/A
+                                cell.textContent = 'N/A';
                             } else {
-                                cell.textContent = '';
+                                let totalGroupPotentialChange = 0;
+                                let individualPotentialChanges = [];
+
+                                // 计算所有步骤的潜力变化总和
+                                group.steps.forEach(step => {
+                                    const stepPotentialChange = step.propertyPotentialChanges[property.id] || 0;
+                                    totalGroupPotentialChange += stepPotentialChange;
+                                    if (stepPotentialChange !== 0) {
+                                        individualPotentialChanges.push(stepPotentialChange);
+                                    }
+                                });
+
+                                if (totalGroupPotentialChange !== 0) {
+                                    if (individualPotentialChanges.length > 0 && individualPotentialChanges.every(change => change === individualPotentialChanges[0])) {
+                                        // 如果所有步骤的潜力消耗相同
+                                        const potentialChange = individualPotentialChanges[0];
+                                        cell.textContent = `${potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString()} (×${group.count}, 总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()})`;
+                                    } else {
+                                        // 如果步骤间的潜力消耗不同
+                                        cell.textContent = `总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}`;
+                                    }
+                                } else {
+                                    // 潜力无变化时，根据属性值变化显示-0或+0
+                                    const enchantment = firstStep.enchantments.find(e => e.property.id === property.id);
+                                    if (enchantment && enchantment.value !== 0) {
+                                        // 属性值有变化但潜力无变化
+                                        if (enchantment.value > 0) {
+                                            cell.textContent = `-0 (×${group.count})`; // 消耗0点潜力但属性值增加
+                                        } else {
+                                            cell.textContent = `+0 (×${group.count})`; // 返还0点潜力但属性值减少
+                                        }
+                                    } else {
+                                        cell.textContent = '';
+                                    }
+                                }
                             }
                             break;
                         case 'material':
@@ -1499,7 +1529,18 @@ function updateTableContent() {
                                 if (potentialChange !== 0) {
                                     cell.textContent = potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString();
                                 } else {
-                                    cell.textContent = '';
+                                    // 潜力无变化时，根据属性值变化显示-0或+0
+                                    const enchantment = step.enchantments.find(e => e.property.id === property.id);
+                                    if (enchantment && enchantment.value !== 0) {
+                                        // 属性值有变化但潜力无变化
+                                        if (enchantment.value > 0) {
+                                            cell.textContent = '-0'; // 消耗0点潜力但属性值增加
+                                        } else {
+                                            cell.textContent = '+0'; // 返还0点潜力但属性值减少
+                                        }
+                                    } else {
+                                        cell.textContent = '';
+                                    }
                                 }
                             }
                             break;
