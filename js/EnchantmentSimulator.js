@@ -553,7 +553,9 @@ function bindEvents() {
 
     // 表格事件
     document.getElementById('enchantTable').addEventListener('click', onTableClick);
+    document.getElementById('enchantTable').addEventListener('contextmenu', onTableContextMenu);
     document.getElementById('enchantTable').addEventListener('dblclick', onTableDblClick);
+    document.getElementById('enchantTable').addEventListener('touchstart', onTableTouchStart);
     document.getElementById('enchantTable').addEventListener('touchend', onTableTouchEnd);
 
     // 悬浮工具栏事件
@@ -2007,6 +2009,7 @@ function updateBasicInfoDisplay() {
     document.getElementById('understandingWood').value = enchantRecord.understandingSkills.wood;
     document.getElementById('understandingMedicine').value = enchantRecord.understandingSkills.medicine;
     document.getElementById('understandingMana').value = enchantRecord.understandingSkills.mana;
+
 }
 
 function showMoreConfig() {
@@ -2094,9 +2097,44 @@ function onTableClick(event) {
     updateIgnoreButton();
 }
 
+// 表格右键菜单事件处理
+function onTableContextMenu(event) {
+    const cell = event.target;
+    if (cell.tagName !== 'TD') return;
+
+    // 阻止默认右键菜单
+    event.preventDefault();
+
+    // 检查是否是折叠步骤的单元格
+    const row = cell.parentElement;
+    if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
+        // 不允许选择折叠步骤的单元格进行编辑
+        showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+        return;
+    }
+
+    // 移除之前选中的样式
+    if (selectedCell) {
+        selectedCell.classList.remove('selected');
+    }
+
+    // 添加选中样式
+    cell.classList.add('selected');
+    selectedCell = cell;
+
+    // 更新忽略按钮文本
+    updateIgnoreButton();
+
+    // 显示操作菜单
+    showOperationMenu();
+}
+
 // 用于检测双击的变量
 let lastTap = 0;
 let lastTapCell = null;
+// 用于检测长按的变量
+let longPressTimer = null;
+const longPressDuration = 500; // 长按持续时间（毫秒）
 
 // 表格双击事件处理
 function onTableDblClick(event) {
@@ -2129,17 +2167,52 @@ function onTableDblClick(event) {
     }
 }
 
-// 表格触摸事件处理（用于移动端双击支持）
+// 表格触摸事件处理（用于移动端双击和长按支持）
+function onTableTouchStart(event) {
+    const cell = event.target;
+    if (cell.tagName !== 'TD') return;
+
+    // 清除之前的定时器
+    if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+    }
+
+    // 设置长按定时器
+    longPressTimer = setTimeout(() => {
+        // 检查是否是折叠步骤的单元格
+        const row = cell.parentElement;
+        if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
+            // 不允许选择折叠步骤的单元格进行编辑
+            showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+            return;
+        }
+
+        // 移除之前选中的样式
+        if (selectedCell) {
+            selectedCell.classList.remove('selected');
+        }
+
+        // 添加选中样式
+        cell.classList.add('selected');
+        selectedCell = cell;
+
+        // 更新忽略按钮文本
+        updateIgnoreButton();
+
+        // 显示操作菜单
+        showOperationMenu();
+    }, longPressDuration);
+}
+
 function onTableTouchEnd(event) {
     const cell = event.target;
     if (cell.tagName !== 'TD') return;
 
-    // 检查是否是折叠步骤的单元格
-    const row = cell.parentElement;
-    if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
-        // 不允许选择折叠步骤的单元格进行编辑
-        showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
-        return;
+    // 清除长按定时器
+    if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
     }
 
     const currentTime = new Date().getTime();
@@ -2149,6 +2222,14 @@ function onTableTouchEnd(event) {
     if (lastTapCell === cell && tapLength < 300 && tapLength > 0) {
         // 触发双击事件
         event.preventDefault();
+
+        // 检查是否是折叠步骤的单元格
+        const row = cell.parentElement;
+        if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
+            // 不允许选择折叠步骤的单元格进行编辑
+            showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+            return;
+        }
 
         // 移除之前选中的样式
         if (selectedCell) {
@@ -2174,6 +2255,14 @@ function onTableTouchEnd(event) {
         // 单击处理
         lastTap = currentTime;
         lastTapCell = cell;
+
+        // 检查是否是折叠步骤的单元格
+        const row = cell.parentElement;
+        if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
+            // 不允许选择折叠步骤的单元格进行编辑
+            showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+            return;
+        }
 
         // 移除之前选中的样式
         if (selectedCell) {
