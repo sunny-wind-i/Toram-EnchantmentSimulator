@@ -462,8 +462,9 @@ function importData() {
             // 更新显示
             updateDisplay();
             updateBasicInfoDisplay();
-            updateTableHeader(); // 更新表格表头
-            updateEnchantmentSelector(); // 更新附魔选择器
+            
+            // 注意：这里不需要手动调用updateTableHeader和updateEnchantmentSelector
+            // 因为updateDisplay已经包含了这些操作
 
             // 保存到本地存储
             saveEnchantmentListToStorage();
@@ -479,7 +480,7 @@ function importData() {
     };
 
     // 点击弹窗外部关闭
-    window.onclick = (event) => {
+    window.onclick = function(event) {
         if (event.target === modal) {
             document.body.removeChild(modal);
         }
@@ -490,6 +491,19 @@ function importData() {
 function updateSelectedPropertiesFromImport() {
     // 直接从EnchantRecord中获取选中的属性（保持顺序）
     selectedProperties = [...enchantRecord.getSelectedProperties()];
+    
+    // 同步更新属性选择弹窗中的复选框状态
+    document.querySelectorAll('#propertyCategoryList input[type="checkbox"]').forEach(checkbox => {
+        const propertyId = checkbox.dataset.propertyId;
+        const isSelected = selectedProperties.some(prop => prop.id === propertyId);
+        checkbox.checked = isSelected;
+    });
+    
+    // 更新已选择属性显示
+    updateSelectedPropertiesDisplay();
+    
+    // 更新表格头部
+    updateTableHeader();
 }
 
 // 绑定事件
@@ -810,6 +824,9 @@ function confirmProperties() {
             value: enchant.value
         }))
     }))));
+
+    // 更新EnchantRecord中的selectedProperties
+    enchantRecord.setSelectedProperties(selectedProperties);
 
     // 更新表格头部
     updateTableHeader();
