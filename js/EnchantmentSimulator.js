@@ -1329,23 +1329,37 @@ function updateTableContent() {
                                     if (individualPotentialChanges.length > 0 && individualPotentialChanges.every(change => change === individualPotentialChanges[0])) {
                                         // 如果所有步骤的潜力消耗相同
                                         const potentialChange = individualPotentialChanges[0];
-                                        cell.textContent = `${potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString()} (×${group.count}, 总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()})`;
+                                        // cell.textContent = `${potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString()} (×${group.count}, 总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()})`;
+                                        cell.textContent = `${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}`;
                                     } else {
                                         // 如果步骤间的潜力消耗不同
-                                        cell.textContent = `总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}`;
+                                        // cell.textContent = `总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}`;
+                                        cell.textContent = `${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}`;
                                     }
                                 } else {
-                                    // 潜力无变化时，根据属性值变化显示-0或+0
-                                    const enchantment = firstStep.enchantments.find(e => e.property.id === property.id);
-                                    if (enchantment && enchantment.value !== 0) {
-                                        // 属性值有变化但潜力无变化
-                                        if (enchantment.value > 0) {
-                                            cell.textContent = `-0 (×${group.count})`; // 消耗0点潜力但属性值增加
+                                    // 潜力无变化时，检查每一步的潜力变化情况
+                                    // 收集所有步骤的潜力变化值（包括0值）
+                                    const allPotentialChanges = group.steps.map(step =>
+                                        step.propertyPotentialChanges[property.id] || 0
+                                    );
+
+                                    // 检查所有步骤的潜力变化值是否相同
+                                    if (allPotentialChanges.every(change => change === allPotentialChanges[0])) {
+                                        // 所有步骤的潜力变化相同（都为0），检查属性值变化
+                                        const enchantment = firstStep.enchantments.find(e => e.property.id === property.id);
+                                        if (enchantment && enchantment.value !== 0) {
+                                            // 属性值有变化但潜力无变化
+                                            if (enchantment.value > 0) {
+                                                cell.textContent = `-0 (×${group.count})`; // 消耗0点潜力但属性值增加
+                                            } else {
+                                                cell.textContent = `+0 (×${group.count})`; // 返还0点潜力但属性值减少
+                                            }
                                         } else {
-                                            cell.textContent = `+0 (×${group.count})`; // 返还0点潜力但属性值减少
+                                            cell.textContent = '';
                                         }
                                     } else {
-                                        cell.textContent = '';
+                                        // 步骤间的潜力变化不同（虽然总和为0），显示总计信息
+                                        cell.textContent = `-0`;
                                     }
                                 }
                             }
@@ -1419,17 +1433,18 @@ function updateTableContent() {
 
                                             const totalForKey = materialCostDetails[key].reduce((sum, val) => sum + val, 0);
                                             if (hasVaryingMaterialCosts) {
-                                                materialValues.push(`${materialName} 总计: ${totalForKey}`);
+                                                materialValues.push(`${materialName} ${totalForKey}`);
                                             } else {
                                                 const firstValue = materialCostDetails[key][0];
-                                                materialValues.push(`${materialName} ${firstValue} (×${group.count}, 总计: ${totalForKey})`);
+                                                // materialValues.push(`${materialName} ${firstValue} (×${group.count}, 总计: ${totalForKey})`);
+                                                materialValues.push(`${materialName} ${totalForKey})`);
                                             }
                                         }
                                     }
                                     cell.textContent = materialValues.length > 0 ? materialValues.join(', ') : '';
                                 } else {
                                     // 处理数值类型的素材消耗
-                                    cell.textContent = `总计: ${totalGroupMaterialCost}`;
+                                    cell.textContent = `${totalGroupMaterialCost}`;
                                 }
                             } else {
                                 cell.textContent = '';
