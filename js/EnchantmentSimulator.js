@@ -1616,11 +1616,11 @@ function updateResultDisplay() {
     let resultText = '';
 
     // 顶部属性总览（使用中文简写名）
+    // 按照用户选择的属性顺序显示
     const finalProperties = enchantRecord.getFinalProperties();
     let propertyOverview = '附魔结果';
-    for (const propId in finalProperties) {
-        const property = propertyManager.getProperty(propId);
-        const value = finalProperties[propId];
+    for (const property of selectedProperties) {
+        const value = finalProperties[property.id];
 
         // 只显示非零属性
         if (value !== 0) {
