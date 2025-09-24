@@ -619,7 +619,7 @@ export default class EnchantRecord {
             // 从数组中删除该步骤
             this.enchantmentSteps.splice(stepIndex, 1);
             // 更新当前属性值
-            this._updateCurrentProperties();
+            this._updateSummaryInfo();
         }
     }
 
@@ -892,10 +892,25 @@ export default class EnchantRecord {
      * @returns {Array} 曾经被附魔过的属性ID数组
      */
     getEnchantedProperties() {
-        if (this.enchantmentSteps.length > 0) {
-            const enchantedProperties = this.enchantmentSteps[this.enchantmentSteps.length - 1].enchantedProperties;
-            return Object.keys(enchantedProperties).filter(propId => enchantedProperties[propId]);
+        // 从最后一个步骤开始向前查找，找到最后一个有效的步骤
+        for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
+            const step = this.enchantmentSteps[i];
+            if (!step.isIgnored && step.isValid) {
+                const enchantedProperties = step.enchantedProperties;
+                return Object.keys(enchantedProperties).filter(propId => enchantedProperties[propId]);
+            }
         }
+        
+        // 如果没有找到有效的步骤，查找最后一个非忽略步骤
+        for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
+            const step = this.enchantmentSteps[i];
+            if (!step.isIgnored) {
+                const enchantedProperties = step.enchantedProperties;
+                return Object.keys(enchantedProperties).filter(propId => enchantedProperties[propId]);
+            }
+        }
+        
+        // 如果所有步骤都被忽略，或者没有步骤，返回空数组
         return [];
     }
 
@@ -905,10 +920,25 @@ export default class EnchantRecord {
      * @returns {boolean} 如果属性曾经被附魔过返回true，否则返回false
      */
     isPropertyEnchanted(property) {
-        if (this.enchantmentSteps.length > 0) {
-            const enchantedProperties = this.enchantmentSteps[this.enchantmentSteps.length - 1].enchantedProperties;
-            return enchantedProperties[property.id] || false;
+        // 从最后一个步骤开始向前查找，找到最后一个有效的步骤
+        for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
+            const step = this.enchantmentSteps[i];
+            if (!step.isIgnored && step.isValid) {
+                const enchantedProperties = step.enchantedProperties;
+                return enchantedProperties[property.id] || false;
+            }
         }
+        
+        // 如果没有找到有效的步骤，查找最后一个非忽略步骤
+        for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
+            const step = this.enchantmentSteps[i];
+            if (!step.isIgnored) {
+                const enchantedProperties = step.enchantedProperties;
+                return enchantedProperties[property.id] || false;
+            }
+        }
+        
+        // 如果所有步骤都被忽略，或者没有步骤，返回false
         return false;
     }
 
@@ -988,6 +1018,20 @@ export default class EnchantRecord {
                 data += String.fromCharCode((value >> 8) & 0xFF);
                 data += String.fromCharCode(value & 0xFF);
             }
+        }
+
+        // 导出选中的属性ID列表
+        // 获取所有曾经被附魔过的属性
+        const enchantedProperties = this.getEnchantedProperties();
+        
+        // 选中属性数量 (1字节)
+        const selectedPropertiesCount = Math.min(enchantedProperties.length, 255);
+        data += String.fromCharCode(selectedPropertiesCount);
+        
+        // 选中属性ID
+        for (let i = 0; i < selectedPropertiesCount; i++) {
+            const propId = enchantedProperties[i];
+            data += String.fromCharCode(this._getPropertyIdCode(propId) & 0xFF);
         }
 
         // 使用自定义Base64编码
@@ -1102,6 +1146,18 @@ export default class EnchantRecord {
                 }
 
                 this.enchantmentSteps.push(step);
+            }
+
+            // 导入选中的属性ID列表
+            const selectedPropertiesCount = data.charCodeAt(offset++);
+            const importedEnchantedProperties = [];
+            
+            for (let i = 0; i < selectedPropertiesCount; i++) {
+                const propertyIdCode = data.charCodeAt(offset++);
+                const propertyId = this._getPropertyIdFromCode(propertyIdCode);
+                if (propertyId !== 'Unknown') {
+                    importedEnchantedProperties.push(propertyId);
+                }
             }
 
             // 重新计算所有步骤

@@ -42,6 +42,9 @@ document.addEventListener('DOMContentLoaded', function () {
     updateTableHeader();
     // 更新附魔选择器
     updateEnchantmentSelector();
+
+    console.log('ini\n', enchantRecord);
+
 });
 
 // 初始化附魔记录
@@ -495,7 +498,10 @@ function updateSelectedPropertiesFromImport() {
     enchantedProperties.forEach(propId => {
         const property = PM.properties[propId];
         if (property) {
-            selectedProperties.push(property);
+            // 检查属性是否已经在selectedProperties中
+            if (!selectedProperties.some(prop => prop.id === property.id)) {
+                selectedProperties.push(property);
+            }
         }
     });
 }
@@ -924,6 +930,7 @@ function updateDisplay() {
     updateTableContent();
     updateSuccessRate();
     updateResultDisplay();
+    console.log('dip\n', enchantRecord);
 }
 
 // 检查两个步骤是否具有相同的附魔变化值
