@@ -688,6 +688,26 @@ body {
     background-color: #ff6666;
 }
 
+/* 包含被忽略步骤的重复步骤控制行样式 */
+.repeat-control-row.has-ignored-steps td {
+    background-color: #cccccc;
+    color: #666666;
+}
+
+.repeat-control-row.has-ignored-steps:hover td {
+    background-color: #bbbbbb;
+}
+
+/* 折叠状态下的重复步骤控制行样式（针对被忽略的步骤） */
+.repeat-control-row.has-ignored-steps.collapsed td {
+    background-color: #dddddd;
+    color: #666666;
+}
+
+.repeat-control-row.has-ignored-steps.collapsed:hover td {
+    background-color: #cccccc;
+}
+
 /* 重复步骤样式 */
 .repeated-steps td {
     background-color: #e6f3ff;
@@ -697,6 +717,18 @@ body {
 
 .repeated-steps:hover td {
     background-color: #cce6ff;
+}
+
+/* 包含被忽略步骤的折叠重复步骤样式 */
+.repeated-steps.has-ignored-steps.collapsed td {
+    background-color: #f0f0f0;
+    color: #888888;
+    text-decoration: line-through;
+    font-weight: normal;
+}
+
+.repeated-steps.has-ignored-steps.collapsed:hover td {
+    background-color: #e0e0e0;
 }
 
 /* 无效的重复步骤样式 */
@@ -735,6 +767,18 @@ body {
 .enchant-table tr.invalid td {
     background-color: #ffe6e6;
     color: #ff0000;
+}
+
+/* 被忽略折叠步骤中的文本样式 */
+.repeated-steps.has-ignored-steps.collapsed .ignored-text {
+    color: #888888;
+    text-decoration: line-through;
+}
+
+/* 被忽略折叠步骤中的文本样式 */
+.repeated-steps.has-ignored-steps.collapsed .ignored-text {
+    color: #888888;
+    text-decoration: line-through;
 }
 
 /* 属性编辑弹窗 */

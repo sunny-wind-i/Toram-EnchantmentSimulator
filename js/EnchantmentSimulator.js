@@ -1043,10 +1043,18 @@ function updateTableContent() {
             const controlRow = document.createElement('tr');
             controlRow.classList.add('repeat-control-row');
 
-            // 检查组内是否有无效步骤，如果有则添加invalid类
+            // 检查组内是否有无效步骤或被忽略的步骤
             const hasInvalidStep = group.steps.some(step => !step.isValid);
+            const hasIgnoredStep = group.steps.some(step => step.isIgnored);
+
+            // 如果组内有无效步骤，添加无效类
             if (hasInvalidStep) {
                 controlRow.classList.add('invalid');
+            }
+
+            // 如果组内有被忽略的步骤，添加特殊类
+            if (hasIgnoredStep) {
+                controlRow.classList.add('has-ignored-steps');
             }
 
             // 控制行的单元格
@@ -1055,7 +1063,9 @@ function updateTableContent() {
             controlCell.classList.add('repeat-control-cell');
             controlCell.style.textAlign = 'center';
             controlCell.style.cursor = 'pointer';
-            controlCell.style.backgroundColor = hasInvalidStep ? '#ff9999' : '#d0e6ff';
+            controlCell.style.backgroundColor =
+                hasIgnoredStep ? '#cccccc' :
+                    hasInvalidStep ? '#ff9999' : '#d0e6ff';
             controlCell.style.color = hasInvalidStep ? '#cc0000' : '';
             controlCell.style.fontWeight = 'bold';
             controlCell.dataset.groupIndex = groupIndex;
@@ -1257,9 +1267,14 @@ function updateTableContent() {
                 const lastStep = group.steps[group.steps.length - 1];
                 const row = document.createElement('tr');
                 row.classList.add('repeated-steps');
+                row.classList.add('collapsed'); // 添加折叠样式
 
-                // 检查组内是否有无效步骤，如果有则添加invalid类
-                const hasInvalidStep = group.steps.some(step => !step.isValid);
+                // 如果组内有被忽略的步骤，添加特殊类
+                if (hasIgnoredStep) {
+                    row.classList.add('has-ignored-steps');
+                }
+
+                // 如果组内有无效步骤，添加无效类（优先级更高）
                 if (hasInvalidStep) {
                     row.classList.add('invalid');
                 }
@@ -1404,6 +1419,7 @@ function updateTableContent() {
                                 }
                             }
 
+                            // 显示素材消耗
                             if (totalGroupMaterialCost !== 0) {
                                 if (Object.keys(materialCostDetails).length > 0) {
                                     // 处理对象类型的素材消耗
@@ -1439,7 +1455,7 @@ function updateTableContent() {
                                             } else {
                                                 const firstValue = materialCostDetails[key][0];
                                                 // materialValues.push(`${materialName} ${firstValue} (×${group.count}, 总计: ${totalForKey})`);
-                                                materialValues.push(`${materialName} ${totalForKey})`);
+                                                materialValues.push(`${materialName} ${totalForKey}`);
                                             }
                                         }
                                     }
