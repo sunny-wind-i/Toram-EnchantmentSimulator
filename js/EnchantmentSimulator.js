@@ -69,10 +69,10 @@ function initializeEnchantRecord() {
         } catch (e) {
             console.error('加载存储的附魔失败:', e);
             alert('加载存储的附魔数据时发生错误，将创建新的附魔。\n错误信息: ' + e.message);
-            
+
             // 从列表中移除损坏的数据
             enchantmentList.splice(currentEnchantmentIndex, 1);
-            
+
             // 如果列表为空，创建新的附魔记录
             if (enchantmentList.length === 0) {
                 createNewEnchantRecord();
@@ -94,7 +94,7 @@ function initializeEnchantRecord() {
                     saveCurrentEnchantment();
                 }
             }
-            
+
             // 更新存储
             saveEnchantmentListToStorage();
             localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
@@ -140,21 +140,21 @@ function loadEnchantmentListFromStorage() {
     if (savedList) {
         try {
             const parsedList = JSON.parse(savedList);
-            
+
             // 验证数据结构是否正确
             if (!Array.isArray(parsedList)) {
                 throw new Error('存储的数据不是有效的数组格式');
             }
-            
+
             // 验证每个附魔项的结构
             const validList = [];
             let hasInvalidData = false;
-            
+
             for (let i = 0; i < parsedList.length; i++) {
                 const item = parsedList[i];
                 // 检查基本结构
-                if (item && typeof item === 'object' && 
-                    typeof item.name === 'string' && 
+                if (item && typeof item === 'object' &&
+                    typeof item.name === 'string' &&
                     typeof item.data === 'string') {
                     // 尝试验证数据是否可以正确解析
                     try {
@@ -170,7 +170,7 @@ function loadEnchantmentListFromStorage() {
                     hasInvalidData = true;
                 }
             }
-            
+
             if (hasInvalidData) {
                 console.warn('已清理无效的附魔数据');
                 // 如果有无效数据，更新存储
@@ -181,7 +181,7 @@ function loadEnchantmentListFromStorage() {
                     localStorage.removeItem('toram_enchant_list');
                 }
             }
-            
+
             enchantmentList = validList;
         } catch (e) {
             console.error('解析存储的附魔列表失败:', e);
@@ -269,7 +269,7 @@ function createNewEnchantment() {
 
     // 清空选中属性
     selectedProperties = [];
-    
+
     // 重置展开的重复步骤组状态
     expandedGroups = {};
 
@@ -1159,9 +1159,6 @@ function updateTableContent() {
 
     const tbody = document.querySelector('#enchantTable tbody');
     tbody.innerHTML = '';
-
-    // 每次更新表格内容时重置展开状态
-    expandedGroups = {};
 
     // 对步骤进行分组，将连续的重复步骤合并
     const groupedSteps = groupRepeatedSteps(enchantRecord.enchantmentSteps);
