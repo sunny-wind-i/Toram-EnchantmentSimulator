@@ -193,6 +193,9 @@ function createNewEnchantment() {
 
     enchantRecord = new EnchantRecord(config);
 
+    // 清空选中属性
+    selectedProperties = [];
+    
     // 添加到列表并保存
     enchantmentList.push({
         name: newName,
@@ -208,6 +211,7 @@ function createNewEnchantment() {
     updateBasicInfoDisplay();
     updateTableHeader();
     updateEnchantmentSelector();
+    updateSelectedPropertiesDisplay();
 }
 
 // 删除当前附魔
