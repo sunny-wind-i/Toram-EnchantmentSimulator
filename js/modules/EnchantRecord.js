@@ -1114,9 +1114,8 @@ export default class EnchantRecord {
         
         // 检查两个步骤是否具有相同的附魔变化值
         const areStepsEqual = (step1, step2) => {
-            // 如果任一步骤被忽略，则不视为重复步骤
-            // 被忽略的步骤应该被视为独立的步骤类型
-            if (step1.isIgnored || step2.isIgnored) {
+            // 检查步骤忽略状态，如果忽略状态不同，则不视为重复步骤
+            if (step1.isIgnored !== step2.isIgnored) {
                 return false;
             }
 
