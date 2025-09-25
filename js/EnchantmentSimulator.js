@@ -398,7 +398,12 @@ function importData() {
             <h2>导入数据</h2>
             <p>请粘贴导出的数据:</p>
             <textarea id="importDataTextarea" rows="5" cols="50"></textarea>
-            <button id="importDataBtn">导入</button>
+            <div id="importNameSection" style="display: none; margin-top: 10px;">
+                <label for="importedName">附魔名称:</label>
+                <input type="text" id="importedName" style="width: 100%; margin-top: 5px;">
+            </div>
+            <button id="parseImportDataBtn">解析</button>
+            <button id="importDataBtn" style="display: none;">导入</button>
         </div>
     `;
 
@@ -412,8 +417,8 @@ function importData() {
         document.body.removeChild(modal);
     };
 
-    // 绑定导入按钮事件
-    modal.querySelector('#importDataBtn').onclick = () => {
+    // 绑定解析按钮事件
+    modal.querySelector('#parseImportDataBtn').onclick = () => {
         const textarea = modal.querySelector('#importDataTextarea');
         const data = textarea.value.trim();
 
@@ -428,25 +433,57 @@ function importData() {
             tempRecord.importCustomData(data);
             const importedName = tempRecord.getName();
 
-            // 询问用户如何处理导入的数据
-            const userChoice = prompt(`导入的附魔名称为: "${importedName}"\n请输入新名称，或留空使用原名称:`, importedName);
-            if (userChoice === null) {
-                // 用户取消导入
-                return;
-            }
+            // 显示名称输入框
+            const nameSection = modal.querySelector('#importNameSection');
+            const nameInput = modal.querySelector('#importedName');
+            nameSection.style.display = 'block';
+            nameInput.value = importedName;
 
-            const finalName = userChoice.trim() || importedName;
+            // 隐藏解析按钮，显示导入按钮
+            modal.querySelector('#parseImportDataBtn').style.display = 'none';
+            modal.querySelector('#importDataBtn').style.display = 'inline-block';
+
+            // 保存解析的数据
+            modal.parsedData = data;
+            modal.importedName = importedName;
+        } catch (error) {
+            alert('解析失败: ' + error.message);
+        }
+    };
+
+    // 绑定导入按钮事件
+    modal.querySelector('#importDataBtn').onclick = () => {
+        const nameInput = modal.querySelector('#importedName');
+        const finalName = nameInput.value.trim() || modal.importedName;
+
+        try {
+            // 创建临时记录来处理数据
+            const tempRecord = new EnchantRecord({});
+            tempRecord.importCustomData(modal.parsedData);
             tempRecord.setName(finalName);
+
+            // 检查是否存在同名附魔
+            const existingIndex = enchantmentList.findIndex(item => item.name === finalName);
+
+            // 如果存在同名附魔，询问是否覆盖
+            if (existingIndex >= 0) {
+                const shouldOverwrite = confirm(`已存在名为"${finalName}"的附魔，是否要覆盖它？`);
+                if (!shouldOverwrite) {
+                    // 用户选择不覆盖，返回到名称编辑界面
+                    alert('请修改附魔名称以避免冲突');
+                    return;
+                }
+            }
 
             // 导入数据到当前记录
             enchantRecord.importCustomData(tempRecord.exportCustomData());
 
-            // 检查是否需要添加到列表
-            const existingIndex = enchantmentList.findIndex(item => item.name === finalName);
-            if (existingIndex >= 0) {
+            // 检查是否需要添加到列表或更新现有项
+            const existingIndexWithName = enchantmentList.findIndex(item => item.name === finalName);
+            if (existingIndexWithName >= 0) {
                 // 更新现有条目
-                enchantmentList[existingIndex].data = enchantRecord.exportCustomData();
-                currentEnchantmentIndex = existingIndex;
+                enchantmentList[existingIndexWithName].data = enchantRecord.exportCustomData();
+                currentEnchantmentIndex = existingIndexWithName;
             } else {
                 // 添加新条目
                 enchantmentList.push({
@@ -462,8 +499,9 @@ function importData() {
             // 更新显示
             updateDisplay();
             updateBasicInfoDisplay();
+            updateEnchantmentSelector(); // 添加这行来更新下拉框
 
-            // 注意：这里不需要手动调用updateTableHeader和updateEnchantmentSelector
+            // 注意：这里不需要手动调用updateTableHeader
             // 因为updateDisplay已经包含了这些操作
 
             // 保存到本地存储
@@ -480,11 +518,11 @@ function importData() {
     };
 
     // 点击弹窗外部关闭
-    window.onclick = function (event) {
-        if (event.target === modal) {
-            document.body.removeChild(modal);
-        }
-    };
+    // window.onclick = function (event) {
+    //     if (event.target === modal) {
+    //         document.body.removeChild(modal);
+    //     }
+    // };
 }
 
 // 根据导入的数据更新选中属性
@@ -3616,5 +3654,3 @@ function onPropertyValueSliderChange(event) {
     // 保存到本地存储
     saveCurrentEnchantment();
 }
-
-
