@@ -1053,24 +1053,33 @@ export default class EnchantRecord {
             data += String.fromCharCode(this._getPropertyIdCode(propId) & 0xFF);
         }
 
-        // 附魔步骤数量 (1字节)
-        const stepCount = Math.min(this.enchantmentSteps.length, 255);
-        data += String.fromCharCode(stepCount);
+        // 对附魔步骤进行分组，将连续的重复步骤合并以减少数据大小
+        const groupedSteps = this._groupRepeatedSteps(this.enchantmentSteps);
 
-        // 附魔步骤数据
-        for (let i = 0; i < stepCount; i++) {
-            const step = this.enchantmentSteps[i];
+        // 附魔步骤组数量 (1字节)
+        const groupCount = Math.min(groupedSteps.length, 255);
+        data += String.fromCharCode(groupCount);
 
-            // 是否忽略步骤 (1位) + 属性数量 (7位)
-            // 过滤出有变化的属性（值不为0的属性）
-            const changedEnchants = step.enchantments.filter(enchant => enchant.value !== 0);
-            const enchantmentCount = Math.min(changedEnchants.length, 127);
-            const ignoredFlag = step.isIgnored ? 128 : 0;
-            data += String.fromCharCode(ignoredFlag | enchantmentCount);
+        // 附魔步骤组数据
+        for (let i = 0; i < groupCount; i++) {
+            const group = groupedSteps[i];
+            
+            // 组类型和属性数量:
+            // Bit 7: 是否为重复组 (1=重复组, 0=单步组)
+            // Bit 6-0: 属性数量 (最多127个)
+            const isRepeatedGroup = group.isRepeated ? 1 : 0;
+            const enchantmentCount = Math.min(group.enchantments.length, 127);
+            data += String.fromCharCode((isRepeatedGroup << 7) | enchantmentCount);
+            
+            // 如果是重复组，记录重复次数 (1字节)
+            if (isRepeatedGroup) {
+                const repeatCount = Math.min(group.count, 255);
+                data += String.fromCharCode(repeatCount);
+            }
 
-            // 只记录有变化的属性数据
+            // 记录属性数据
             for (let j = 0; j < enchantmentCount; j++) {
-                const enchant = changedEnchants[j];
+                const enchant = group.enchantments[j];
                 // 属性在选中列表中的索引 (1字节)
                 const propertyIndex = this.selectedProperties.findIndex(prop => prop.id === enchant.property.id);
                 data += String.fromCharCode(propertyIndex & 0xFF);
@@ -1084,6 +1093,90 @@ export default class EnchantRecord {
 
         // 使用自定义Base64编码
         return this._customBase64Encode(data);
+    }
+
+    /**
+     * 将连续的重复步骤分组
+     * @param {Array} steps - 附魔步骤数组
+     * @returns {Array} 分组后的步骤组数组
+     * @private
+     */
+    _groupRepeatedSteps(steps) {
+        if (steps.length === 0) return [];
+
+        const groupedSteps = [];
+        
+        // 检查两个步骤是否具有相同的附魔变化值
+        const areStepsEqual = (step1, step2) => {
+            // 如果步骤数量不同，则不相等
+            if (step1.enchantments.length !== step2.enchantments.length) {
+                return false;
+            }
+
+            // 检查步骤忽略状态，如果忽略状态不同，则不视为重复步骤
+            if (step1.isIgnored !== step2.isIgnored) {
+                return false;
+            }
+
+            // 检查步骤有效性，如果有效性不同，则不视为重复步骤
+            if (step1.isValid !== step2.isValid) {
+                return false;
+            }
+
+            // 检查是否为空步骤（所有属性值都为0）
+            const isStep1Empty = step1.enchantments.every(enchant => enchant.value === 0);
+            const isStep2Empty = step2.enchantments.every(enchant => enchant.value === 0);
+
+            // 如果其中一个是空步骤，则不视为重复步骤
+            if (isStep1Empty || isStep2Empty) {
+                return false;
+            }
+
+            // 检查每个附魔属性的值是否相同
+            for (let i = 0; i < step1.enchantments.length; i++) {
+                const enchant1 = step1.enchantments[i];
+                const enchant2 = step2.enchantments[i];
+
+                // 检查属性ID和值是否都相同
+                if (enchant1.property.id !== enchant2.property.id || enchant1.value !== enchant2.value) {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+
+        let currentGroup = {
+            steps: [steps[0]],
+            enchantments: steps[0].enchantments.filter(enchant => enchant.value !== 0),
+            isRepeated: false,
+            count: 1
+        };
+
+        for (let i = 1; i < steps.length; i++) {
+            // 检查当前步骤是否与前一个步骤相同
+            if (areStepsEqual(steps[i], steps[i - 1])) {
+                // 相同则添加到当前组
+                currentGroup.steps.push(steps[i]);
+                currentGroup.count++;
+                currentGroup.isRepeated = currentGroup.count > 1;
+            } else {
+                // 不同则结束当前组，开始新组
+                groupedSteps.push(currentGroup);
+                
+                currentGroup = {
+                    steps: [steps[i]],
+                    enchantments: steps[i].enchantments.filter(enchant => enchant.value !== 0),
+                    isRepeated: false,
+                    count: 1
+                };
+            }
+        }
+
+        // 添加最后一组
+        groupedSteps.push(currentGroup);
+
+        return groupedSteps;
     }
 
     /**
@@ -1163,42 +1256,25 @@ export default class EnchantRecord {
                 }
             }
 
-            // 附魔步骤数量
-            const stepCount = data.charCodeAt(offset++);
+            // 附魔步骤组数量
+            const groupCount = data.charCodeAt(offset++);
 
-            // 附魔步骤数据
+            // 附魔步骤组数据
             this.enchantmentSteps = [];
-            for (let i = 0; i < stepCount; i++) {
-                // 是否忽略步骤和属性数量
-                const flag = data.charCodeAt(offset++);
-                const isIgnored = (flag & 128) !== 0;
-                const enchantmentCount = flag & 127;
-
-                const step = {
-                    id: this._generateStepId(),
-                    enchantments: [],
-                    isIgnored: isIgnored,
-                    isValid: true,
-                    invalidReason: null,
-                    totalMaterialCosts: {
-                        metal: 0,
-                        cloth: 0,
-                        beast: 0,
-                        wood: 0,
-                        medicine: 0,
-                        mana: 0
-                    }
-                };
-
-                // 初始化所有选中属性，值默认为0
-                for (const property of this.selectedProperties) {
-                    step.enchantments.push({
-                        property: property,
-                        value: 0
-                    });
+            for (let i = 0; i < groupCount; i++) {
+                // 组类型和属性数量
+                const groupFlag = data.charCodeAt(offset++);
+                const isRepeatedGroup = (groupFlag & 128) !== 0;
+                const enchantmentCount = groupFlag & 127;
+                
+                // 如果是重复组，读取重复次数
+                let repeatCount = 1;
+                if (isRepeatedGroup) {
+                    repeatCount = data.charCodeAt(offset++);
                 }
 
-                // 读取有变化的属性数据
+                // 读取属性数据构建模板步骤
+                const templateStepEnchantments = [];
                 for (let j = 0; j < enchantmentCount; j++) {
                     // 属性在选中列表中的索引
                     const propertyIndex = data.charCodeAt(offset++);
@@ -1212,14 +1288,49 @@ export default class EnchantRecord {
                     // 更新对应属性的值
                     if (propertyIndex < this.selectedProperties.length) {
                         const property = this.selectedProperties[propertyIndex];
-                        const enchant = step.enchantments.find(e => e.property.id === property.id);
-                        if (enchant) {
-                            enchant.value = signedValue;
-                        }
+                        templateStepEnchantments.push({
+                            propertyId: property.id,
+                            value: signedValue
+                        });
                     }
                 }
 
-                this.enchantmentSteps.push(step);
+                // 根据模板步骤和重复次数创建实际步骤
+                for (let r = 0; r < repeatCount; r++) {
+                    const step = {
+                        id: this._generateStepId(),
+                        enchantments: [],
+                        isIgnored: false,
+                        isValid: true,
+                        invalidReason: null,
+                        totalMaterialCosts: {
+                            metal: 0,
+                            cloth: 0,
+                            beast: 0,
+                            wood: 0,
+                            medicine: 0,
+                            mana: 0
+                        }
+                    };
+
+                    // 初始化所有选中属性，值默认为0
+                    for (const property of this.selectedProperties) {
+                        step.enchantments.push({
+                            property: property,
+                            value: 0
+                        });
+                    }
+
+                    // 应用模板步骤的属性值
+                    for (const templateEnchant of templateStepEnchantments) {
+                        const enchant = step.enchantments.find(e => e.property.id === templateEnchant.propertyId);
+                        if (enchant) {
+                            enchant.value = templateEnchant.value;
+                        }
+                    }
+
+                    this.enchantmentSteps.push(step);
+                }
             }
 
             // 重新计算所有步骤
