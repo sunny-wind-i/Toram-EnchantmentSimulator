@@ -431,12 +431,16 @@ export default class EnchantRecord {
     setStepIgnored(stepId, isIgnored) {
         const step = this.enchantmentSteps.find(step => step.id === stepId);
         if (step) {
+            const wasIgnored = step.isIgnored;
             step.isIgnored = isIgnored;
-            // 重新计算所有步骤
-            this._recalculateAllSteps();
-            // 保存到本地存储
-            if (typeof saveCurrentEnchantment === 'function') {
-                saveCurrentEnchantment();
+            // 如果忽略状态发生变化，则重新计算所有步骤
+            if (wasIgnored !== isIgnored) {
+                // 重新计算所有步骤以更新依赖数据
+                this._recalculateAllSteps();
+                // 触发UI重新渲染和分组逻辑
+                if (typeof saveCurrentEnchantment === 'function') {
+                    saveCurrentEnchantment();
+                }
             }
             return true;
         }
@@ -1110,13 +1114,14 @@ export default class EnchantRecord {
         
         // 检查两个步骤是否具有相同的附魔变化值
         const areStepsEqual = (step1, step2) => {
-            // 如果步骤数量不同，则不相等
-            if (step1.enchantments.length !== step2.enchantments.length) {
+            // 如果任一步骤被忽略，则不视为重复步骤
+            // 被忽略的步骤应该被视为独立的步骤类型
+            if (step1.isIgnored || step2.isIgnored) {
                 return false;
             }
 
-            // 检查步骤忽略状态，如果忽略状态不同，则不视为重复步骤
-            if (step1.isIgnored !== step2.isIgnored) {
+            // 如果步骤数量不同，则不相等
+            if (step1.enchantments.length !== step2.enchantments.length) {
                 return false;
             }
 

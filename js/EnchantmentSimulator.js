@@ -946,6 +946,12 @@ function updateDisplay() {
 
 // 检查两个步骤是否具有相同的附魔变化值
 function areStepsEqual(step1, step2) {
+    // 如果任一步骤被忽略，则不视为重复步骤
+    // 被忽略的步骤应该被视为独立的步骤类型
+    if (step1.isIgnored || step2.isIgnored) {
+        return false;
+    }
+
     // 如果步骤数量不同，则不相等
     if (step1.enchantments.length !== step2.enchantments.length) {
         return false;
