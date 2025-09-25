@@ -1320,13 +1320,25 @@ function updateTableContent() {
                             }
                             break;
                         case 'value':
-                            // 显示附魔后的属性值
-                            const currentValue = lastStep.currentProperties[property.id] || 0;
-                            if (currentValue !== 0) {
-                                const actualValue = attrNumToActualNum(property, currentValue);
+                            // 显示附魔后的属性值（仅对发生变化的属性显示最终值）
+                            const firstValue = firstStep.currentProperties[property.id] || 0;
+                            const lastValue = lastStep.currentProperties[property.id] || 0;
+
+                            // 只有当属性值发生变化时才显示
+                            if (firstValue !== lastValue) {
+                                const actualValue = attrNumToActualNum(property, lastValue);
                                 cell.textContent = actualValue;
                             } else {
-                                cell.textContent = '';
+                                // 属性值没有变化，检查是否有附魔变化（但最终值相同的情况）
+                                const hasEnchantmentChange = firstStep.enchantments.some(e =>
+                                    e.property.id === property.id && e.value !== 0);
+
+                                if (hasEnchantmentChange) {
+                                    // 有附魔变化但最终值相同，显示0或不显示
+                                    cell.textContent = '';
+                                } else {
+                                    cell.textContent = '';
+                                }
                             }
                             break;
                         case 'potential':
@@ -2630,7 +2642,8 @@ function addStepBelow() {
         enchantments: step.enchantments.map(enchant => ({
             property: enchant.property,
             value: enchant.value
-        }))
+        })),
+        isIgnored: step.isIgnored // 保留步骤的忽略状态
     }));
 
     // 清空现有步骤
@@ -2750,7 +2763,8 @@ function pasteStepAbove() {
                     property: property,
                     value: copiedEnchant ? copiedEnchant.value : 0
                 };
-            })
+            }),
+            isIgnored: copiedStepData.isIgnored || false // 使用复制的忽略状态，默认为 false
         };
         stepsToPaste.push(newStep);
     }
@@ -2763,7 +2777,8 @@ function pasteStepAbove() {
         enchantments: step.enchantments.map(enchant => ({
             property: enchant.property,
             value: enchant.value
-        }))
+        })),
+        isIgnored: step.isIgnored // 保留步骤的忽略状态
     }));
 
     // 清空现有步骤
