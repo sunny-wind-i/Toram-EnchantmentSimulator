@@ -68,7 +68,36 @@ function initializeEnchantRecord() {
             updateSelectedPropertiesFromImport();
         } catch (e) {
             console.error('加载存储的附魔失败:', e);
-            createNewEnchantRecord();
+            alert('加载存储的附魔数据时发生错误，将创建新的附魔。\n错误信息: ' + e.message);
+            
+            // 从列表中移除损坏的数据
+            enchantmentList.splice(currentEnchantmentIndex, 1);
+            
+            // 如果列表为空，创建新的附魔记录
+            if (enchantmentList.length === 0) {
+                createNewEnchantRecord();
+                // 保存到本地存储
+                saveCurrentEnchantment();
+            } else {
+                // 否则加载第一个有效的附魔
+                currentEnchantmentIndex = Math.min(currentEnchantmentIndex, enchantmentList.length - 1);
+                const fallbackData = enchantmentList[currentEnchantmentIndex].data;
+                try {
+                    enchantRecord = new EnchantRecord({});
+                    enchantRecord.importCustomData(fallbackData);
+                    updateSelectedPropertiesFromImport();
+                } catch (fallbackError) {
+                    console.error('加载备用附魔也失败:', fallbackError);
+                    // 如果备用附魔也失败，创建新的附魔
+                    createNewEnchantRecord();
+                    // 保存到本地存储
+                    saveCurrentEnchantment();
+                }
+            }
+            
+            // 更新存储
+            saveEnchantmentListToStorage();
+            localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
         }
     } else {
         // 创建新的附魔记录
@@ -110,9 +139,54 @@ function loadEnchantmentListFromStorage() {
     const savedList = localStorage.getItem('toram_enchant_list');
     if (savedList) {
         try {
-            enchantmentList = JSON.parse(savedList);
+            const parsedList = JSON.parse(savedList);
+            
+            // 验证数据结构是否正确
+            if (!Array.isArray(parsedList)) {
+                throw new Error('存储的数据不是有效的数组格式');
+            }
+            
+            // 验证每个附魔项的结构
+            const validList = [];
+            let hasInvalidData = false;
+            
+            for (let i = 0; i < parsedList.length; i++) {
+                const item = parsedList[i];
+                // 检查基本结构
+                if (item && typeof item === 'object' && 
+                    typeof item.name === 'string' && 
+                    typeof item.data === 'string') {
+                    // 尝试验证数据是否可以正确解析
+                    try {
+                        const tempRecord = new EnchantRecord({});
+                        tempRecord.importCustomData(item.data);
+                        validList.push(item);
+                    } catch (importError) {
+                        console.error(`附魔项 "${item.name}" 数据损坏:`, importError);
+                        hasInvalidData = true;
+                    }
+                } else {
+                    console.error('发现无效的附魔项:', item);
+                    hasInvalidData = true;
+                }
+            }
+            
+            if (hasInvalidData) {
+                console.warn('已清理无效的附魔数据');
+                // 如果有无效数据，更新存储
+                if (validList.length > 0) {
+                    localStorage.setItem('toram_enchant_list', JSON.stringify(validList));
+                } else {
+                    // 如果所有数据都无效，删除存储
+                    localStorage.removeItem('toram_enchant_list');
+                }
+            }
+            
+            enchantmentList = validList;
         } catch (e) {
             console.error('解析存储的附魔列表失败:', e);
+            // 删除损坏的数据
+            localStorage.removeItem('toram_enchant_list');
             enchantmentList = [];
         }
     } else {
