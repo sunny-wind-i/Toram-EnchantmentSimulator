@@ -1066,10 +1066,12 @@ export default class EnchantRecord {
             
             // 组类型和属性数量:
             // Bit 7: 是否为重复组 (1=重复组, 0=单步组)
-            // Bit 6-0: 属性数量 (最多127个)
+            // Bit 6: 是否忽略步骤
+            // Bit 5-0: 属性数量 (最多63个)
             const isRepeatedGroup = group.isRepeated ? 1 : 0;
-            const enchantmentCount = Math.min(group.enchantments.length, 127);
-            data += String.fromCharCode((isRepeatedGroup << 7) | enchantmentCount);
+            const isIgnored = group.steps[0].isIgnored ? 1 : 0; // 使用组内第一个步骤的忽略状态
+            const enchantmentCount = Math.min(group.enchantments.length, 63);
+            data += String.fromCharCode((isRepeatedGroup << 7) | (isIgnored << 6) | enchantmentCount);
             
             // 如果是重复组，记录重复次数 (1字节)
             if (isRepeatedGroup) {
@@ -1265,7 +1267,8 @@ export default class EnchantRecord {
                 // 组类型和属性数量
                 const groupFlag = data.charCodeAt(offset++);
                 const isRepeatedGroup = (groupFlag & 128) !== 0;
-                const enchantmentCount = groupFlag & 127;
+                const isIgnored = (groupFlag & 64) !== 0;
+                const enchantmentCount = groupFlag & 63;
                 
                 // 如果是重复组，读取重复次数
                 let repeatCount = 1;
@@ -1300,7 +1303,7 @@ export default class EnchantRecord {
                     const step = {
                         id: this._generateStepId(),
                         enchantments: [],
-                        isIgnored: false,
+                        isIgnored: isIgnored,
                         isValid: true,
                         invalidReason: null,
                         totalMaterialCosts: {
