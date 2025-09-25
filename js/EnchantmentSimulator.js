@@ -1846,7 +1846,7 @@ function updateResultDisplay() {
             resultText += `、直到`;
 
             // 显示最终属性值（取最后一个重复步骤）
-            const lastStep = enchantRecord.enchantmentSteps[i + repeatCount - 1];
+            const lastStep = enchantRecord.enchantmentSteps[j - 1]; // 修复：使用j-1获取最后一个有效步骤，而不是i+repeatCount-1
             const finalEnchantments = enchantments
                 .map(enchant => {
                     const property = enchant.property;
