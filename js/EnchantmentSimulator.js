@@ -2691,12 +2691,13 @@ function copyStep() {
         return;
     }
 
-    // 保存步骤数据用于粘贴
+    // 保存步骤数据用于粘贴，包括 isIgnored 状态
     copiedStepData = {
         enchantments: step.enchantments.map(enchant => ({
             propertyId: enchant.property.id,
             value: enchant.value
-        }))
+        })),
+        isIgnored: step.isIgnored
     };
 
     showMessage('步骤已复制');
@@ -2822,7 +2823,8 @@ function pasteStepBelow() {
                     property: property,
                     value: copiedEnchant ? copiedEnchant.value : 0
                 };
-            })
+            }),
+            isIgnored: copiedStepData.isIgnored || false // 使用复制的忽略状态，默认为 false
         };
         stepsToPaste.push(newStep);
     }
@@ -2835,7 +2837,8 @@ function pasteStepBelow() {
         enchantments: step.enchantments.map(enchant => ({
             property: enchant.property,
             value: enchant.value
-        }))
+        })),
+        isIgnored: step.isIgnored // 保留步骤的忽略状态
     }));
 
     // 清空现有步骤
