@@ -842,6 +842,7 @@ function bindEvents() {
 
     // 结果展示事件
     document.getElementById('copyResultBtn').addEventListener('click', copyResult);
+    document.getElementById('includeExportData').addEventListener('change', updateResultDisplay);
 
 }
 
@@ -1905,6 +1906,7 @@ function updateSuccessRate() {
 // 更新结果展示
 function updateResultDisplay() {
     const resultDisplay = document.getElementById('resultDisplay');
+    const includeExportData = document.getElementById('includeExportData').checked;
 
     // 如果没有步骤，显示默认信息
     if (enchantRecord.enchantmentSteps.length === 0) {
@@ -1983,7 +1985,7 @@ function updateResultDisplay() {
     }
 
     if (enchantRecord.masterEnhancement2Level !== 10) {
-        resultText += `大师级强化技术II等级｜${enchantRecord.masterEnhancement2Level}\n`;
+        resultText += `大师级强化技术II｜Lv.${enchantRecord.masterEnhancement2Level}\n`;
     }
 
     resultText += '\n';
@@ -2157,6 +2159,17 @@ function updateResultDisplay() {
         resultText += `期望成功率｜${expectedRateText}%\n`;
     } else {
         resultText += `期望成功率｜N/A\n`;
+    }
+
+    // 如果用户选择了包含导出数据，则在结果后添加导出代码
+    if (includeExportData) {
+        try {
+            const exportedData = enchantRecord.exportCustomData();
+            resultText += '\n' + exportedData;
+        } catch (error) {
+            console.error('导出数据时出错:', error);
+            resultText += '\n代码生成失败\n';
+        }
     }
 
     resultDisplay.textContent = resultText;

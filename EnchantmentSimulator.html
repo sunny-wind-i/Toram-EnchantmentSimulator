@@ -348,7 +348,12 @@
     <div class="result-section">
         <div class="result-section-header">
             <h2>附魔结果</h2>
-            <button id="copyResultBtn" class="copy-btn">📋 复制结果</button>
+            <div class="result-actions">
+                <label class="include-export-checkbox">
+                    <input type="checkbox" id="includeExportData"> 附带代码
+                </label>
+                <button id="copyResultBtn" class="copy-btn">📋 复制结果</button>
+            </div>
         </div>
         <div id="resultDisplay" class="result-display">
             <!-- 结果将通过JavaScript动态生成 -->
