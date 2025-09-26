@@ -31,12 +31,13 @@ body {
     flex-wrap: wrap;
     gap: 15px;
     align-items: center;
+    justify-content: center;
 }
 
 .basic-info-group {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 15px;
     flex-wrap: nowrap;
 }
 
@@ -44,7 +45,7 @@ body {
     font-weight: 600;
     white-space: nowrap;
     color: #555;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .basic-info-group input,
@@ -52,7 +53,7 @@ body {
     padding: 8px 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    font-size: 14px;
+    font-size: 15px;
     text-align: center;
     min-width: 60px;
 }
@@ -72,12 +73,13 @@ body {
     border-radius: 5px;
     padding: 8px 12px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
     min-width: 40px;
+    font-weight: 500;
 }
 
 .icon-btn:hover {
@@ -104,119 +106,92 @@ body {
     background-color: #ffebee;
 }
 
+/* 统一使用更多配置按钮样式 */
+.more-config-btn,
 .export-btn,
-.import-btn {
-    background-color: #2196F3;
+.import-btn,
+.select-properties-btn {
     color: white;
     border: none;
     padding: 8px 12px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 14px;
+    font-size: 15px;
     cursor: pointer;
     border-radius: 5px;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 5px;
     transition: all 0.2s ease;
     font-weight: 600;
+    min-width: 60px;
 }
 
-.export-btn:hover {
-    background-color: #0b7dda;
-    transform: translateY(-2px);
-}
-
-.import-btn:hover {
-    background-color: #0b7dda;
-    transform: translateY(-2px);
-}
-
-.select-properties-btn {
-    padding: 8px 16px;
-    background-color: #008CBA;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.select-properties-btn:hover {
-    background-color: #007B9A;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
+/* 默认紫色背景 */
 .more-config-btn {
     background-color: #9c27b0;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 14px;
-    cursor: pointer;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.2s ease;
-    font-weight: 600;
 }
 
 .more-config-btn:hover {
     background-color: #7b1fa2;
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 特定按钮颜色覆盖 */
+.export-btn {
+    background-color: #8bc34a; /* 浅绿色 */
+    padding: 8px 12px; /* 修复：确保与其他按钮有相同的padding */
+}
+
+.export-btn:hover {
+    background-color: #7cb342;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.import-btn {
+    background-color: #8bc34a; /* 浅绿色 */
+    padding: 8px 12px; /* 修复：确保与其他按钮有相同的padding */
+}
+
+.import-btn:hover {
+    background-color: #7cb342;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.select-properties-btn {
+    background-color: #29b6f6; /* 天蓝色 */
+    min-width: 100px;
+}
+
+.select-properties-btn:hover {
+    background-color: #039be5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 样式已合并到上面的统一按钮样式中 */
+
+/* 桌面端专用 */
+.desktop-only {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* 移动端专用 */
+.mobile-only {
+    display: none;
 }
 
 /* 响应式设计 - 平板 */
 @media (max-width: 1024px) {
-    .basic-info-row {
-        gap: 10px;
-    }
-    
-    .basic-info-group {
-        gap: 5px;
-    }
-    
-    .basic-info-group label {
-        font-size: 13px;
-    }
-    
-    .basic-info-group input,
-    .basic-info-group select {
-        padding: 6px 8px;
-        font-size: 13px;
-    }
-    
-    .icon-btn {
-        padding: 6px 10px;
-        font-size: 14px;
-        min-width: 36px;
-    }
-    
-    .export-btn,
-    .import-btn,
-    .select-properties-btn,
-    .more-config-btn {
-        padding: 6px 10px;
-        font-size: 13px;
-    }
-}
-
-/* 响应式设计 - 手机 */
-@media (max-width: 768px) {
     .basic-info-section {
-        padding: 12px;
+        padding: 15px;
     }
     
     .basic-info-container {
@@ -224,19 +199,143 @@ body {
     }
     
     .basic-info-row {
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .basic-info-group {
+        gap: 10px;
+    }
+    
+    .basic-info-group label {
+        font-size: 15px;
+    }
+    
+    .basic-info-group input,
+    .basic-info-group select {
+        padding: 6px 8px;
+        font-size: 15px;
+    }
+    
+    .icon-btn {
+        padding: 6px 10px;
+        font-size: 15px;
+        min-width: 36px;
+    }
+    
+    /* 确保导出、导入、选择属性和更多配置按钮在平板上的样式一致 */
+    .export-btn,
+    .import-btn,
+    .select-properties-btn,
+    .more-config-btn {
+        padding: 6px 10px;
+        font-size: 15px;
+    }
+    
+    .export-btn,
+    .import-btn,
+    .select-properties-btn,
+    .more-config-btn {
+        padding: 6px 10px;
+        font-size: 15px;
+    }
+}
+
+/* 响应式设计 - 手机 */
+@media (max-width: 768px) {
+    .basic-info-section {
+        padding: 15px;
+    }
+    
+    .basic-info-container {
+        gap: 12px;
+    }
+    
+    .basic-info-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: flex-start; /* 在手机端不居中，保持左对齐 */
+    }
+    
+    .basic-info-group {
+        gap: 10px;
+    }
+    
+    .basic-info-group label {
+        font-size: 15px;
+        min-width: 60px;
+    }
+    
+    .basic-info-group input,
+    .basic-info-group select {
+        padding: 6px 8px;
+        font-size: 15px;
+        min-width: 70px;
+    }
+    
+    /* 隐藏桌面端专用元素 */
+    .desktop-only {
+        display: none !important;
+    }
+    
+    /* 显示移动端专用元素 */
+    .mobile-only {
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .mobile-only.row-2,
+    .mobile-only.row-4 {
+        width: 100%;
+    }
+    
+    /* 确保移动端按钮在同一行 */
+    .mobile-only .basic-info-group {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    /* 统一按钮样式响应式 */
+    .export-btn,
+    .import-btn,
+    .select-properties-btn,
+    .more-config-btn {
+        padding: 6px 10px;
+        font-size: 15px;
+        gap: 5px;
+    }
+}
+
+/* 响应式设计 - 小手机 */
+@media (max-width: 480px) {
+    .basic-info-section {
+        padding: 15px;
+    }
+    
+    .basic-info-container {
+        gap: 10px;
+    }
+    
+    .basic-info-row {
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
+        justify-content: flex-start; /* 在小屏幕上保持左对齐 */
     }
     
     .basic-info-group {
         flex-wrap: wrap;
         justify-content: space-between;
+        gap: 10px;
     }
     
     .basic-info-group label {
-        font-size: 14px;
-        min-width: 80px;
+        font-size: 15px;
+        min-width: 70px;
     }
     
     .basic-info-group input,
@@ -245,56 +344,38 @@ body {
         min-width: 100px;
     }
     
-    /* 在移动端隐藏部分标签以节省空间 */
-    .basic-info-group .mobile-hide {
-        display: none;
-    }
-}
-
-/* 响应式设计 - 小手机 */
-@media (max-width: 480px) {
-    .basic-info-section {
-        padding: 10px;
-    }
-    
-    .basic-info-container {
-        gap: 10px;
-    }
-    
-    .basic-info-group {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-    }
-    
-    .basic-info-group label {
-        font-size: 13px;
-        margin-bottom: 0;
-    }
-    
-    .basic-info-group input,
-    .basic-info-group select {
-        width: 100%;
-        padding: 8px;
-    }
-    
     .icon-btn {
         padding: 8px;
-        font-size: 16px;
+        font-size: 15px;
     }
     
+    /* 统一所有主要按钮样式 */
     .export-btn,
     .import-btn,
     .select-properties-btn,
     .more-config-btn {
-        width: 100%;
+        flex: 1;
         justify-content: center;
-        padding: 10px;
+        padding: 8px;
+        gap: 5px;
+        font-size: 15px;
+        min-width: auto;
     }
     
     /* 隐藏工作区顶部的选择属性按钮，因为已经在基础信息区域有了 */
     .workspace-header {
         display: none;
+    }
+    
+    /* 确保移动端按钮在同一行 */
+    .mobile-only .basic-info-group {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    /* 减小移动端按钮之间的间距 */
+    .mobile-only {
+        gap: 10px;
     }
 }
 
@@ -432,69 +513,19 @@ body {
 /* 工作区 */
 .workspace-section {
     background-color: #fff;
-    padding: 20px;
+    padding: 15px;
     margin-bottom: 5px;
     /* 为悬浮工具栏留出空间 */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.workspace-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.select-properties-btn {
-    padding: 10px 20px;
-    background-color: #008CBA;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.select-properties-btn:hover {
-    background-color: #007B9A;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.view-mode-selector {
-    display: flex;
-}
-
-.view-mode-btn {
-    padding: 10px 16px;
-    border: 1px solid #ddd;
-    background-color: #f5f5f5;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.view-mode-btn.active {
-    background-color: #008CBA;
-    color: white;
-    border-color: #008CBA;
-}
-
-.view-mode-btn:first-child {
-    border-radius: 5px 0 0 5px;
-}
-
-.view-mode-btn:last-child {
-    border-radius: 0 5px 5px 0;
+/* 结果展示区 */
+.result-section {
+    background-color: #fff;
+    padding: 15px;
+    margin-top: 5px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* 表格样式 */
@@ -1535,6 +1566,16 @@ body {
 .paste-step-options-modal li:last-child {
     border-bottom: none;
     margin-bottom: 0;
+}
+
+/* 确保小手机设备上的导出、导入、选择属性和更多配置按钮样式与较大移动设备一致 */
+.export-btn,
+.import-btn,
+.select-properties-btn,
+.more-config-btn {
+    padding: 6px 10px;
+    font-size: 15px;
+    gap: 5px;
 }
 
 /* 包含无效步骤的重复步骤控制行样式 */
