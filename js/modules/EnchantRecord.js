@@ -999,6 +999,9 @@ export default class EnchantRecord {
      * @returns {string} 编码后的数据字符串
      */
     exportCustomData() {
+        // 版本号 - 使用字符'A'表示版本1
+        let versionPrefix = 'A';
+        
         let data = '';
 
         // 附魔名称长度 (1字节)
@@ -1097,8 +1100,8 @@ export default class EnchantRecord {
             }
         }
 
-        // 使用自定义Base64编码
-        return this._customBase64Encode(data);
+        // 使用自定义Base64编码，包含版本前缀
+        return versionPrefix + this._customBase64Encode(data);
     }
 
     /**
@@ -1191,8 +1194,24 @@ export default class EnchantRecord {
      */
     importCustomData(encodedData) {
         try {
-            // 使用自定义Base64解码
-            const data = this._customBase64Decode(encodedData);
+            // 检查版本号
+            if (!encodedData || encodedData.length < 1) {
+                throw new Error('导入数据格式错误');
+            }
+            
+            const version = encodedData.charAt(0);
+            let data;
+            
+            // 根据版本号处理数据
+            switch (version) {
+                case 'A': // 版本A
+                    // 使用自定义Base64解码，跳过版本号字符
+                    data = this._customBase64Decode(encodedData.substring(1));
+                    break;
+                default:
+                    throw new Error('不支持的数据版本');
+            }
+            
             let offset = 0;
 
             // 附魔名称长度
