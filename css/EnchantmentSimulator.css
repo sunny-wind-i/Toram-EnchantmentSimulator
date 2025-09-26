@@ -1420,86 +1420,6 @@ body {
     }
 }
 
-/* 导入数据模态框样式 */
-.import-modal {
-    max-width: 500px;
-}
-
-.import-textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    margin: 10px 0;
-    resize: vertical;
-}
-
-.import-name-section {
-    margin: 15px 0;
-}
-
-.import-name-section label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #555;
-}
-
-.import-name-input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 15px;
-    text-align: center;
-}
-
-.import-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.parse-btn,
-.import-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-.parse-btn {
-    background-color: #008CBA;
-    color: white;
-}
-
-.parse-btn:hover {
-    background-color: #007B9A;
-    transform: translateY(-2px);
-}
-
-.import-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-.import-btn:hover {
-    background-color: #45a049;
-    transform: translateY(-2px);
-}
 
 /* 清空选项弹窗 */
 .clear-options-modal {
@@ -1666,6 +1586,133 @@ body {
 .paste-step-options-modal li:last-child {
     border-bottom: none;
     margin-bottom: 0;
+}
+
+/* 导入数据弹窗样式 */
+.import-modal {
+    max-width: 500px;
+}
+
+.import-modal h2 {
+    text-align: center;
+    margin-top: 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    color: #333;
+}
+
+.import-modal p {
+    margin-bottom: 15px;
+    color: #555;
+}
+
+.import-modal textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+    font-size: 14px;
+    resize: vertical;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+    transition: border-color 0.2s ease;
+}
+
+.import-modal textarea:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.import-name-section {
+    display: none;
+    margin-bottom: 20px;
+}
+
+.import-name-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+}
+
+.import-name-section input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 15px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.import-name-section input:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.import-button-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.parse-btn,
+.import-btn-inner {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.parse-btn {
+    background-color: #008CBA;
+    color: white;
+}
+
+.parse-btn:hover {
+    background-color: #007B9A;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.import-btn-inner {
+    background-color: #4CAF50;
+    color: white;
+    display: none;
+}
+
+.import-btn-inner:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 响应式设计 - 小屏幕 */
+@media (max-width: 480px) {
+    .import-modal {
+        padding: 20px;
+        margin: 10% auto;
+    }
+
+    .import-button-group {
+        flex-direction: column;
+    }
+
+    .parse-btn,
+    .import-btn-inner {
+        width: 100%;
+    }
 }
 
 /* 确保小手机设备上的导出、导入、选择属性和更多配置按钮样式与较大移动设备一致 */

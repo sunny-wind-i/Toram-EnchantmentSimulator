@@ -477,17 +477,19 @@ function importData() {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML = `
-        <div class="modal-content">
+        <div class="modal-content import-modal">
             <span class="close">&times;</span>
             <h2>导入数据</h2>
             <p>请粘贴导出的数据:</p>
             <textarea id="importDataTextarea" rows="5" cols="50"></textarea>
-            <div id="importNameSection" style="display: none; margin-top: 10px;">
+            <div id="importNameSection" class="import-name-section">
                 <label for="importedName">附魔名称:</label>
-                <input type="text" id="importedName" style="width: 100%; margin-top: 5px;">
+                <input type="text" id="importedName">
             </div>
-            <button id="parseImportDataBtn">解析</button>
-            <button id="importDataBtn" style="display: none;">导入</button>
+            <div class="import-button-group">
+                <button id="parseImportDataBtn" class="parse-btn">解析</button>
+                <button id="importDataBtn" class="import-btn-inner" style="display: none;">导入</button>
+            </div>
         </div>
     `;
 
@@ -525,7 +527,7 @@ function importData() {
 
             // 隐藏解析按钮，显示导入按钮
             modal.querySelector('#parseImportDataBtn').style.display = 'none';
-            modal.querySelector('#importDataBtn').style.display = 'inline-block';
+            modal.querySelector('#importDataBtn').style.display = 'block';
 
             // 保存解析的数据
             modal.parsedData = data;
