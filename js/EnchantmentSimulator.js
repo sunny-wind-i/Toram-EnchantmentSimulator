@@ -2914,6 +2914,10 @@ function toggleIgnoreRepeatedSteps() {
     toggleIgnoreBtn.textContent = newIgnoreState ? '取消忽略步骤' : '忽略步骤';
 
     showMessage(newIgnoreState ? '已忽略所有重复步骤' : '已取消忽略所有重复步骤');
+
+    // 关闭模态框
+    const modal = document.getElementById('editRepeatedStepsModal');
+    modal.style.display = 'none';
 }
 
 // 删除重复步骤
@@ -3700,10 +3704,10 @@ function createViewModeModal() {
             <span class="close">&times;</span>
             <h2>选择视图</h2>
             <ul>
-                <li data-mode="value">属性</li>
-                <li data-mode="change">属性变化</li>
-                <li data-mode="potential">潜力</li>
-                <li data-mode="material">素材</li>
+                <li data-mode="value" class="viewModeText ${currentViewMode === 'value' ? 'active' : ''}">属性值</li>
+                <li data-mode="change" class="viewModeText ${currentViewMode === 'change' ? 'active' : ''}">属性变化</li>
+                <li data-mode="potential" class="viewModeText ${currentViewMode === 'potential' ? 'active' : ''}">潜力</li>
+                <li data-mode="material" class="viewModeText ${currentViewMode === 'material' ? 'active' : ''}">素材</li>
             </ul>
         </div>
     `;

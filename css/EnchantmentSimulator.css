@@ -851,19 +851,31 @@ body {
 }
 
 .view-mode-modal ul {
-    list-style-type: none;
+    list-style: none;
     padding: 0;
+    margin: 20px 0;
 }
 
 .view-mode-modal li {
-    padding: 15px;
-    border-bottom: 1px solid #eee;
+    padding: 12px 20px;
+    margin: 8px 0;
+    background-color: #f5f5f5;
+    border-radius: 4px;
     cursor: pointer;
-    text-align: center;
+    transition: background-color 0.3s;
 }
 
 .view-mode-modal li:hover {
-    background-color: #f5f5f5;
+    background-color: #e0e0e0;
+}
+
+.view-mode-modal li.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.viewModeText {
+    text-align: center;
 }
 
 .view-mode-modal li:last-child {
