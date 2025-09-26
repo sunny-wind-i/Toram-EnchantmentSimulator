@@ -2519,13 +2519,19 @@ function showEditRepeatedStepsModal(groupIndex) {
 
     // 为每个附魔属性创建编辑项
     firstStep.enchantments.forEach(enchant => {
-        const property = enchant.property;
+        // 通过PropertyManager实例获取属性对象
+        const property = propertyManager.getProperty(enchant.property.id);
         const value = enchant.value;
+
+        if (!property) {
+            console.error('无法找到属性:', enchant.property.id);
+            return;
+        }
 
         const propertyItem = document.createElement('div');
         propertyItem.className = 'property-item';
         propertyItem.innerHTML = `
-            <span class="property-name">${property.nameChs}${property.isPercentage ? '(%)' : ''}</span>
+            <span class="property-name">${property.nameChsFull}${property.isPercentage ? '(%)' : ''}</span>
             <div class="value-controls">
                 <input type="number" class="property-value-input" 
                        data-property-id="${property.id}" 
