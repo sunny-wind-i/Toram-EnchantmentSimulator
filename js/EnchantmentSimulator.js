@@ -2340,9 +2340,16 @@ function onTableTouchStart(event) {
     longPressTimer = setTimeout(() => {
         // 检查是否是折叠步骤的单元格
         const row = cell.parentElement;
-        if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
+        // 区分repeat-control-row和repeated-steps元素
+        if (row.classList.contains('repeated-steps')) {
             // 不允许选择折叠步骤的单元格进行编辑
             showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+            return;
+        }
+        
+        // 对于repeat-control-row，我们允许操作（用于展开/折叠）
+        if (row.classList.contains('repeat-control-row')) {
+            // 不做任何操作，允许默认的点击事件处理
             return;
         }
 
@@ -2383,9 +2390,16 @@ function onTableTouchEnd(event) {
 
         // 检查是否是折叠步骤的单元格
         const row = cell.parentElement;
-        if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
+        // 区分repeat-control-row和repeated-steps元素
+        if (row.classList.contains('repeated-steps')) {
             // 不允许选择折叠步骤的单元格进行编辑
             showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+            return;
+        }
+        
+        // 对于repeat-control-row，我们允许操作（用于展开/折叠）
+        if (row.classList.contains('repeat-control-row')) {
+            // 不做任何操作，允许默认的点击事件处理
             return;
         }
 
@@ -2416,9 +2430,16 @@ function onTableTouchEnd(event) {
 
         // 检查是否是折叠步骤的单元格
         const row = cell.parentElement;
-        if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
+        // 区分repeat-control-row和repeated-steps元素
+        if (row.classList.contains('repeated-steps')) {
             // 不允许选择折叠步骤的单元格进行编辑
             showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+            return;
+        }
+        
+        // 对于repeat-control-row，我们允许操作（用于展开/折叠）
+        if (row.classList.contains('repeat-control-row')) {
+            // 不做任何操作，允许默认的点击事件处理
             return;
         }
 
