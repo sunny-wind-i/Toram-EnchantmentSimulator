@@ -188,6 +188,68 @@ body {
     display: none;
 }
 
+/* 响应式设计 - 中等屏幕 (平板和较大手机) */
+@media (min-width: 481px) and (max-width: 768px) {
+    .basic-info-section {
+        padding: 15px;
+    }
+    
+    .basic-info-container {
+        gap: 12px;
+    }
+    
+    .basic-info-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .basic-info-group {
+        gap: 10px;
+    }
+    
+    .basic-info-group label {
+        font-size: 15px;
+    }
+    
+    .basic-info-group input,
+    .basic-info-group select {
+        padding: 6px 8px;
+        font-size: 15px;
+    }
+    
+    .icon-btn {
+        padding: 6px 10px;
+        font-size: 15px;
+        min-width: 36px;
+    }
+    
+    /* 确保导出、导入、选择属性和更多配置按钮在中等屏幕上的样式一致 */
+    .export-btn,
+    .import-btn,
+    .select-properties-btn,
+    .more-config-btn {
+        padding: 6px 10px;
+        font-size: 15px;
+    }
+    
+    /* 在中等屏幕下隐藏桌面专用元素 */
+    .desktop-only {
+        display: none !important;
+    }
+    
+    /* 在中等屏幕下显示移动端专用元素 */
+    .mobile-only {
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+    }
+}
+
 /* 响应式设计 - 平板 */
 @media (max-width: 1024px) {
     .basic-info-section {
@@ -202,6 +264,7 @@ body {
         gap: 12px;
         align-items: center;
         justify-content: center;
+        width: 100%; /* 确保行占满宽度 */
     }
     
     .basic-info-group {
@@ -233,104 +296,42 @@ body {
         font-size: 15px;
     }
     
-    .export-btn,
-    .import-btn,
-    .select-properties-btn,
-    .more-config-btn {
-        padding: 6px 10px;
-        font-size: 15px;
-    }
-}
-
-/* 响应式设计 - 手机 */
-@media (max-width: 768px) {
-    .basic-info-section {
-        padding: 15px;
-    }
-    
-    .basic-info-container {
-        gap: 12px;
-    }
-    
-    .basic-info-row {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 12px;
-        justify-content: flex-start; /* 在手机端不居中，保持左对齐 */
-    }
-    
-    .basic-info-group {
-        gap: 10px;
-    }
-    
-    .basic-info-group label {
-        font-size: 15px;
-        min-width: 60px;
-    }
-    
-    .basic-info-group input,
-    .basic-info-group select {
-        padding: 6px 8px;
-        font-size: 15px;
-        min-width: 70px;
-    }
-    
-    /* 隐藏桌面端专用元素 */
+    /* 在中等屏幕下隐藏桌面专用元素 */
     .desktop-only {
         display: none !important;
     }
     
-    /* 显示移动端专用元素 */
+    /* 在中等屏幕下显示移动端专用元素 */
     .mobile-only {
         display: flex !important;
         align-items: center;
         gap: 10px;
         width: 100%;
     }
-    
-    .mobile-only.row-2,
-    .mobile-only.row-4 {
-        width: 100%;
-    }
-    
-    /* 确保移动端按钮在同一行 */
-    .mobile-only .basic-info-group {
-        flex: 1;
-        justify-content: center;
-    }
-    
-    /* 统一按钮样式响应式 */
-    .export-btn,
-    .import-btn,
-    .select-properties-btn,
-    .more-config-btn {
-        padding: 6px 10px;
-        font-size: 15px;
-        gap: 5px;
-    }
 }
 
-/* 响应式设计 - 小手机 */
-@media (max-width: 480px) {
+
+/* 响应式设计 - 超小手机 */
+@media (max-width: 400px) {
     .basic-info-section {
         padding: 15px;
     }
     
     .basic-info-container {
-        gap: 10px;
+        gap: 5px; /* 减小容器间距 */
     }
     
     .basic-info-row {
         flex-direction: column;
         align-items: stretch;
-        gap: 10px;
-        justify-content: flex-start; /* 在小屏幕上保持左对齐 */
+        gap: 5px; /* 减小行间距 */
+        justify-content: flex-start;
     }
     
     .basic-info-group {
         flex-wrap: wrap;
         justify-content: space-between;
-        gap: 10px;
+        gap: 5px; /* 减小组间距 */
     }
     
     .basic-info-group label {
@@ -349,7 +350,6 @@ body {
         font-size: 15px;
     }
     
-    /* 统一所有主要按钮样式 */
     .export-btn,
     .import-btn,
     .select-properties-btn,
@@ -359,7 +359,6 @@ body {
         padding: 8px;
         gap: 5px;
         font-size: 15px;
-        min-width: auto;
     }
     
     /* 隐藏工作区顶部的选择属性按钮，因为已经在基础信息区域有了 */
@@ -375,7 +374,82 @@ body {
     
     /* 减小移动端按钮之间的间距 */
     .mobile-only {
+        gap: 5px; /* 减小移动端间距 */
+    }
+    
+    /* 确保移动端按钮组居中 */
+    .mobile-only .basic-info-group {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+/* 响应式设计 - 小手机 */
+@media (min-width: 401px) and (max-width: 480px) {
+    .basic-info-section {
+        padding: 15px;
+    }
+    
+    .basic-info-container {
+        gap: 12px;
+    }
+    
+    .basic-info-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .basic-info-group {
         gap: 10px;
+    }
+    
+    .basic-info-group label {
+        font-size: 15px;
+    }
+    
+    .basic-info-group input,
+    .basic-info-group select {
+        padding: 6px 8px;
+        font-size: 15px;
+    }
+    
+    .icon-btn {
+        padding: 6px 10px;
+        font-size: 15px;
+        min-width: 36px;
+    }
+    
+    /* 确保导出、导入、选择属性和更多配置按钮在小手机上的样式一致 */
+    .export-btn,
+    .import-btn,
+    .select-properties-btn,
+    .more-config-btn {
+        padding: 6px 10px;
+        font-size: 15px;
+    }
+    
+    /* 在小手机上隐藏桌面专用元素 */
+    .desktop-only {
+        display: none !important;
+    }
+    
+    /* 在小手机上显示移动端专用元素 */
+    .mobile-only {
+        display: flex !important;
+        align-items: center;
+        justify-content: center; /* 添加居中对齐 */
+        gap: 10px;
+        width: 100%;
+    }
+    
+    /* 确保移动端按钮组居中 */
+    .mobile-only .basic-info-group {
+        justify-content: center;
+        width: 100%;
     }
 }
 

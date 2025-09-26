@@ -14,7 +14,9 @@
     <div class="basic-info-section">
         <div class="basic-info-container">
             <!-- 电脑端第一行：选择附魔、新建、删除、附魔名称 -->
+            <!-- 平板端第一行：选择附魔、新建、删除 -->
             <!-- 手机端第一行：选择附魔、新建、删除 -->
+            <!-- 平板端第二行：附魔名称 -->
             <!-- 手机端第二行：附魔名称 -->
             <div class="basic-info-row row-1">
                 <div class="basic-info-group">
@@ -30,6 +32,7 @@
                 </div>
             </div>
             
+            <!-- 平板端第二行：附魔名称 -->
             <!-- 手机端第二行：附魔名称 -->
             <div class="basic-info-row row-2 mobile-only">
                 <div class="basic-info-group">
@@ -39,7 +42,9 @@
             </div>
             
             <!-- 电脑端第二行：装备类型、玩家等级、装备潜力、锻冶熟练度 -->
+            <!-- 平板端第三行：装备类型、玩家等级 -->
             <!-- 手机端第三行：装备类型、玩家等级 -->
+            <!-- 平板端第四行：装备潜力、锻冶熟练度 -->
             <!-- 手机端第四行：装备潜力、锻冶熟练度 -->
             <div class="basic-info-row row-3">
                 <div class="basic-info-group">
@@ -66,8 +71,9 @@
                 </div>
             </div>
             
+            <!-- 平板端第四行：装备潜力、锻冶熟练度 -->
             <!-- 手机端第四行：装备潜力、锻冶熟练度 -->
-            <div class="basic-info-row row-4 mobile-only">
+            <div class="basic-info-row row-4 tablet-only mobile-only">
                 <div class="basic-info-group">
                     <label for="equipmentPotential">装备潜力:</label>
                     <input type="number" id="equipmentPotential" min="1" value="100">
@@ -80,8 +86,6 @@
             </div>
             
             <!-- 电脑端第三行：导入、导出、属性选择、更多配置 -->
-            <!-- 手机端第五行：导入、导出 -->
-            <!-- 手机端第六行：属性选择、更多配置 -->
             <div class="basic-info-row row-5">
                 <div class="basic-info-group">
                     <button id="exportBtn" class="export-btn">导出</button>
@@ -97,11 +101,11 @@
                 </div>
             </div>
             
-            <!-- 手机端第六行：属性选择、更多配置 -->
+            <!-- 移动端专用行：属性选择、更多配置 (单列堆叠) -->
             <div class="basic-info-row row-6 mobile-only">
                 <div class="basic-info-group">
                     <button id="selectPropertiesBtn" class="select-properties-btn">选择属性</button>
-                    <button id="moreConfigBtn" class="more-config-btn">更多配置</button>
+                    <button id="moreConfigBtn" class="more-config-btn">⚙️ 更多配置</button>
                 </div>
             </div>
         </div>
