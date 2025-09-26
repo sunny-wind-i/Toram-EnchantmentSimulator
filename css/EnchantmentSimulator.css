@@ -14,16 +14,17 @@ body {
 
 /* 基础信息区样式 */
 .basic-info-section {
-    background-color: #f5f5f5;
+    background-color: #ffffff;
     padding: 15px;
     border-bottom: 1px solid #ddd;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .basic-info-container {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
 }
 
 .basic-info-item {
@@ -35,47 +36,113 @@ body {
 .basic-info-item label {
     font-weight: bold;
     white-space: nowrap;
+    font-size: 14px;
 }
 
 .basic-info-item input,
 .basic-info-item select {
-    padding: 5px;
+    padding: 6px 8px;
     border: 1px solid #ccc;
-    border-radius: 3px;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: center; /* 文本居中 */
+}
+
+.basic-info-item input[type="number"] {
+    width: 80px;
+}
+
+.basic-info-row select {
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 150px;
+    text-align: center; /* 文本居中 */
+}
+
+#enchantmentName {
+    min-width: 150px;
+    text-align: center; /* 文本居中 */
+}
+
+/* 图标按钮样式 */
+.icon-btn {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.icon-btn.primary {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+.icon-btn.primary:hover {
+    background-color: #45a049;
+}
+
+.icon-btn.danger {
+    background-color: #f0f0f0;
+    color: #f44336;
+    border-color: #ddd;
+}
+
+.icon-btn.danger:hover {
+    background-color: #ffebee;
+}
+
+.icon-btn.warning {
+    background-color: #ff9800;
+    color: white;
+    border-color: #ff9800;
+}
+
+.icon-btn.warning:hover {
+    background-color: #e68900;
 }
 
 .export-btn,
 .import-btn {
-    background-color: #4CAF50;
+    background-color: #2196F3;
     color: white;
     border: none;
-    padding: 8px 12px;
+    padding: 6px 10px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 14px;
-    margin: 4px 2px;
     cursor: pointer;
     border-radius: 4px;
-}
-
-.import-btn {
-    background-color: #008CBA;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .export-btn:hover {
-    background-color: #45a049;
+    background-color: #0b7dda;
 }
 
 .import-btn:hover {
-    background-color: #007B9A;
+    background-color: #0b7dda;
 }
 
 .more-config-btn {
-    background-color: #ff9800;
+    background-color: #9c27b0;
     color: white;
     border: none;
-    padding: 8px 12px;
+    padding: 6px 10px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
@@ -83,10 +150,13 @@ body {
     cursor: pointer;
     border-radius: 4px;
     margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .more-config-btn:hover {
-    background-color: #e68900;
+    background-color: #7b1fa2;
 }
 
 /* 隐藏保存按钮区域多余的右边距 */
@@ -111,6 +181,7 @@ body {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
 }
 
 .modal.hidden {
@@ -120,12 +191,21 @@ body {
 .modal-content {
     background-color: #fff;
     margin: 5% auto;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 25px;
+    border-radius: 10px;
     width: 90%;
     max-width: 600px;
     max-height: 80vh;
     overflow-y: auto;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    color: #333;
 }
 
 .close {
@@ -134,20 +214,32 @@ body {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
 }
 
 .close:hover {
     color: black;
+    background-color: #f0f0f0;
 }
 
 .config-group {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .config-group h3 {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
+    padding-bottom: 8px;
+    color: #444;
 }
 
 .config-item {
@@ -155,35 +247,58 @@ body {
     justify-content: space-between;
     margin-bottom: 10px;
     align-items: center;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
+}
+
+.config-item:hover {
+    background-color: #f9f9f9;
 }
 
 .config-item label {
-    font-weight: bold;
+    font-weight: 600;
     width: 40%;
+    color: #555;
+    font-size: 14px;
 }
 
 .config-item input {
     width: 55%;
-    padding: 8px;
+    padding: 6px 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+    text-align: center;
+}
+
+.config-item input:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
 
 .save-btn {
     display: block;
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     background-color: #008CBA;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 16px;
     margin-top: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
 }
 
 .save-btn:hover {
     background-color: #007B9A;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 工作区 */
@@ -201,21 +316,31 @@ body {
     align-items: center;
     margin-bottom: 20px;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
 }
 
 .select-properties-btn {
-    padding: 8px 16px;
+    padding: 10px 20px;
     background-color: #008CBA;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .select-properties-btn:hover {
     background-color: #007B9A;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .view-mode-selector {
@@ -223,26 +348,42 @@ body {
 }
 
 .view-mode-btn {
-    padding: 8px 16px;
+    padding: 10px 16px;
     border: 1px solid #ddd;
     background-color: #f5f5f5;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .view-mode-btn.active {
     background-color: #008CBA;
     color: white;
+    border-color: #008CBA;
+}
+
+.view-mode-btn:first-child {
+    border-radius: 5px 0 0 5px;
+}
+
+.view-mode-btn:last-child {
+    border-radius: 0 5px 5px 0;
 }
 
 /* 表格样式 */
 .table-container {
     overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .enchant-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     margin-top: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .enchant-table th,
@@ -253,35 +394,49 @@ body {
 }
 
 .enchant-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    position: sticky;
+    top: 0;
 }
 
 .enchant-table td {
     cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.enchant-table td:hover {
+    background-color: #f8f9fa;
 }
 
 .enchant-table td.selected {
     border: 2px solid #008CBA;
     background-color: #e6f7ff;
+    box-shadow: inset 0 0 0 1px #008CBA;
 }
 
 /* 添加确认按钮样式 */
 .confirm-btn {
     display: block;
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 16px;
     margin-top: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
 }
 
 .confirm-btn:hover {
     background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 属性选择弹窗样式 */
@@ -296,22 +451,30 @@ body {
 .property-category {
     margin-bottom: 20px;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .property-category-header {
-    background-color: #f2f2f2;
-    padding: 10px;
+    background-color: #f8f8f8;
+    padding: 15px;
     font-weight: bold;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.property-category-header:hover {
+    background-color: #f0f0f0;
 }
 
 .property-category-content {
-    padding: 10px;
+    padding: 15px;
     display: none;
+    background-color: #fff;
 }
 
 .property-category-content.expanded {
@@ -321,30 +484,39 @@ body {
 .property-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
+    gap: 12px;
 }
 
 .property-item {
     display: flex;
     align-items: center;
-    padding: 10px;
+    padding: 12px;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+}
+
+.property-item:hover {
+    border-color: #4CAF50;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .property-item input {
-    margin-right: 8px;
+    margin-right: 10px;
+    transform: scale(1.2);
 }
 
 .selected-properties-summary {
-    margin: 20px 0;
-    padding: 15px;
+    margin: 25px 0;
+    padding: 20px;
     background-color: #f9f9f9;
-    border-radius: 4px;
+    border-radius: 6px;
+    border-left: 4px solid #4CAF50;
 }
 
 .selected-properties-summary h3 {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    color: #333;
 }
 
 .selected-properties-display {
@@ -356,20 +528,55 @@ body {
 .selected-property-tag {
     background-color: #008CBA;
     color: white;
-    padding: 5px 10px;
-    border-radius: 15px;
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 14px;
     display: flex;
     align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .selected-property-tag .remove-property,
 .selected-property-tag .move-property-left,
 .selected-property-tag .move-property-right {
-    margin-left: 5px;
+    margin-left: 8px;
     cursor: pointer;
     font-weight: bold;
-    padding: 0 3px;
+    padding: 0 4px;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.selected-property-tag .remove-property:hover,
+.selected-property-tag .move-property-left:hover,
+.selected-property-tag .move-property-right:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+
+.confirm-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.confirm-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 视图模式选择弹窗 */
@@ -413,26 +620,36 @@ body {
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: #333;
+    background-color: #343a40;
     color: white;
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 10px 0;
+    padding: 12px 0;
     z-index: 999;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .toolbar-btn {
-    padding: 10px 15px;
-    background-color: #555;
+    padding: 12px 18px;
+    background-color: #495057;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .toolbar-btn:hover {
-    background-color: #777;
+    background-color: #6c757d;
+    transform: translateY(-2px);
 }
 
 .quantity-selector {
@@ -440,11 +657,14 @@ body {
 }
 
 .quantity-btn {
-    padding: 10px;
-    background-color: #555;
+    padding: 12px;
+    background-color: #495057;
     color: white;
     border: none;
     cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    min-width: 50px;
 }
 
 .quantity-btn.active {
@@ -452,43 +672,72 @@ body {
 }
 
 .success-rate-display {
-    font-weight: bold;
+    font-weight: 600;
+    font-size: 16px;
+    background-color: #495057;
+    padding: 10px 20px;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* 操作菜单 */
 .operation-menu ul {
     list-style-type: none;
+    padding: 0;
+    margin: 0;
 }
 
 .operation-menu li {
-    padding: 15px;
+    padding: 15px 20px;
     border-bottom: 1px solid #eee;
     cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    font-weight: 500;
 }
 
 .operation-menu li:hover {
-    background-color: #f5f5f5;
+    background-color: #f5f8fa;
+    color: #008CBA;
+    transform: translateX(5px);
 }
 
 .operation-menu li:last-child {
     border-bottom: none;
+    margin-bottom: 0;
 }
 
 /* 结果展示区 */
 .result-section {
     background-color: #fff;
     padding: 20px;
-    margin-bottom: 40px;
+    margin-bottom: 70px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.result-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.result-section-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
 }
 
 .result-display {
     background-color: #f9f9f9;
     padding: 15px;
-    border-radius: 4px;
+    border-radius: 6px;
     margin: 15px 0;
     white-space: pre-wrap;
     font-family: 'Courier New', monospace;
+    border: 1px solid #eee;
 }
 
 .copy-btn {
@@ -496,37 +745,69 @@ body {
     background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .copy-btn:hover {
     background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 复制成功提示 */
+.copy-success {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 5px;
+    z-index: 2000;
+    font-size: 16px;
+    display: none;
 }
 
 /* 编辑折叠重复步骤模态框特定样式 */
+.edit-repeated-steps-modal {
+    max-width: 500px;
+}
+
 #editRepeatedStepsModal .modal-section {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
     border-bottom: 1px solid #eee;
 }
 
 #editRepeatedStepsModal .modal-section:last-child {
     border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 #editRepeatedStepsModal .modal-section h3 {
     margin-top: 0;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    color: #333;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 #editRepeatedStepsModal .property-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 #editRepeatedStepsModal .property-item:last-child {
@@ -534,60 +815,164 @@ body {
 }
 
 #editRepeatedStepsModal .property-name {
-    font-weight: bold;
+    font-weight: 600;
+    color: #555;
 }
 
 #editRepeatedStepsModal .property-value-input {
-    width: 80px;
-    padding: 5px;
+    width: 100px;
+    padding: 8px 12px;
     border: 1px solid #ddd;
-    border-radius: 3px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+}
+
+#editRepeatedStepsModal .property-value-input:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
 
 #editRepeatedStepsModal .value-buttons {
     display: flex;
     gap: 5px;
+    margin-left: 10px;
 }
 
 #editRepeatedStepsModal .value-buttons button {
-    padding: 3px 8px;
+    padding: 6px 10px;
     background-color: #6c757d;
     color: white;
     border: none;
-    border-radius: 3px;
+    border-radius: 4px;
     cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 12px;
+    min-width: 30px;
 }
 
 #editRepeatedStepsModal .value-buttons button:hover {
     background-color: #5a6268;
 }
 
-#editRepeatedStepsModal .action-buttons {
+#editRepeatedStepsModal .operation-buttons {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
     margin-top: 20px;
 }
 
-#editRepeatedStepsModal .action-buttons button {
-    padding: 8px 15px;
+#editRepeatedStepsModal .modal-action-btn {
+    padding: 10px 20px;
     border: none;
-    border-radius: 3px;
+    border-radius: 5px;
     cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
-#editRepeatedStepsModal .action-buttons button:first-child {
+#editRepeatedStepsModal .modal-action-btn:first-child {
     background-color: #dc3545;
     color: white;
 }
 
-#editRepeatedStepsModal .action-buttons button:last-child {
+#editRepeatedStepsModal .modal-action-btn:first-child:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.1);
+}
+
+#editRepeatedStepsModal .modal-action-btn:last-child {
     background-color: #28a745;
     color: white;
 }
 
-#editRepeatedStepsModal .action-buttons button:hover {
-    opacity: 0.9;
+#editRepeatedStepsModal .modal-action-btn:last-child:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.1);
+}
+
+#editRepeatedStepsModal .modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+#editRepeatedStepsModal .confirm-btn,
+#editRepeatedStepsModal .cancel-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+#editRepeatedStepsModal .confirm-btn {
+    background-color: #008CBA;
+    color: white;
+}
+
+#editRepeatedStepsModal .confirm-btn:hover {
+    background-color: #007B9A;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 140, 186, 0.1);
+}
+
+#editRepeatedStepsModal .cancel-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+#editRepeatedStepsModal .cancel-btn:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.1);
+}
+
+.repeat-count-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.repeat-count-controls .value-btn {
+    padding: 8px 15px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.repeat-count-controls .value-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.repeat-count-controls .value-input {
+    width: 100px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.repeat-count-controls .value-input:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
 
 /* 响应式设计 */
@@ -600,10 +985,15 @@ body {
     .basic-info-item {
         width: 100%;
     }
+    
+    .basic-info-row {
+        width: 100%;
+    }
 
     .modal-content {
         width: 95%;
         margin: 10% auto;
+        padding: 20px;
     }
 
     .property-list {
@@ -629,6 +1019,43 @@ body {
     .success-rate-display {
         font-size: 14px;
     }
+    
+    .result-section {
+        margin-bottom: 80px;
+    }
+    
+    .result-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .repeat-count-controls .value-input {
+        width: 80px;
+        padding: 8px;
+        font-size: 14px;
+    }
+    
+    .repeat-count-controls .value-btn {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+    
+    #editRepeatedStepsModal .property-value-input {
+        width: 80px;
+        padding: 6px 10px;
+    }
+    
+    #editRepeatedStepsModal .modal-action-btn {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+    
+    #editRepeatedStepsModal .confirm-btn,
+    #editRepeatedStepsModal .cancel-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -637,21 +1064,73 @@ body {
     }
 
     .config-item {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
+        padding: 8px 5px;
     }
 
     .config-item label {
-        width: 100%;
-        margin-bottom: 5px;
+        width: 60%;
+        margin-bottom: 0;
+        font-size: 13px;
+        padding-right: 5px;
     }
 
     .config-item input {
-        width: 100%;
+        width: 40%;
+        padding: 6px;
+        font-size: 13px;
+        min-width: 60px;
     }
 
     .property-selection-modal {
         padding: 10px;
+    }
+    
+    .modal-content {
+        padding: 15px;
+    }
+    
+    .modal-content h2 {
+        font-size: 18px;
+    }
+    
+    .paste-step-options-modal .paste-options input {
+        width: 60px;
+        padding: 8px;
+    }
+    
+    .repeat-count-controls .value-input {
+        width: 80px;
+        padding: 8px;
+        font-size: 14px;
+    }
+    
+    .repeat-count-controls .value-btn {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+    
+    #editRepeatedStepsModal .property-value-input {
+        width: 80px;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+    
+    #editRepeatedStepsModal .modal-action-btn {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+    
+    #editRepeatedStepsModal .confirm-btn,
+    #editRepeatedStepsModal .cancel-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+    
+    .operation-buttons {
+        flex-direction: column;
+        gap: 10px;
     }
 }
 
@@ -659,20 +1138,25 @@ body {
 .clear-options-modal {
     background-color: #fff;
     margin: 15% auto;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 25px;
+    border-radius: 10px;
     width: 80%;
     max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .clear-options-modal h2 {
     margin-top: 0;
     text-align: center;
+    color: #333;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
 }
 
 .clear-options-modal ul {
     list-style-type: none;
     padding: 0;
+    margin: 20px 0;
 }
 
 .clear-options-modal li {
@@ -680,34 +1164,47 @@ body {
     border-bottom: 1px solid #eee;
     cursor: pointer;
     text-align: center;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .clear-options-modal li:hover {
-    background-color: #f5f5f5;
+    background-color: #f5f8fa;
+    color: #d32f2f;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .clear-options-modal li:last-child {
     border-bottom: none;
+    margin-bottom: 0;
 }
 
 /* 增加步骤选项弹窗 */
 .add-step-options-modal {
     background-color: #fff;
     margin: 15% auto;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 25px;
+    border-radius: 10px;
     width: 80%;
     max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .add-step-options-modal h2 {
     margin-top: 0;
     text-align: center;
+    color: #333;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
 }
 
 .add-step-options-modal ul {
     list-style-type: none;
     padding: 0;
+    margin: 20px 0;
 }
 
 .add-step-options-modal li {
@@ -715,49 +1212,70 @@ body {
     border-bottom: 1px solid #eee;
     cursor: pointer;
     text-align: center;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .add-step-options-modal li:hover {
-    background-color: #f5f5f5;
+    background-color: #f5f8fa;
+    color: #008CBA;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .add-step-options-modal li:last-child {
     border-bottom: none;
+    margin-bottom: 0;
 }
 
 /* 粘贴步骤选项弹窗 */
 .paste-step-options-modal {
     background-color: #fff;
     margin: 15% auto;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 25px;
+    border-radius: 10px;
     width: 80%;
     max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .paste-step-options-modal h2 {
     margin-top: 0;
     text-align: center;
+    color: #333;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
 }
 
 .paste-step-options-modal .paste-options {
-    margin: 15px 0;
+    margin: 20px 0;
     text-align: center;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
 }
 
 .paste-step-options-modal .paste-options label {
-    margin-right: 10px;
+    margin-right: 15px;
+    font-weight: 500;
+    color: #555;
 }
 
 .paste-step-options-modal .paste-options input {
-    width: 60px;
-    padding: 5px;
+    width: 80px;
+    padding: 10px;
     text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
 }
 
 .paste-step-options-modal ul {
     list-style-type: none;
     padding: 0;
+    margin: 20px 0;
 }
 
 .paste-step-options-modal li {
@@ -765,14 +1283,22 @@ body {
     border-bottom: 1px solid #eee;
     cursor: pointer;
     text-align: center;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .paste-step-options-modal li:hover {
-    background-color: #f5f5f5;
+    background-color: #f5f8fa;
+    color: #008CBA;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .paste-step-options-modal li:last-child {
     border-bottom: none;
+    margin-bottom: 0;
 }
 
 /* 包含无效步骤的重复步骤控制行样式 */
@@ -872,8 +1398,7 @@ body {
     text-decoration: line-through;
 }
 
-/* 被忽略折叠步骤中的文本样式 */
-.repeated-steps.has-ignored-steps.collapsed .ignored-text {
+.enchant-table td.ignored-text {
     color: #888888;
     text-decoration: line-through;
 }
@@ -882,69 +1407,86 @@ body {
 #editPropertyModal .modal-content {
     background-color: #fff;
     margin: 10% auto;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 25px;
+    border-radius: 10px;
     width: 80%;
     max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 #editPropertyModal .modal-content h2 {
     margin-top: 0;
     text-align: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    color: #333;
 }
 
 .property-edit-content {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 }
 
 .actual-value-display {
     text-align: center;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
-    padding: 10px;
+    padding: 15px;
     background-color: #f5f5f5;
-    border-radius: 4px;
+    border-radius: 6px;
+    color: #333;
+    border: 1px solid #eee;
 }
 
 .value-controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
 #propertyValueInput {
-    width: 80px;
-    padding: 6px;
+    width: 100px;
+    padding: 10px;
     text-align: center;
     border: 1px solid #ccc;
-    border-radius: 3px;
-    font-size: 14px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+#propertyValueInput:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
 
 .value-btn {
-    padding: 6px 8px;
+    padding: 10px 15px;
     margin: 0 2px;
     border: 1px solid #ccc;
     background-color: #f0f0f0;
     cursor: pointer;
-    border-radius: 3px;
+    border-radius: 5px;
     font-size: 14px;
-    min-width: 40px;
+    min-width: 45px;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
 .value-btn:hover {
     background-color: #e0e0e0;
+    transform: translateY(-2px);
 }
 
 .delete-btn {
     background-color: #ff6666;
     color: white;
     border: 1px solid #cc0000;
-    min-width: 30px;
+    min-width: 40px;
 }
 
 .delete-btn:hover {
@@ -954,7 +1496,7 @@ body {
 .slider-container {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 10px;
 }
 
 #propertyValueSlider {
@@ -964,79 +1506,80 @@ body {
 .slider-labels {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
+    font-size: 14px;
     color: #666;
 }
 
 .slider-value {
-    font-size: 12px;
+    font-size: 14px;
     color: #666;
+    font-weight: 500;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
     #editPropertyModal .modal-content {
         width: 90%;
-        padding: 15px;
+        padding: 20px;
     }
 
     .value-controls {
-        gap: 3px;
+        gap: 5px;
     }
 
     #propertyValueInput {
-        width: 70px;
-        padding: 5px;
-        font-size: 13px;
+        width: 80px;
+        padding: 8px;
+        font-size: 14px;
     }
 
     .value-btn {
-        padding: 5px 6px;
+        padding: 8px 10px;
         font-size: 13px;
         min-width: 35px;
     }
 
     .delete-btn {
-        min-width: 25px;
+        min-width: 30px;
     }
 }
 
 @media (max-width: 480px) {
     #editPropertyModal .modal-content {
         width: 95%;
-        padding: 10px;
+        padding: 15px;
     }
 
     .property-edit-content {
-        gap: 10px;
+        gap: 15px;
     }
 
     .actual-value-display {
-        font-size: 16px;
-        padding: 8px;
+        font-size: 18px;
+        padding: 12px;
     }
 
     #propertyValueInput {
-        width: 60px;
-        padding: 4px;
-        font-size: 12px;
+        width: 70px;
+        padding: 6px;
+        font-size: 13px;
     }
 
     .value-btn {
-        padding: 4px 5px;
+        padding: 6px 8px;
         font-size: 12px;
         min-width: 30px;
     }
 
     .delete-btn {
-        min-width: 20px;
+        min-width: 25px;
     }
 
     .slider-labels {
-        font-size: 11px;
+        font-size: 12px;
     }
 
     .slider-value {
-        font-size: 11px;
+        font-size: 12px;
     }
 }

@@ -16,8 +16,8 @@
             <div class="basic-info-row">
                 <label for="enchantmentSelector">选择附魔:</label>
                 <select id="enchantmentSelector"></select>
-                <button id="newEnchantmentBtn">新建</button>
-                <button id="deleteEnchantmentBtn">删除</button>
+                <button id="newEnchantmentBtn" class="icon-btn primary" title="新建">&#43;</button>
+                <button id="deleteEnchantmentBtn" class="icon-btn danger" title="删除">&#128465;</button>
             </div>
             <div class="basic-info-row">
                 <label for="enchantmentName">附魔名称:</label>
@@ -51,7 +51,7 @@
                 <button id="importBtn" class="import-btn">导入</button>
             </div>
 
-            <button id="moreConfigBtn" class="more-config-btn">更多配置</button>
+            <button id="moreConfigBtn" class="more-config-btn">⚙️ 更多配置</button>
         </div>
     </div>
 
@@ -296,10 +296,13 @@
 
     <!-- 附魔结果展示区 -->
     <div class="result-section">
+        <div class="result-section-header">
+            <h2>附魔结果</h2>
+            <button id="copyResultBtn" class="copy-btn">📋 复制结果</button>
+        </div>
         <div id="resultDisplay" class="result-display">
             <!-- 结果将通过JavaScript动态生成 -->
         </div>
-        <button id="copyResultBtn" class="copy-btn">复制结果</button>
     </div>
 
     <script type="module" src="js/EnchantmentSimulator.js"></script>
