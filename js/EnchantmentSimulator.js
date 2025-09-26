@@ -8,7 +8,7 @@ import EnchantType from './modules/EnchantType.js';
 let enchantRecord = null;
 let propertyManager = null;
 let selectedProperties = [];
-let currentViewMode = 'change'; // change, value, potential, material
+let currentViewMode = 'value'; // change, value, potential, material
 let selectedCell = null;
 let currentQuantity = 1;
 let copiedStepData = null;
@@ -3584,8 +3584,8 @@ function createViewModeModal() {
             <span class="close">&times;</span>
             <h2>选择视图</h2>
             <ul>
-                <li data-mode="change">属性变化</li>
                 <li data-mode="value">属性</li>
+                <li data-mode="change">属性变化</li>
                 <li data-mode="potential">潜力</li>
                 <li data-mode="material">素材</li>
             </ul>
