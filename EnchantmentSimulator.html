@@ -259,6 +259,41 @@
         </div>
     </div>
 
+    <!-- 编辑折叠重复步骤弹窗 -->
+    <div id="editRepeatedStepsModal" class="modal hidden">
+        <div class="modal-content edit-repeated-steps-modal">
+            <span class="close">&times;</span>
+            <h2>编辑重复步骤</h2>
+            
+            <div class="modal-section">
+                <h3>重复次数</h3>
+                <div class="input-group repeat-count-controls">
+                    <button id="decreaseRepeatCountBtn" class="value-btn">-</button>
+                    <input type="number" id="repeatCountInput" min="1" max="1000" value="1" class="value-input">
+                    <button id="increaseRepeatCountBtn" class="value-btn">+</button>
+                </div>
+            </div>
+            
+            <div class="modal-section">
+                <h3>属性值</h3>
+                <div id="repeatedStepProperties" class="repeated-step-properties"></div>
+            </div>
+            
+            <div class="modal-section">
+                <h3>操作</h3>
+                <div class="operation-buttons">
+                    <button id="toggleIgnoreRepeatedStepsBtn" class="modal-action-btn">忽略/取消忽略</button>
+                    <button id="deleteRepeatedStepsBtn" class="modal-action-btn delete-btn">删除步骤</button>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="confirmRepeatedStepsBtn" class="confirm-btn">确认</button>
+                <button id="cancelRepeatedStepsBtn" class="cancel-btn">取消</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 附魔结果展示区 -->
     <div class="result-section">
         <div id="resultDisplay" class="result-display">

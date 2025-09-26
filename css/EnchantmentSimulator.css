@@ -505,6 +505,91 @@ body {
     background-color: #45a049;
 }
 
+/* 编辑折叠重复步骤模态框特定样式 */
+#editRepeatedStepsModal .modal-section {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+#editRepeatedStepsModal .modal-section:last-child {
+    border-bottom: none;
+}
+
+#editRepeatedStepsModal .modal-section h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+#editRepeatedStepsModal .property-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+#editRepeatedStepsModal .property-item:last-child {
+    border-bottom: none;
+}
+
+#editRepeatedStepsModal .property-name {
+    font-weight: bold;
+}
+
+#editRepeatedStepsModal .property-value-input {
+    width: 80px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+#editRepeatedStepsModal .value-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+#editRepeatedStepsModal .value-buttons button {
+    padding: 3px 8px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+#editRepeatedStepsModal .value-buttons button:hover {
+    background-color: #5a6268;
+}
+
+#editRepeatedStepsModal .action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+#editRepeatedStepsModal .action-buttons button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+#editRepeatedStepsModal .action-buttons button:first-child {
+    background-color: #dc3545;
+    color: white;
+}
+
+#editRepeatedStepsModal .action-buttons button:last-child {
+    background-color: #28a745;
+    color: white;
+}
+
+#editRepeatedStepsModal .action-buttons button:hover {
+    opacity: 0.9;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .basic-info-container {

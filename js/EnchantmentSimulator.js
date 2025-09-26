@@ -2238,7 +2238,7 @@ function onTableClick(event) {
     const row = cell.parentElement;
     if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
         // 不允许选择折叠步骤的单元格进行编辑
-        showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+        // showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
         return;
     }
 
@@ -2267,7 +2267,7 @@ function onTableContextMenu(event) {
     const row = cell.parentElement;
     if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
         // 不允许选择折叠步骤的单元格进行编辑
-        showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+        // showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
         return;
     }
 
@@ -2294,6 +2294,9 @@ let lastTapCell = null;
 let longPressTimer = null;
 const longPressDuration = 500; // 长按持续时间（毫秒）
 
+// 存储当前正在编辑的重复步骤组信息
+let currentEditingGroup = null;
+
 // 表格双击事件处理
 function onTableDblClick(event) {
     const cell = event.target;
@@ -2301,9 +2304,20 @@ function onTableDblClick(event) {
 
     // 检查是否是折叠步骤的单元格
     const row = cell.parentElement;
-    if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
+    if (row.classList.contains('repeat-control-row')) {
         // 不允许选择折叠步骤的单元格进行编辑
-        showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+        // showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+        return;
+    }
+
+    // 检查是否是折叠的重复步骤
+    if (row.classList.contains('repeated-steps') && row.classList.contains('collapsed')) {
+        // 获取组索引
+        const groupIndex = parseInt(row.dataset.groupIndex);
+        if (!isNaN(groupIndex)) {
+            // 显示编辑重复步骤的模态框
+            showEditRepeatedStepsModal(groupIndex);
+        }
         return;
     }
 
@@ -2343,10 +2357,10 @@ function onTableTouchStart(event) {
         // 区分repeat-control-row和repeated-steps元素
         if (row.classList.contains('repeated-steps')) {
             // 不允许选择折叠步骤的单元格进行编辑
-            showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+            // showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
             return;
         }
-        
+
         // 对于repeat-control-row，我们允许操作（用于展开/折叠）
         if (row.classList.contains('repeat-control-row')) {
             // 不做任何操作，允许默认的点击事件处理
@@ -2391,15 +2405,20 @@ function onTableTouchEnd(event) {
         // 检查是否是折叠步骤的单元格
         const row = cell.parentElement;
         // 区分repeat-control-row和repeated-steps元素
-        if (row.classList.contains('repeated-steps')) {
+        if (row.classList.contains('repeat-control-row')) {
             // 不允许选择折叠步骤的单元格进行编辑
-            showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+            // showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
             return;
         }
-        
-        // 对于repeat-control-row，我们允许操作（用于展开/折叠）
-        if (row.classList.contains('repeat-control-row')) {
-            // 不做任何操作，允许默认的点击事件处理
+
+        // 检查是否是折叠的重复步骤
+        if (row.classList.contains('repeated-steps') && row.classList.contains('collapsed')) {
+            // 获取组索引
+            const groupIndex = parseInt(row.dataset.groupIndex);
+            if (!isNaN(groupIndex)) {
+                // 显示编辑重复步骤的模态框
+                showEditRepeatedStepsModal(groupIndex);
+            }
             return;
         }
 
@@ -2433,10 +2452,10 @@ function onTableTouchEnd(event) {
         // 区分repeat-control-row和repeated-steps元素
         if (row.classList.contains('repeated-steps')) {
             // 不允许选择折叠步骤的单元格进行编辑
-            showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+            // showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
             return;
         }
-        
+
         // 对于repeat-control-row，我们允许操作（用于展开/折叠）
         if (row.classList.contains('repeat-control-row')) {
             // 不做任何操作，允许默认的点击事件处理
@@ -2455,6 +2474,292 @@ function onTableTouchEnd(event) {
         // 更新忽略按钮文本
         updateIgnoreButton();
     }
+}
+
+// 显示编辑折叠重复步骤的模态框
+function showEditRepeatedStepsModal(groupIndex) {
+    // 获取分组后的步骤
+    const groupedSteps = groupRepeatedSteps(enchantRecord.enchantmentSteps);
+
+    // 检查组索引是否有效
+    if (groupIndex < 0 || groupIndex >= groupedSteps.length) {
+        showMessage('无效的步骤组');
+        return;
+    }
+
+    // 获取当前组
+    const group = groupedSteps[groupIndex];
+
+    // 检查是否为重复步骤组
+    if (!group.isRepeated) {
+        showMessage('该步骤组不是重复步骤');
+        return;
+    }
+
+    // 保存当前编辑的组信息
+    currentEditingGroup = {
+        groupIndex: groupIndex,
+        originalCount: group.count,
+        steps: group.steps
+    };
+
+    // 获取模态框元素
+    const modal = document.getElementById('editRepeatedStepsModal');
+    const repeatCountInput = document.getElementById('repeatCountInput');
+    const propertiesContainer = document.getElementById('repeatedStepProperties');
+
+    // 设置重复次数
+    repeatCountInput.value = group.count;
+
+    // 清空属性容器
+    propertiesContainer.innerHTML = '';
+
+    // 获取第一个步骤的附魔属性（所有重复步骤应该相同）
+    const firstStep = group.steps[0];
+
+    // 为每个附魔属性创建编辑项
+    firstStep.enchantments.forEach(enchant => {
+        const property = enchant.property;
+        const value = enchant.value;
+
+        const propertyItem = document.createElement('div');
+        propertyItem.className = 'property-item';
+        propertyItem.innerHTML = `
+            <span class="property-name">${property.nameChs}${property.isPercentage ? '(%)' : ''}</span>
+            <div class="value-controls">
+                <input type="number" class="property-value-input" 
+                       data-property-id="${property.id}" 
+                       value="${value}" min="-1000" max="1000">
+                <div class="value-buttons">
+                    <button class="decrease-property-value" data-property-id="${property.id}">-1</button>
+                    <button class="increase-property-value" data-property-id="${property.id}">+1</button>
+                </div>
+            </div>
+        `;
+
+        propertiesContainer.appendChild(propertyItem);
+    });
+
+    // 绑定事件监听器
+    bindEditRepeatedStepsEvents();
+
+    // 显示模态框
+    modal.style.display = 'block';
+
+    // 更新忽略按钮文本
+    const toggleIgnoreBtn = document.getElementById('toggleIgnoreRepeatedStepsBtn');
+    // 检查是否有被忽略的步骤
+    const hasIgnored = group.steps.some(step => step.isIgnored);
+    toggleIgnoreBtn.textContent = hasIgnored ? '取消忽略步骤' : '忽略步骤';
+}
+
+// 绑定编辑折叠重复步骤模态框的事件
+function bindEditRepeatedStepsEvents() {
+    // 获取相关元素
+    const modal = document.getElementById('editRepeatedStepsModal');
+    const closeBtn = modal.querySelector('.close');
+    const repeatCountInput = document.getElementById('repeatCountInput');
+    const decreaseRepeatCountBtn = document.getElementById('decreaseRepeatCountBtn');
+    const increaseRepeatCountBtn = document.getElementById('increaseRepeatCountBtn');
+    const confirmBtn = document.getElementById('confirmRepeatedStepsBtn');
+    const cancelBtn = document.getElementById('cancelRepeatedStepsBtn');
+    const toggleIgnoreBtn = document.getElementById('toggleIgnoreRepeatedStepsBtn');
+    const deleteBtn = document.getElementById('deleteRepeatedStepsBtn');
+
+    // 关闭按钮事件
+    closeBtn.onclick = function () {
+        modal.style.display = 'none';
+    };
+
+    // 点击模态框外部关闭
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    // 重复次数减少按钮
+    decreaseRepeatCountBtn.onclick = function () {
+        const currentValue = parseInt(repeatCountInput.value) || 1;
+        if (currentValue > 1) {
+            repeatCountInput.value = currentValue - 1;
+        }
+    };
+
+    // 重复次数增加按钮
+    increaseRepeatCountBtn.onclick = function () {
+        const currentValue = parseInt(repeatCountInput.value) || 1;
+        repeatCountInput.value = currentValue + 1;
+    };
+
+    // 属性值减少按钮
+    document.querySelectorAll('.decrease-property-value').forEach(button => {
+        button.onclick = function () {
+            const propertyId = this.dataset.propertyId;
+            const input = document.querySelector(`.property-value-input[data-property-id="${propertyId}"]`);
+            const currentValue = parseInt(input.value) || 0;
+            input.value = currentValue - 1;
+        };
+    });
+
+    // 属性值增加按钮
+    document.querySelectorAll('.increase-property-value').forEach(button => {
+        button.onclick = function () {
+            const propertyId = this.dataset.propertyId;
+            const input = document.querySelector(`.property-value-input[data-property-id="${propertyId}"]`);
+            const currentValue = parseInt(input.value) || 0;
+            input.value = currentValue + 1;
+        };
+    });
+
+    // 确认按钮
+    confirmBtn.onclick = function () {
+        updateRepeatedSteps();
+        modal.style.display = 'none';
+    };
+
+    // 取消按钮
+    cancelBtn.onclick = function () {
+        modal.style.display = 'none';
+    };
+
+    // 忽略/取消忽略按钮
+    toggleIgnoreBtn.onclick = function () {
+        toggleIgnoreRepeatedSteps();
+    };
+
+    // 删除按钮
+    deleteBtn.onclick = function () {
+        if (confirm('确定要删除这些重复步骤吗？此操作无法撤销！')) {
+            deleteRepeatedSteps();
+            modal.style.display = 'none';
+        }
+    };
+}
+
+// 更新重复步骤
+function updateRepeatedSteps() {
+    if (!currentEditingGroup) return;
+
+    // 获取新的重复次数
+    const repeatCountInput = document.getElementById('repeatCountInput');
+    const newCount = parseInt(repeatCountInput.value) || 1;
+
+    // 获取新的属性值
+    const propertyInputs = document.querySelectorAll('.property-value-input');
+    const newEnchantments = [];
+
+    propertyInputs.forEach(input => {
+        const propertyId = input.dataset.propertyId;
+        const value = parseInt(input.value) || 0;
+        newEnchantments.push({
+            propertyId: propertyId,
+            value: value
+        });
+    });
+
+    // 获取分组后的步骤
+    const groupedSteps = groupRepeatedSteps(enchantRecord.enchantmentSteps);
+    const group = groupedSteps[currentEditingGroup.groupIndex];
+
+    // 获取第一个步骤作为模板
+    const templateStep = group.steps[0];
+
+    // 构造新的步骤数据
+    const newSteps = [];
+    for (let i = 0; i < newCount; i++) {
+        const newStep = {
+            enchantments: newEnchantments.map(enchant => ({
+                propertyId: enchant.propertyId,
+                value: enchant.value
+            })),
+            isIgnored: templateStep.isIgnored // 保持忽略状态
+        };
+        newSteps.push(newStep);
+    }
+
+    // 找到要替换的步骤范围
+    const firstStepIndex = enchantRecord.enchantmentSteps.indexOf(group.steps[0]);
+    const stepCount = group.steps.length;
+
+    // 删除原有的步骤
+    for (let i = 0; i < stepCount; i++) {
+        const step = enchantRecord.enchantmentSteps[firstStepIndex];
+        enchantRecord.removeEnchantmentStep(step.id);
+    }
+
+    // 在相同位置插入新的步骤
+    let insertIndex = firstStepIndex;
+    newSteps.forEach(stepData => {
+        enchantRecord.addEnchantmentStep(stepData, insertIndex);
+        insertIndex++;
+    });
+
+    // 更新显示
+    updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
+    // 清空当前编辑的组信息
+    currentEditingGroup = null;
+
+    showMessage('重复步骤更新成功');
+}
+
+// 切换重复步骤的忽略状态
+function toggleIgnoreRepeatedSteps() {
+    if (!currentEditingGroup) return;
+
+    // 获取分组后的步骤
+    const groupedSteps = groupRepeatedSteps(enchantRecord.enchantmentSteps);
+    const group = groupedSteps[currentEditingGroup.groupIndex];
+
+    // 检查是否有被忽略的步骤
+    const hasIgnored = group.steps.some(step => step.isIgnored);
+    const newIgnoreState = !hasIgnored;
+
+    // 更新所有步骤的忽略状态
+    group.steps.forEach(step => {
+        enchantRecord.setStepIgnored(step.id, newIgnoreState);
+    });
+
+    // 更新显示
+    updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
+    // 更新按钮文本
+    const toggleIgnoreBtn = document.getElementById('toggleIgnoreRepeatedStepsBtn');
+    toggleIgnoreBtn.textContent = newIgnoreState ? '取消忽略步骤' : '忽略步骤';
+
+    showMessage(newIgnoreState ? '已忽略所有重复步骤' : '已取消忽略所有重复步骤');
+}
+
+// 删除重复步骤
+function deleteRepeatedSteps() {
+    if (!currentEditingGroup) return;
+
+    // 获取分组后的步骤
+    const groupedSteps = groupRepeatedSteps(enchantRecord.enchantmentSteps);
+    const group = groupedSteps[currentEditingGroup.groupIndex];
+
+    // 删除所有步骤
+    group.steps.forEach(step => {
+        enchantRecord.removeEnchantmentStep(step.id);
+    });
+
+    // 更新显示
+    updateDisplay();
+
+    // 保存到本地存储
+    saveCurrentEnchantment();
+
+    // 清空当前编辑的组信息
+    currentEditingGroup = null;
+
+    showMessage('重复步骤已删除');
 }
 
 function setQuantity(quantity) {
