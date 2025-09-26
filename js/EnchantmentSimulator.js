@@ -337,10 +337,14 @@ function deleteCurrentEnchantment() {
     // 保存并更新显示
     saveEnchantmentListToStorage();
     localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
+
+    // 重新加载选中的属性以确保表头正确显示
+    selectedProperties = [...enchantRecord.getSelectedProperties()];
     updateDisplay();
     updateBasicInfoDisplay();
-    updateTableHeader();
+    updateTableHeader(); // 确保表头更新
     updateEnchantmentSelector();
+
 }
 
 // 切换到指定附魔
