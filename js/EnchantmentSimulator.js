@@ -1382,7 +1382,7 @@ function updateTableContent() {
                                             const actualCurrentValue = attrNumToActualNum(property, currentValue);
                                             // 正数显示+号
                                             const sign = actualCurrentValue >= 0 ? '+' : '';
-                                            cell.textContent = `${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
+                                            cell.textContent = `${sign}${actualCurrentValue}`;
                                         }
                                     } else {
                                         cell.textContent = '';
