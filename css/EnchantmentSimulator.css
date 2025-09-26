@@ -2008,7 +2008,12 @@ body {
     }
 }
 
+/* 隐藏编辑按钮，因为我发现好像没什么用 */
+#editPropertyBtn {
+    display: none;
+}
 
+/* 隐藏铁砧等级，因为国服没实装我验证不了计算方法 */
 #config-item-anvilLevel {
     display: none;
 }
