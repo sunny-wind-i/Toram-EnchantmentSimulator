@@ -1511,25 +1511,30 @@ function updateTableContent() {
                                 let totalGroupPotentialChange = 0;
                                 let individualPotentialChanges = [];
 
+                                // TODO:潜力视图的聚合版本其实是有点问题的，因为是按照步骤是单独取整，而非按属性取整
                                 // 计算所有步骤的潜力变化总和
                                 group.steps.forEach(step => {
                                     const stepPotentialChange = step.propertyPotentialChanges[property.id] || 0;
                                     totalGroupPotentialChange += stepPotentialChange;
+                                    // totalGroupPotentialChange += Math.trunc(stepPotentialChange);
                                     if (stepPotentialChange !== 0) {
                                         individualPotentialChanges.push(stepPotentialChange);
                                     }
                                 });
+
+                                // 防精度丢失
+                                totalGroupPotentialChange = parseFloat(totalGroupPotentialChange.toFixed(2))
 
                                 if (totalGroupPotentialChange !== 0) {
                                     if (individualPotentialChanges.length > 0 && individualPotentialChanges.every(change => change === individualPotentialChanges[0])) {
                                         // 如果所有步骤的潜力消耗相同
                                         const potentialChange = individualPotentialChanges[0];
                                         // cell.textContent = `${potentialChange > 0 ? `+${potentialChange}` : potentialChange.toString()} (×${group.count}, 总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()})`;
-                                        cell.textContent = `${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}`;
+                                        cell.textContent = `${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}(?)`;
                                     } else {
                                         // 如果步骤间的潜力消耗不同
                                         // cell.textContent = `总计: ${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}`;
-                                        cell.textContent = `${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}`;
+                                        cell.textContent = `${totalGroupPotentialChange > 0 ? `+${totalGroupPotentialChange}` : totalGroupPotentialChange.toString()}(?)`;
                                     }
                                 } else {
                                     // 潜力无变化时，检查每一步的潜力变化情况
@@ -1545,16 +1550,16 @@ function updateTableContent() {
                                         if (enchantment && enchantment.value !== 0) {
                                             // 属性值有变化但潜力无变化
                                             if (enchantment.value > 0) {
-                                                cell.textContent = `-0 (×${group.count})`; // 消耗0点潜力但属性值增加
+                                                cell.textContent = `-0 (×${group.count})(?)`; // 消耗0点潜力但属性值增加
                                             } else {
-                                                cell.textContent = `+0 (×${group.count})`; // 返还0点潜力但属性值减少
+                                                cell.textContent = `+0 (×${group.count})(?)`; // 返还0点潜力但属性值减少
                                             }
                                         } else {
                                             cell.textContent = '';
                                         }
                                     } else {
                                         // 步骤间的潜力变化不同（虽然总和为0），显示总计信息
-                                        cell.textContent = `-0`;
+                                        cell.textContent = `-0(?)`;
                                     }
                                 }
                             }
