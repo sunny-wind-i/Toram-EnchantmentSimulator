@@ -2066,13 +2066,22 @@ function updateResultDisplay() {
             // 显示直到的最终结果
             resultText += `、直到`;
 
-            // 显示最终属性值（取最后一个重复步骤）
-            const lastStep = enchantRecord.enchantmentSteps[j - 1]; // 修复：使用j-1获取最后一个有效步骤，而不是i+repeatCount-1
+            // 查找最后一个有效步骤（跳过无效和被忽略的步骤）
+            let lastValidStep = null;
+            for (let k = j - 1; k >= i; k--) {
+                const step = enchantRecord.enchantmentSteps[k];
+                if (step.isValid && !step.isIgnored && !step.enchantments.every(e => e.value === 0)) {
+                    lastValidStep = step;
+                    break;
+                }
+            }
+
+            // 显示最终属性值（取最后一个有效步骤）
             const finalEnchantments = enchantments
                 .map(enchant => {
                     const property = enchant.property;
                     // 获取最终步骤该属性的值
-                    const finalValue = lastStep.currentProperties[property.id] || 0;
+                    const finalValue = lastValidStep.currentProperties[property.id] || 0;
                     const actualFinalValue = attrNumToActualNum(property, finalValue);
 
                     // 属性觉醒类型特殊处理
@@ -2089,7 +2098,7 @@ function updateResultDisplay() {
             resultText += finalEnchantments;
 
             // 显示结束时的剩余潜力值
-            resultText += `｜${lastStep.postEnchantmentPotential}pt\n`;
+            resultText += `｜${lastValidStep.postEnchantmentPotential}pt\n`;
             validStepIndex++;
 
             // 跳过已处理的重复步骤
