@@ -716,6 +716,7 @@ function bindEvents() {
     document.getElementById('enchantTable').addEventListener('contextmenu', onTableContextMenu);
     document.getElementById('enchantTable').addEventListener('dblclick', onTableDblClick);
     document.getElementById('enchantTable').addEventListener('touchstart', onTableTouchStart);
+    document.getElementById('enchantTable').addEventListener('touchmove', onTableTouchMove);
     document.getElementById('enchantTable').addEventListener('touchend', onTableTouchEnd);
 
     // 悬浮工具栏事件
@@ -2350,6 +2351,11 @@ let lastTapCell = null;
 let longPressTimer = null;
 const longPressDuration = 500; // 长按持续时间（毫秒）
 
+// 用于检测触摸移动的变量
+let touchStartX = 0;
+let touchStartY = 0;
+const touchMoveThreshold = 10; // 触摸移动阈值，超过此距离则认为是拖动
+
 // 存储当前正在编辑的重复步骤组信息
 let currentEditingGroup = null;
 
@@ -2400,6 +2406,12 @@ function onTableTouchStart(event) {
     const cell = event.target;
     if (cell.tagName !== 'TD') return;
 
+    // 记录触摸开始位置
+    if (event.touches && event.touches.length > 0) {
+        touchStartX = event.touches[0].clientX;
+        touchStartY = event.touches[0].clientY;
+    }
+
     // 清除之前的定时器
     if (longPressTimer) {
         clearTimeout(longPressTimer);
@@ -2438,6 +2450,28 @@ function onTableTouchStart(event) {
         // 显示操作菜单
         showOperationMenu();
     }, longPressDuration);
+}
+
+// 添加触摸移动事件处理函数
+function onTableTouchMove(event) {
+    // 如果没有长按定时器，直接返回
+    if (!longPressTimer) return;
+
+    // 获取当前触摸位置
+    if (event.touches && event.touches.length > 0) {
+        const touchCurrentX = event.touches[0].clientX;
+        const touchCurrentY = event.touches[0].clientY;
+
+        // 计算移动距离
+        const deltaX = Math.abs(touchCurrentX - touchStartX);
+        const deltaY = Math.abs(touchCurrentY - touchStartY);
+
+        // 如果移动距离超过阈值，取消长按定时器
+        if (deltaX > touchMoveThreshold || deltaY > touchMoveThreshold) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        }
+    }
 }
 
 function onTableTouchEnd(event) {
