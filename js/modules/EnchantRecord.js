@@ -378,6 +378,10 @@ export default class EnchantRecord {
         let hasOriginProperty = false;
         let hasNonOriginProperty = false;
 
+        // 检查是否同时存在原属性（OriginalElement）和非原属性（OtherElement）
+        let hasOriginalElement = false;
+        let hasOtherElement = false;
+
         for (const propId in propertiesWithCurrentStep) {
             const property = PM.properties[propId];
             if (property && propertiesWithCurrentStep[propId] !== 0) {
@@ -391,11 +395,28 @@ export default class EnchantRecord {
                         hasNonOriginProperty = true;
                     }
                 }
+                
+                // 检查是否为原属性（OriginalElement）
+                if (propId === 'OriginalElement') {
+                    hasOriginalElement = true;
+                }
+                
+                // 检查是否为非原属性（OtherElement）
+                if (propId === 'OtherElement') {
+                    hasOtherElement = true;
+                }
             }
         }
 
         // 如果同时存在原属性和非原属性，则步骤无效
         if (hasOriginProperty && hasNonOriginProperty) {
+            step.isValid = false;
+            step.invalidReason = '同时存在原属性和非原属性';
+            return;
+        }
+        
+        // 如果同时存在原属性（OriginalElement）和非原属性（OtherElement），则步骤无效
+        if (hasOriginalElement && hasOtherElement) {
             step.isValid = false;
             step.invalidReason = '同时存在原属性和非原属性';
             return;
