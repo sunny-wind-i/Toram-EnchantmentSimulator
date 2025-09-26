@@ -848,7 +848,6 @@ function loadPropertyCategoryList() {
                 const propertyItem = document.createElement('div');
                 propertyItem.className = 'property-item';
                 propertyItem.innerHTML = `
-                    <span class="property-name">${property.nameChsFull}${property.isPercentage ? '(%)' : ''}</span>
                     <input type="checkbox" id="prop_${property.id}" data-property-id="${property.id}">
                     <label for="prop_${property.id}">${property.nameChsFull}${property.isPercentage ? '(%)' : ''}</label>
                 `;
