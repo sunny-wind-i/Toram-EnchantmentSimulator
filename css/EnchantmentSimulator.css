@@ -22,61 +22,62 @@ body {
 
 .basic-info-container {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column;
+    gap: 15px;
 }
 
-.basic-info-item {
+.basic-info-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+}
+
+.basic-info-group {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
+    flex-wrap: nowrap;
 }
 
-.basic-info-item label {
-    font-weight: bold;
+.basic-info-group label {
+    font-weight: 600;
     white-space: nowrap;
+    color: #555;
     font-size: 14px;
 }
 
-.basic-info-item input,
-.basic-info-item select {
-    padding: 6px 8px;
+.basic-info-group input,
+.basic-info-group select {
+    padding: 8px 10px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 5px;
     font-size: 14px;
-    text-align: center; /* 文本居中 */
+    text-align: center;
+    min-width: 60px;
 }
 
-.basic-info-item input[type="number"] {
+.basic-info-group input[type="number"] {
     width: 80px;
 }
 
-.basic-info-row select {
-    padding: 6px 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    min-width: 150px;
-    text-align: center; /* 文本居中 */
-}
-
-#enchantmentName {
-    min-width: 150px;
-    text-align: center; /* 文本居中 */
+.basic-info-group select {
+    min-width: 100px;
 }
 
 /* 图标按钮样式 */
 .icon-btn {
     background-color: #f0f0f0;
     border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 6px 10px;
+    border-radius: 5px;
+    padding: 8px 12px;
     cursor: pointer;
     font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
+    min-width: 40px;
 }
 
 .icon-btn:hover {
@@ -103,72 +104,198 @@ body {
     background-color: #ffebee;
 }
 
-.icon-btn.warning {
-    background-color: #ff9800;
-    color: white;
-    border-color: #ff9800;
-}
-
-.icon-btn.warning:hover {
-    background-color: #e68900;
-}
-
 .export-btn,
 .import-btn {
     background-color: #2196F3;
     color: white;
     border: none;
-    padding: 6px 10px;
+    padding: 8px 12px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 14px;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 5px;
     display: flex;
     align-items: center;
     gap: 5px;
+    transition: all 0.2s ease;
+    font-weight: 600;
 }
 
 .export-btn:hover {
     background-color: #0b7dda;
+    transform: translateY(-2px);
 }
 
 .import-btn:hover {
     background-color: #0b7dda;
+    transform: translateY(-2px);
+}
+
+.select-properties-btn {
+    padding: 8px 16px;
+    background-color: #008CBA;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.select-properties-btn:hover {
+    background-color: #007B9A;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .more-config-btn {
     background-color: #9c27b0;
     color: white;
     border: none;
-    padding: 6px 10px;
+    padding: 8px 12px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 14px;
     cursor: pointer;
-    border-radius: 4px;
-    margin-left: auto;
+    border-radius: 5px;
     display: flex;
     align-items: center;
     gap: 5px;
+    transition: all 0.2s ease;
+    font-weight: 600;
 }
 
 .more-config-btn:hover {
     background-color: #7b1fa2;
+    transform: translateY(-2px);
 }
 
-/* 隐藏保存按钮区域多余的右边距 */
-.basic-info-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+/* 响应式设计 - 平板 */
+@media (max-width: 1024px) {
+    .basic-info-row {
+        gap: 10px;
+    }
+    
+    .basic-info-group {
+        gap: 5px;
+    }
+    
+    .basic-info-group label {
+        font-size: 13px;
+    }
+    
+    .basic-info-group input,
+    .basic-info-group select {
+        padding: 6px 8px;
+        font-size: 13px;
+    }
+    
+    .icon-btn {
+        padding: 6px 10px;
+        font-size: 14px;
+        min-width: 36px;
+    }
+    
+    .export-btn,
+    .import-btn,
+    .select-properties-btn,
+    .more-config-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
 }
 
-/* 视图模式选择器 - 隐藏 */
-.view-mode-selector {
-    display: none;
+/* 响应式设计 - 手机 */
+@media (max-width: 768px) {
+    .basic-info-section {
+        padding: 12px;
+    }
+    
+    .basic-info-container {
+        gap: 12px;
+    }
+    
+    .basic-info-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .basic-info-group {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    
+    .basic-info-group label {
+        font-size: 14px;
+        min-width: 80px;
+    }
+    
+    .basic-info-group input,
+    .basic-info-group select {
+        flex: 1;
+        min-width: 100px;
+    }
+    
+    /* 在移动端隐藏部分标签以节省空间 */
+    .basic-info-group .mobile-hide {
+        display: none;
+    }
+}
+
+/* 响应式设计 - 小手机 */
+@media (max-width: 480px) {
+    .basic-info-section {
+        padding: 10px;
+    }
+    
+    .basic-info-container {
+        gap: 10px;
+    }
+    
+    .basic-info-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .basic-info-group label {
+        font-size: 13px;
+        margin-bottom: 0;
+    }
+    
+    .basic-info-group input,
+    .basic-info-group select {
+        width: 100%;
+        padding: 8px;
+    }
+    
+    .icon-btn {
+        padding: 8px;
+        font-size: 16px;
+    }
+    
+    .export-btn,
+    .import-btn,
+    .select-properties-btn,
+    .more-config-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
+    }
+    
+    /* 隐藏工作区顶部的选择属性按钮，因为已经在基础信息区域有了 */
+    .workspace-header {
+        display: none;
+    }
 }
 
 /* 弹窗样式 */
@@ -245,9 +372,9 @@ body {
 .config-item {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     align-items: center;
-    padding: 5px 10px;
+    padding: 6px 10px;
     border-radius: 5px;
     transition: background-color 0.2s ease;
 }
@@ -260,17 +387,18 @@ body {
     font-weight: 600;
     width: 40%;
     color: #555;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .config-item input {
     width: 55%;
-    padding: 6px 8px;
+    padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 15px;
     transition: border-color 0.2s ease;
     text-align: center;
+    min-width: 80px;
 }
 
 .config-item input:focus {
@@ -817,6 +945,7 @@ body {
 #editRepeatedStepsModal .property-name {
     font-weight: 600;
     color: #555;
+    font-size: 15px;
 }
 
 #editRepeatedStepsModal .property-value-input {
@@ -835,10 +964,15 @@ body {
     box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
 
+#editRepeatedStepsModal .value-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 #editRepeatedStepsModal .value-buttons {
     display: flex;
     gap: 5px;
-    margin-left: 10px;
 }
 
 #editRepeatedStepsModal .value-buttons button {
@@ -871,6 +1005,8 @@ body {
     cursor: pointer;
     font-weight: 600;
     transition: all 0.2s ease;
+    min-width: 120px; /* 确保按钮不会换行 */
+    font-size: 14px;
 }
 
 #editRepeatedStepsModal .modal-action-btn:first-child {
@@ -913,6 +1049,7 @@ body {
     font-size: 16px;
     font-weight: 600;
     transition: all 0.2s ease;
+    min-width: 100px; /* 确保取消按钮不会换行 */
 }
 
 #editRepeatedStepsModal .confirm-btn {
@@ -1025,8 +1162,9 @@ body {
     }
     
     .result-section-header {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
         gap: 10px;
     }
     
@@ -1066,21 +1204,22 @@ body {
     .config-item {
         flex-direction: row;
         align-items: center;
-        padding: 8px 5px;
+        padding: 6px 5px;
+        margin-bottom: 6px;
     }
 
     .config-item label {
         width: 60%;
         margin-bottom: 0;
-        font-size: 13px;
+        font-size: 14px;
         padding-right: 5px;
     }
 
     .config-item input {
         width: 40%;
         padding: 6px;
-        font-size: 13px;
-        min-width: 60px;
+        font-size: 14px;
+        min-width: 70px;
     }
 
     .property-selection-modal {
@@ -1126,12 +1265,109 @@ body {
     #editRepeatedStepsModal .cancel-btn {
         padding: 10px 20px;
         font-size: 14px;
+        min-width: 100px; /* 确保取消按钮不会换行 */
     }
     
     .operation-buttons {
         flex-direction: column;
         gap: 10px;
     }
+    
+    .result-section-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .result-section-header h2 {
+        font-size: 16px;
+    }
+    
+    .copy-btn {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+}
+
+/* 导入数据模态框样式 */
+.import-modal {
+    max-width: 500px;
+}
+
+.import-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    margin: 10px 0;
+    resize: vertical;
+}
+
+.import-name-section {
+    margin: 15px 0;
+}
+
+.import-name-section label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #555;
+}
+
+.import-name-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 15px;
+    text-align: center;
+}
+
+.import-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.parse-btn,
+.import-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.parse-btn {
+    background-color: #008CBA;
+    color: white;
+}
+
+.parse-btn:hover {
+    background-color: #007B9A;
+    transform: translateY(-2px);
+}
+
+.import-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.import-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
 }
 
 /* 清空选项弹窗 */

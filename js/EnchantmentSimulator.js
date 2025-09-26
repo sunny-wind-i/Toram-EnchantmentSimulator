@@ -555,6 +555,7 @@ function importData() {
                 if (!shouldOverwrite) {
                     // 用户选择不覆盖，返回到名称编辑界面
                     alert('请修改附魔名称以避免冲突');
+                    // 恢复界面状态，允许用户重新编辑名称
                     return;
                 }
             }
@@ -653,6 +654,9 @@ function bindEvents() {
 
     // 添加导入按钮事件监听器
     document.getElementById('importBtn').addEventListener('click', importData);
+
+    // 选择属性按钮事件
+    document.getElementById('selectPropertiesBtn').addEventListener('click', showPropertySelection);
 
     // 关闭更多配置弹窗事件
     document.querySelector('#moreConfigModal .close').addEventListener('click', closeMoreConfig);
@@ -813,6 +817,7 @@ function loadPropertyCategoryList() {
                 const propertyItem = document.createElement('div');
                 propertyItem.className = 'property-item';
                 propertyItem.innerHTML = `
+                    <span class="property-name">${property.nameChsFull}${property.isPercentage ? '(%)' : ''}</span>
                     <input type="checkbox" id="prop_${property.id}" data-property-id="${property.id}">
                     <label for="prop_${property.id}">${property.nameChsFull}${property.isPercentage ? '(%)' : ''}</label>
                 `;
@@ -2537,8 +2542,8 @@ function showEditRepeatedStepsModal(groupIndex) {
                        data-property-id="${property.id}" 
                        value="${value}" min="-1000" max="1000">
                 <div class="value-buttons">
-                    <button class="decrease-property-value" data-property-id="${property.id}">-1</button>
-                    <button class="increase-property-value" data-property-id="${property.id}">+1</button>
+                    <button class="decrease-property-value value-btn" data-property-id="${property.id}">-1</button>
+                    <button class="increase-property-value value-btn" data-property-id="${property.id}">+1</button>
                 </div>
             </div>
         `;
@@ -3523,25 +3528,30 @@ function createViewModeModal() {
         existingModal.remove();
     }
 
-    // 创建弹窗元素
+    // 创建导入弹窗
     const modal = document.createElement('div');
-    modal.id = 'viewModeModal';
-    modal.className = 'modal hidden';
+    modal.className = 'modal';
     modal.innerHTML = `
-        <div class="modal-content view-mode-modal">
+        <div class="modal-content import-modal">
             <span class="close">&times;</span>
-            <h2>选择视图</h2>
-            <ul>
-                <li data-mode="change">属性变化</li>
-                <li data-mode="value">属性</li>
-                <li data-mode="potential">潜力</li>
-                <li data-mode="material">素材</li>
-            </ul>
+            <h2>导入数据</h2>
+            <p>请粘贴导出的数据:</p>
+            <textarea id="importDataTextarea" rows="5" cols="50" class="import-textarea"></textarea>
+            <div id="importNameSection" class="import-name-section">
+                <label for="importedName">附魔名称:</label>
+                <input type="text" id="importedName" class="import-name-input">
+            </div>
+            <div class="import-buttons">
+                <button id="parseImportDataBtn" class="parse-btn">解析</button>
+                <button id="importDataBtn" class="import-btn">导入</button>
+            </div>
         </div>
     `;
 
     document.body.appendChild(modal);
 
+    // 隐藏导入按钮，初始只显示解析按钮
+    modal.querySelector('#importDataBtn').style.display = 'none';
     // 绑定关闭事件
     modal.querySelector('.close').addEventListener('click', () => {
         modal.classList.add('hidden');
