@@ -642,7 +642,7 @@ function bindEvents() {
     document.getElementById('enchantmentSelector').addEventListener('change', onEnchantmentSelectorChange);
     document.getElementById('newEnchantmentBtn').addEventListener('click', createNewEnchantment);
     document.getElementById('deleteEnchantmentBtn').addEventListener('click', deleteCurrentEnchantment);
-    document.getElementById('saveEnchantmentBtn').addEventListener('click', saveCurrentEnchantment);
+    // document.getElementById('saveEnchantmentBtn').addEventListener('click', saveCurrentEnchantment);
 
     // 更多配置事件
     document.getElementById('moreConfigBtn').addEventListener('click', showMoreConfig);

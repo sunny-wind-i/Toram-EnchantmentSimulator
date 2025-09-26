@@ -89,6 +89,18 @@ body {
     background-color: #e68900;
 }
 
+/* 隐藏保存按钮区域多余的右边距 */
+.basic-info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 视图模式选择器 - 隐藏 */
+.view-mode-selector {
+    display: none;
+}
+
 /* 弹窗样式 */
 .modal {
     display: block;
