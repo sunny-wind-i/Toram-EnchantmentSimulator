@@ -644,18 +644,18 @@ function bindEvents() {
     document.getElementById('newEnchantmentBtn').addEventListener('click', createNewEnchantment);
     document.getElementById('deleteEnchantmentBtn').addEventListener('click', deleteCurrentEnchantment);
     // document.getElementById('saveEnchantmentBtn').addEventListener('click', saveCurrentEnchantment);
-    
+
     // 基础信息事件 (移动端和平板端)
     const mobileEnchantmentName = document.getElementById('enchantmentNameMobile');
     if (mobileEnchantmentName) {
         mobileEnchantmentName.addEventListener('change', onEnchantmentNameChange);
     }
-    
+
     const mobileEquipmentPotential = document.getElementById('equipmentPotentialMobile');
     if (mobileEquipmentPotential) {
         mobileEquipmentPotential.addEventListener('change', onEquipmentPotentialChange);
     }
-    
+
     const mobileSmithingLevel = document.getElementById('smithingLevelMobile');
     if (mobileSmithingLevel) {
         mobileSmithingLevel.addEventListener('change', onSmithingLevelChange);
@@ -673,7 +673,7 @@ function bindEvents() {
 
     // 选择属性按钮事件 (桌面端)
     document.getElementById('selectPropertiesBtn').addEventListener('click', showPropertySelection);
-    
+
     // 选择属性按钮事件 (移动端)
     const mobileSelectPropertiesBtn = document.getElementById('selectPropertiesBtnMobile');
     if (mobileSelectPropertiesBtn) {
@@ -682,7 +682,7 @@ function bindEvents() {
 
     // 更多配置事件 (桌面端)
     document.getElementById('moreConfigBtn').addEventListener('click', showMoreConfig);
-    
+
     // 更多配置事件 (移动端)
     const mobileMoreConfigBtn = document.getElementById('moreConfigBtnMobile');
     if (mobileMoreConfigBtn) {
@@ -2198,12 +2198,12 @@ function updateBasicInfoDisplay() {
     if (mobileEnchantmentName) {
         mobileEnchantmentName.value = enchantRecord.getName();
     }
-    
+
     const mobileEquipmentPotential = document.getElementById('equipmentPotentialMobile');
     if (mobileEquipmentPotential) {
         mobileEquipmentPotential.value = enchantRecord.equipmentPotential;
     }
-    
+
     const mobileSmithingLevel = document.getElementById('smithingLevelMobile');
     if (mobileSmithingLevel) {
         mobileSmithingLevel.value = enchantRecord.smithingLevel;
@@ -2728,7 +2728,7 @@ function updateRepeatedSteps() {
         // 需要增加步骤
         const stepsToAdd = newCount - stepsInGroup.length;
         const templateStep = stepsInGroup[0];
-        
+
         // 创建新步骤
         for (let i = 0; i < stepsToAdd; i++) {
             const newStepData = {
@@ -2738,7 +2738,7 @@ function updateRepeatedSteps() {
                 })),
                 isIgnored: templateStep.isIgnored
             };
-            
+
             // 在组末尾添加新步骤
             const lastIndex = enchantRecord.enchantmentSteps.indexOf(stepsInGroup[stepsInGroup.length - 1]);
             enchantRecord.addEnchantmentStep(newStepData, lastIndex + 1 + i);
@@ -2757,7 +2757,7 @@ function updateRepeatedSteps() {
     // 重新获取分组后的步骤，因为可能已添加或删除了步骤
     const updatedGroupedSteps = groupRepeatedSteps(enchantRecord.enchantmentSteps);
     const updatedGroup = updatedGroupedSteps[currentEditingGroup.groupIndex];
-    
+
     // 更新所有步骤的属性值
     updatedGroup.steps.forEach(step => {
         // 更新每个附魔属性的值
@@ -2768,7 +2768,7 @@ function updateRepeatedSteps() {
                 enchantment.value = enchant.value;
             }
         });
-        
+
         // 重新计算步骤
         enchantRecord.updateEnchantmentStep(step.id, step);
     });
@@ -3575,30 +3575,25 @@ function createViewModeModal() {
         existingModal.remove();
     }
 
-    // 创建导入弹窗
+    // 创建弹窗元素
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    modal.id = 'viewModeModal';
+    modal.className = 'modal hidden';
     modal.innerHTML = `
-        <div class="modal-content import-modal">
+        <div class="modal-content view-mode-modal">
             <span class="close">&times;</span>
-            <h2>导入数据</h2>
-            <p>请粘贴导出的数据:</p>
-            <textarea id="importDataTextarea" rows="5" cols="50" class="import-textarea"></textarea>
-            <div id="importNameSection" class="import-name-section">
-                <label for="importedName">附魔名称:</label>
-                <input type="text" id="importedName" class="import-name-input">
-            </div>
-            <div class="import-buttons">
-                <button id="parseImportDataBtn" class="parse-btn">解析</button>
-                <button id="importDataBtn" class="import-btn">导入</button>
-            </div>
+            <h2>选择视图</h2>
+            <ul>
+                <li data-mode="change">属性变化</li>
+                <li data-mode="value">属性</li>
+                <li data-mode="potential">潜力</li>
+                <li data-mode="material">素材</li>
+            </ul>
         </div>
     `;
 
     document.body.appendChild(modal);
 
-    // 隐藏导入按钮，初始只显示解析按钮
-    modal.querySelector('#importDataBtn').style.display = 'none';
     // 绑定关闭事件
     modal.querySelector('.close').addEventListener('click', () => {
         modal.classList.add('hidden');

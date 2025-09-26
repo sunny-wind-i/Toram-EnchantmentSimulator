@@ -55,7 +55,7 @@ body {
     border-radius: 5px;
     font-size: 15px;
     text-align: center;
-    min-width: 60px;
+    min-width: 65px;
 }
 
 .basic-info-group input[type="number"] {
