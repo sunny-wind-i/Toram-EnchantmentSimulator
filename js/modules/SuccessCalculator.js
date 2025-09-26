@@ -42,15 +42,25 @@ export const calExpectedSuccessRate = (singleSuccessRate, currentProperties, enc
         }
     }
 
-    // 统计所有正属性的数量（值大于0的属性）
+    // 统计所有正属性和负属性的数量
     let positiveCount = 0;
+    let negativeCount = 0;
+
     for (const propId in propertiesWithCurrentStep) {
-        if (propertiesWithCurrentStep[propId] > 0) {
+        const value = propertiesWithCurrentStep[propId];
+        if (value > 0) {
             positiveCount++;
+        } else if (value <= 0) {
+            negativeCount++;
         }
     }
 
-    // 如果没有正属性，期望成功率为0
+    // 特殊情况：如果没有正属性且存在负属性（所有属性都是负属性或者0值属性），期望成功率为100%
+    if (positiveCount === 0 && negativeCount > 0) {
+        return 100;
+    }
+
+    // 如果没有正属性且没有负属性（全是0值属性），期望成功率为0
     if (positiveCount === 0) {
         return 0;
     }
