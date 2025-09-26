@@ -697,7 +697,7 @@ body {
 
 /* 属性选择弹窗样式 */
 .property-selection-modal {
-    max-width: 850px;
+    max-width: 900px;
     padding: 20px;
     max-height: 90vh;
     overflow-y: auto;
@@ -767,8 +767,15 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .property-list {
@@ -810,7 +817,7 @@ body {
     color: #343a40;
 }
 
-.property-item input:checked + label {
+.property-item input:checked+label {
     color: #4CAF50;
     font-weight: 500;
 }
@@ -849,26 +856,73 @@ body {
 }
 
 .selected-property-tag:hover {
-    background-color: #007aa3;
+    background-color: #007B9A;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.selected-property-tag .remove-property,
-.selected-property-tag .move-property-left,
-.selected-property-tag .move-property-right {
+.selected-property-tag .remove-property {
     margin-left: 8px;
     cursor: pointer;
     font-weight: bold;
-    padding: 2px 5px;
+    background: rgba(255, 255, 255, 0.2);
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
 }
 
-.selected-property-tag .remove-property:hover,
-.selected-property-tag .move-property-left:hover,
-.selected-property-tag .move-property-right:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+.selected-property-tag .remove-property:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* 添加确认按钮样式 */
+.confirm-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.confirm-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.enchant-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    position: sticky;
+    top: 0;
+}
+
+.enchant-table td {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.enchant-table td:hover {
+    background-color: #f8f9fa;
+}
+
+.enchant-table td.selected {
+    border: 2px solid #008CBA;
+    background-color: #e6f7ff;
+    box-shadow: inset 0 0 0 1px #008CBA;
 }
 
 /* 视图模式选择弹窗 */
