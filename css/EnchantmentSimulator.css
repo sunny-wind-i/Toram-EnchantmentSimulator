@@ -2013,6 +2013,16 @@ body {
     display: none;
 }
 
+/* 隐藏撤销按钮 */
+#undoBtn {
+    display: none;
+}
+
+/* 隐藏删除按钮，因为移动到了外面 */
+#deleteStepBtn {
+    display: none;
+}
+
 /* 隐藏铁砧等级，因为国服没实装我验证不了计算方法 */
 #config-item-anvilLevel {
     display: none;

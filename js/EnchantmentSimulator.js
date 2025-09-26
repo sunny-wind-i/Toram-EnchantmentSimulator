@@ -789,6 +789,7 @@ function bindEvents() {
     // 操作菜单事件
     document.getElementById('undoBtn').addEventListener('click', undoStep);
     document.getElementById('clearBtn').addEventListener('click', showClearOptions);
+    document.getElementById('deleteRow').addEventListener('click', deleteStep);
     document.getElementById('addStepMenuBtn').addEventListener('click', showAddStepOptions);
     document.getElementById('copyStepBtn').addEventListener('click', copyStep);
     document.getElementById('pasteStepBtn').addEventListener('click', showPasteStepOptions);
@@ -798,7 +799,7 @@ function bindEvents() {
     document.querySelector('#clearOptionsModal .close').addEventListener('click', closeClearOptions);
     document.getElementById('clearCellBtn').addEventListener('click', clearCell);
     document.getElementById('clearStepBtn').addEventListener('click', clearStepValues);
-    document.getElementById('deleteStepBtn').addEventListener('click', deleteStep);
+    // document.getElementById('deleteStepBtn').addEventListener('click', deleteStep);
     document.getElementById('deleteEmptyStepsBtn').addEventListener('click', deleteEmptySteps);
     document.getElementById('deleteAllStepsBtn').addEventListener('click', deleteAllSteps);
 
@@ -3022,6 +3023,7 @@ function clearCell() {
     if (!selectedCell) {
         showMessage('请先选择一个单元格');
         closeClearOptions();
+        closeOperationMenu();
         return;
     }
 
@@ -3033,6 +3035,7 @@ function clearCell() {
     if (propertyId === undefined) {
         showMessage('请选择一个属性单元格');
         closeClearOptions();
+        closeOperationMenu();
         return;
     }
 
@@ -3041,6 +3044,7 @@ function clearCell() {
     if (!step) {
         showMessage('未找到选中的步骤');
         closeClearOptions();
+        closeOperationMenu();
         return;
     }
 
@@ -3049,6 +3053,7 @@ function clearCell() {
     if (!enchantment) {
         showMessage('未找到选中的属性');
         closeClearOptions();
+        closeOperationMenu();
         return;
     }
 
@@ -3065,6 +3070,7 @@ function clearCell() {
     saveCurrentEnchantment();
 
     closeClearOptions();
+    closeOperationMenu();
 }
 
 function clearStepValues() {
@@ -3082,6 +3088,7 @@ function clearStepValues() {
     if (!step) {
         showMessage('未找到选中的步骤');
         closeClearOptions();
+        closeOperationMenu();
         return;
     }
 
@@ -3100,12 +3107,13 @@ function clearStepValues() {
     saveCurrentEnchantment();
 
     closeClearOptions();
+    closeOperationMenu();
 }
 
 function deleteStep() {
     if (!selectedCell) {
         showMessage('请先选择一个单元格');
-        closeClearOptions();
+        closeOperationMenu();
         return;
     }
 
@@ -3116,7 +3124,7 @@ function deleteStep() {
     const step = enchantRecord.enchantmentSteps[stepIndex];
     if (!step) {
         showMessage('未找到选中的步骤');
-        closeClearOptions();
+        closeOperationMenu();
         return;
     }
 
@@ -3129,7 +3137,7 @@ function deleteStep() {
     // 保存到本地存储
     saveCurrentEnchantment();
 
-    closeClearOptions();
+    closeOperationMenu();
 }
 
 function deleteEmptySteps() {
@@ -3141,6 +3149,7 @@ function deleteEmptySteps() {
     if (emptySteps.length === 0) {
         showMessage('没有空白步骤');
         closeClearOptions();
+        closeOperationMenu();
         return;
     }
 
@@ -3156,12 +3165,14 @@ function deleteEmptySteps() {
     saveCurrentEnchantment();
 
     closeClearOptions();
+    closeOperationMenu();
 }
 
 function deleteAllSteps() {
     // 确认是否删除所有步骤
     if (!confirm('确定要删除所有步骤吗？此操作无法撤销！')) {
         closeClearOptions();
+        closeOperationMenu();
         return;
     }
 
@@ -3178,6 +3189,7 @@ function deleteAllSteps() {
     saveCurrentEnchantment();
 
     closeClearOptions();
+    closeOperationMenu();
 }
 
 function showAddStepOptions() {
@@ -3189,6 +3201,7 @@ function addStepAbove() {
     if (!selectedCell) {
         showMessage('请先选择一个单元格');
         closeAddStepOptions();
+        closeOperationMenu();
         return;
     }
 
@@ -3233,12 +3246,14 @@ function addStepAbove() {
     saveCurrentEnchantment();
 
     closeAddStepOptions();
+    closeOperationMenu();
 }
 
 function addStepBelow() {
     if (!selectedCell) {
         showMessage('请先选择一个单元格');
         closeAddStepOptions();
+        closeOperationMenu();
         return;
     }
 
@@ -3284,6 +3299,7 @@ function addStepBelow() {
     saveCurrentEnchantment();
 
     closeAddStepOptions();
+    closeOperationMenu();
 }
 
 function addNewStepAtEnd() {
