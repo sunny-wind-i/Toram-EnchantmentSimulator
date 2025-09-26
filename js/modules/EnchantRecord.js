@@ -155,7 +155,7 @@ export default class EnchantRecord {
         let preEnchantmentPotential = this.equipmentPotential;
         let previousProperties = this.getCurrentProperties();
         let previousEnchantedProperties = {};
-        
+
         // 初始化默认属性状态
         const properties = PM.properties;
         for (const propId in properties) {
@@ -163,15 +163,16 @@ export default class EnchantRecord {
         }
 
         if (this.enchantmentSteps.length > 0) {
-            // 寻找上一个非忽略且有效的步骤
+            // 寻找上一个非忽略的步骤
             let lastValidStep = null;
             for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
-                if (!this.enchantmentSteps[i].isIgnored && this.enchantmentSteps[i].isValid) {
+                // if (!this.enchantmentSteps[i].isIgnored && this.enchantmentSteps[i].isValid) {
+                if (!this.enchantmentSteps[i].isIgnored) {
                     lastValidStep = this.enchantmentSteps[i];
                     break;
                 }
             }
-            
+
             if (lastValidStep) {
                 preEnchantmentPotential = lastValidStep.postEnchantmentPotential;
                 previousProperties = { ...lastValidStep.currentProperties };
@@ -230,7 +231,7 @@ export default class EnchantRecord {
         this._checkStepValidity(enchantmentStep, preEnchantmentPotential, singleSuccessRate);
 
         // 只有当步骤未被忽略时才进行后续的属性更新计算
-        if (!enchantmentStep.isIgnored && enchantmentStep.isValid) {
+        if (!enchantmentStep.isIgnored) {
             // 更新当前属性值和已附魔属性
             const newCurrentProperties = { ...previousProperties };
             const newEnchantedProperties = { ...previousEnchantedProperties };
@@ -267,10 +268,10 @@ export default class EnchantRecord {
 
         // 将步骤添加到记录中
         this.enchantmentSteps.push(enchantmentStep);
-        
+
         // 更新总材料消耗等汇总信息
         this._updateSummaryInfo();
-        
+
         return stepId;
     }
 
@@ -494,8 +495,8 @@ export default class EnchantRecord {
         const stepIndex = this.enchantmentSteps.findIndex(step => step.id === stepId);
         if (stepIndex !== -1) {
             // 保存原始的isIgnored状态（如果未提供新值）
-            const isIgnored = updatedStep.isIgnored !== undefined 
-                ? updatedStep.isIgnored 
+            const isIgnored = updatedStep.isIgnored !== undefined
+                ? updatedStep.isIgnored
                 : this.enchantmentSteps[stepIndex].isIgnored;
 
             // 更新步骤数据
@@ -681,7 +682,7 @@ export default class EnchantRecord {
     addSelectedProperty(property) {
         // 检查是否已存在
         const exists = this.selectedProperties.some(prop => prop.id === property.id);
-        
+
         // 如果不存在且未达到上限，则添加
         if (!exists && this.selectedProperties.length < 8) {
             this.selectedProperties.push(property);
@@ -952,7 +953,7 @@ export default class EnchantRecord {
                 return Object.keys(enchantedProperties).filter(propId => enchantedProperties[propId]);
             }
         }
-        
+
         // 如果没有找到有效的步骤，查找最后一个非忽略步骤
         for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
             const step = this.enchantmentSteps[i];
@@ -961,7 +962,7 @@ export default class EnchantRecord {
                 return Object.keys(enchantedProperties).filter(propId => enchantedProperties[propId]);
             }
         }
-        
+
         // 如果所有步骤都被忽略，或者没有步骤，返回空数组
         return [];
     }
@@ -980,7 +981,7 @@ export default class EnchantRecord {
                 return enchantedProperties[property.id] || false;
             }
         }
-        
+
         // 如果没有找到有效的步骤，查找最后一个非忽略步骤
         for (let i = this.enchantmentSteps.length - 1; i >= 0; i--) {
             const step = this.enchantmentSteps[i];
@@ -989,7 +990,7 @@ export default class EnchantRecord {
                 return enchantedProperties[property.id] || false;
             }
         }
-        
+
         // 如果所有步骤都被忽略，或者没有步骤，返回false
         return false;
     }
@@ -1001,7 +1002,7 @@ export default class EnchantRecord {
     exportCustomData() {
         // 版本号 - 使用字符'A'表示版本1
         let versionPrefix = 'A';
-        
+
         let data = '';
 
         // 附魔名称长度 (1字节)
@@ -1053,7 +1054,7 @@ export default class EnchantRecord {
         // 选中属性数量 (1字节)
         const selectedPropertiesCount = Math.min(this.selectedProperties.length, 8);
         data += String.fromCharCode(selectedPropertiesCount);
-        
+
         // 选中属性ID
         for (let i = 0; i < selectedPropertiesCount; i++) {
             const propId = this.selectedProperties[i].id;
@@ -1070,7 +1071,7 @@ export default class EnchantRecord {
         // 附魔步骤组数据
         for (let i = 0; i < groupCount; i++) {
             const group = groupedSteps[i];
-            
+
             // 组类型和属性数量:
             // Bit 7: 是否为重复组 (1=重复组, 0=单步组)
             // Bit 6: 是否忽略步骤
@@ -1079,7 +1080,7 @@ export default class EnchantRecord {
             const isIgnored = group.steps[0].isIgnored ? 1 : 0; // 使用组内第一个步骤的忽略状态
             const enchantmentCount = Math.min(group.enchantments.length, 63);
             data += String.fromCharCode((isRepeatedGroup << 7) | (isIgnored << 6) | enchantmentCount);
-            
+
             // 如果是重复组，记录重复次数 (1字节)
             if (isRepeatedGroup) {
                 const repeatCount = Math.min(group.count, 255);
@@ -1114,7 +1115,7 @@ export default class EnchantRecord {
         if (steps.length === 0) return [];
 
         const groupedSteps = [];
-        
+
         // 检查两个步骤是否具有相同的附魔变化值
         const areStepsEqual = (step1, step2) => {
             // 检查步骤忽略状态，如果忽略状态不同，则不视为重复步骤
@@ -1172,7 +1173,7 @@ export default class EnchantRecord {
             } else {
                 // 不同则结束当前组，开始新组
                 groupedSteps.push(currentGroup);
-                
+
                 currentGroup = {
                     steps: [steps[i]],
                     enchantments: steps[i].enchantments.filter(enchant => enchant.value !== 0),
@@ -1198,10 +1199,10 @@ export default class EnchantRecord {
             if (!encodedData || encodedData.length < 1) {
                 throw new Error('导入数据格式错误');
             }
-            
+
             const version = encodedData.charAt(0);
             let data;
-            
+
             // 根据版本号处理数据
             switch (version) {
                 case 'A': // 版本A
@@ -1211,7 +1212,7 @@ export default class EnchantRecord {
                 default:
                     throw new Error('不支持的数据版本');
             }
-            
+
             let offset = 0;
 
             // 附魔名称长度
@@ -1262,7 +1263,7 @@ export default class EnchantRecord {
             // 导入选中的属性列表（保持顺序）
             const selectedPropertiesCount = data.charCodeAt(offset++);
             this.selectedProperties = [];
-            
+
             // 创建一个临时数组存储属性ID，稍后转换为属性对象
             const selectedPropertyIds = [];
             for (let i = 0; i < selectedPropertiesCount; i++) {
@@ -1292,7 +1293,7 @@ export default class EnchantRecord {
                 const isRepeatedGroup = (groupFlag & 128) !== 0;
                 const isIgnored = (groupFlag & 64) !== 0;
                 const enchantmentCount = groupFlag & 63;
-                
+
                 // 如果是重复组，读取重复次数
                 let repeatCount = 1;
                 if (isRepeatedGroup) {
