@@ -634,7 +634,7 @@ function updateSelectedPropertiesFromImport() {
 
 // 绑定事件
 function bindEvents() {
-    // 基础信息事件
+    // 基础信息事件 (桌面端)
     document.getElementById('equipmentType').addEventListener('change', onEquipmentTypeChange);
     document.getElementById('playerLevel').addEventListener('change', onPlayerLevelChange);
     document.getElementById('equipmentPotential').addEventListener('change', onEquipmentPotentialChange);
@@ -644,6 +644,22 @@ function bindEvents() {
     document.getElementById('newEnchantmentBtn').addEventListener('click', createNewEnchantment);
     document.getElementById('deleteEnchantmentBtn').addEventListener('click', deleteCurrentEnchantment);
     // document.getElementById('saveEnchantmentBtn').addEventListener('click', saveCurrentEnchantment);
+    
+    // 基础信息事件 (移动端和平板端)
+    const mobileEnchantmentName = document.getElementById('enchantmentNameMobile');
+    if (mobileEnchantmentName) {
+        mobileEnchantmentName.addEventListener('change', onEnchantmentNameChange);
+    }
+    
+    const mobileEquipmentPotential = document.getElementById('equipmentPotentialMobile');
+    if (mobileEquipmentPotential) {
+        mobileEquipmentPotential.addEventListener('change', onEquipmentPotentialChange);
+    }
+    
+    const mobileSmithingLevel = document.getElementById('smithingLevelMobile');
+    if (mobileSmithingLevel) {
+        mobileSmithingLevel.addEventListener('change', onSmithingLevelChange);
+    }
 
     // 更多配置事件
     document.getElementById('moreConfigBtn').addEventListener('click', showMoreConfig);
@@ -655,8 +671,23 @@ function bindEvents() {
     // 添加导入按钮事件监听器
     document.getElementById('importBtn').addEventListener('click', importData);
 
-    // 选择属性按钮事件
+    // 选择属性按钮事件 (桌面端)
     document.getElementById('selectPropertiesBtn').addEventListener('click', showPropertySelection);
+    
+    // 选择属性按钮事件 (移动端)
+    const mobileSelectPropertiesBtn = document.getElementById('selectPropertiesBtnMobile');
+    if (mobileSelectPropertiesBtn) {
+        mobileSelectPropertiesBtn.addEventListener('click', showPropertySelection);
+    }
+
+    // 更多配置事件 (桌面端)
+    document.getElementById('moreConfigBtn').addEventListener('click', showMoreConfig);
+    
+    // 更多配置事件 (移动端)
+    const mobileMoreConfigBtn = document.getElementById('moreConfigBtnMobile');
+    if (mobileMoreConfigBtn) {
+        mobileMoreConfigBtn.addEventListener('click', showMoreConfig);
+    }
 
     // 关闭更多配置弹窗事件
     document.querySelector('#moreConfigModal .close').addEventListener('click', closeMoreConfig);
@@ -2161,6 +2192,22 @@ function updateBasicInfoDisplay() {
     document.getElementById('equipmentPotential').value = enchantRecord.equipmentPotential;
     document.getElementById('smithingLevel').value = enchantRecord.smithingLevel;
     document.getElementById('enchantmentName').value = enchantRecord.getName();
+
+    // 更新移动端和平板端的元素
+    const mobileEnchantmentName = document.getElementById('enchantmentNameMobile');
+    if (mobileEnchantmentName) {
+        mobileEnchantmentName.value = enchantRecord.getName();
+    }
+    
+    const mobileEquipmentPotential = document.getElementById('equipmentPotentialMobile');
+    if (mobileEquipmentPotential) {
+        mobileEquipmentPotential.value = enchantRecord.equipmentPotential;
+    }
+    
+    const mobileSmithingLevel = document.getElementById('smithingLevelMobile');
+    if (mobileSmithingLevel) {
+        mobileSmithingLevel.value = enchantRecord.smithingLevel;
+    }
 
     // 更新更多配置显示
     document.getElementById('baseEquipmentPotential').value = enchantRecord.baseEquipmentPotential;

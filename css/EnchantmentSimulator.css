@@ -17,7 +17,7 @@ body {
     background-color: #ffffff;
     padding: 15px;
     border-bottom: 1px solid #ddd;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .basic-info-container {
@@ -142,8 +142,10 @@ body {
 
 /* 特定按钮颜色覆盖 */
 .export-btn {
-    background-color: #8bc34a; /* 浅绿色 */
-    padding: 8px 12px; /* 修复：确保与其他按钮有相同的padding */
+    background-color: #8bc34a;
+    /* 浅绿色 */
+    padding: 8px 12px;
+    /* 修复：确保与其他按钮有相同的padding */
 }
 
 .export-btn:hover {
@@ -153,8 +155,10 @@ body {
 }
 
 .import-btn {
-    background-color: #8bc34a; /* 浅绿色 */
-    padding: 8px 12px; /* 修复：确保与其他按钮有相同的padding */
+    background-color: #8bc34a;
+    /* 浅绿色 */
+    padding: 8px 12px;
+    /* 修复：确保与其他按钮有相同的padding */
 }
 
 .import-btn:hover {
@@ -164,7 +168,8 @@ body {
 }
 
 .select-properties-btn {
-    background-color: #29b6f6; /* 天蓝色 */
+    background-color: #29b6f6;
+    /* 天蓝色 */
     min-width: 100px;
 }
 
@@ -193,11 +198,11 @@ body {
     .basic-info-section {
         padding: 15px;
     }
-    
+
     .basic-info-container {
         gap: 12px;
     }
-    
+
     .basic-info-row {
         display: flex;
         flex-wrap: wrap;
@@ -206,27 +211,27 @@ body {
         justify-content: center;
         width: 100%;
     }
-    
+
     .basic-info-group {
         gap: 10px;
     }
-    
+
     .basic-info-group label {
         font-size: 15px;
     }
-    
+
     .basic-info-group input,
     .basic-info-group select {
         padding: 6px 8px;
         font-size: 15px;
     }
-    
+
     .icon-btn {
         padding: 6px 10px;
         font-size: 15px;
         min-width: 36px;
     }
-    
+
     /* 确保导出、导入、选择属性和更多配置按钮在中等屏幕上的样式一致 */
     .export-btn,
     .import-btn,
@@ -235,12 +240,12 @@ body {
         padding: 6px 10px;
         font-size: 15px;
     }
-    
+
     /* 在中等屏幕下隐藏桌面专用元素 */
     .desktop-only {
         display: none !important;
     }
-    
+
     /* 在中等屏幕下显示移动端专用元素 */
     .mobile-only {
         display: flex !important;
@@ -255,38 +260,39 @@ body {
     .basic-info-section {
         padding: 15px;
     }
-    
+
     .basic-info-container {
         gap: 12px;
     }
-    
+
     .basic-info-row {
         gap: 12px;
         align-items: center;
         justify-content: center;
-        width: 100%; /* 确保行占满宽度 */
+        width: 100%;
+        /* 确保行占满宽度 */
     }
-    
+
     .basic-info-group {
         gap: 10px;
     }
-    
+
     .basic-info-group label {
         font-size: 15px;
     }
-    
+
     .basic-info-group input,
     .basic-info-group select {
         padding: 6px 8px;
         font-size: 15px;
     }
-    
+
     .icon-btn {
         padding: 6px 10px;
         font-size: 15px;
         min-width: 36px;
     }
-    
+
     /* 确保导出、导入、选择属性和更多配置按钮在平板上的样式一致 */
     .export-btn,
     .import-btn,
@@ -295,12 +301,12 @@ body {
         padding: 6px 10px;
         font-size: 15px;
     }
-    
+
     /* 在中等屏幕下隐藏桌面专用元素 */
     .desktop-only {
         display: none !important;
     }
-    
+
     /* 在中等屏幕下显示移动端专用元素 */
     .mobile-only {
         display: flex !important;
@@ -316,40 +322,43 @@ body {
     .basic-info-section {
         padding: 15px;
     }
-    
+
     .basic-info-container {
-        gap: 5px; /* 减小容器间距 */
+        gap: 5px;
+        /* 减小容器间距 */
     }
-    
+
     .basic-info-row {
         flex-direction: column;
         align-items: stretch;
-        gap: 5px; /* 减小行间距 */
+        gap: 5px;
+        /* 减小行间距 */
         justify-content: flex-start;
     }
-    
+
     .basic-info-group {
         flex-wrap: wrap;
         justify-content: space-between;
-        gap: 5px; /* 减小组间距 */
+        gap: 5px;
+        /* 减小组间距 */
     }
-    
+
     .basic-info-group label {
         font-size: 15px;
         min-width: 70px;
     }
-    
+
     .basic-info-group input,
     .basic-info-group select {
         flex: 1;
         min-width: 100px;
     }
-    
+
     .icon-btn {
         padding: 8px;
         font-size: 15px;
     }
-    
+
     .export-btn,
     .import-btn,
     .select-properties-btn,
@@ -360,23 +369,24 @@ body {
         gap: 5px;
         font-size: 15px;
     }
-    
+
     /* 隐藏工作区顶部的选择属性按钮，因为已经在基础信息区域有了 */
     .workspace-header {
         display: none;
     }
-    
+
     /* 确保移动端按钮在同一行 */
     .mobile-only .basic-info-group {
         flex: 1;
         justify-content: center;
     }
-    
+
     /* 减小移动端按钮之间的间距 */
     .mobile-only {
-        gap: 5px; /* 减小移动端间距 */
+        gap: 5px;
+        /* 减小移动端间距 */
     }
-    
+
     /* 确保移动端按钮组居中 */
     .mobile-only .basic-info-group {
         justify-content: center;
@@ -389,11 +399,11 @@ body {
     .basic-info-section {
         padding: 15px;
     }
-    
+
     .basic-info-container {
         gap: 12px;
     }
-    
+
     .basic-info-row {
         display: flex;
         flex-wrap: wrap;
@@ -402,27 +412,27 @@ body {
         justify-content: center;
         width: 100%;
     }
-    
+
     .basic-info-group {
         gap: 10px;
     }
-    
+
     .basic-info-group label {
         font-size: 15px;
     }
-    
+
     .basic-info-group input,
     .basic-info-group select {
         padding: 6px 8px;
         font-size: 15px;
     }
-    
+
     .icon-btn {
         padding: 6px 10px;
         font-size: 15px;
         min-width: 36px;
     }
-    
+
     /* 确保导出、导入、选择属性和更多配置按钮在小手机上的样式一致 */
     .export-btn,
     .import-btn,
@@ -431,21 +441,22 @@ body {
         padding: 6px 10px;
         font-size: 15px;
     }
-    
+
     /* 在小手机上隐藏桌面专用元素 */
     .desktop-only {
         display: none !important;
     }
-    
+
     /* 在小手机上显示移动端专用元素 */
     .mobile-only {
         display: flex !important;
         align-items: center;
-        justify-content: center; /* 添加居中对齐 */
+        justify-content: center;
+        /* 添加居中对齐 */
         gap: 10px;
         width: 100%;
     }
-    
+
     /* 确保移动端按钮组居中 */
     .mobile-only .basic-info-group {
         justify-content: center;
@@ -622,7 +633,7 @@ body {
 .enchant-table th,
 .enchant-table td {
     border: 1px solid #ddd;
-    padding: 12px;
+    padding: 8px;
     text-align: center;
 }
 
@@ -686,7 +697,7 @@ body {
     border: 1px solid #ddd;
     border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .property-category-header {
@@ -731,7 +742,7 @@ body {
 
 .property-item:hover {
     border-color: #4CAF50;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .property-item input {
@@ -766,7 +777,7 @@ body {
     font-size: 14px;
     display: flex;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .selected-property-tag .remove-property,
@@ -787,7 +798,7 @@ body {
 .selected-property-tag .remove-property:hover,
 .selected-property-tag .move-property-left:hover,
 .selected-property-tag .move-property-right:hover {
-    background-color: rgba(255,255,255,0.2);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .confirm-btn {
@@ -1110,7 +1121,8 @@ body {
     cursor: pointer;
     font-weight: 600;
     transition: all 0.2s ease;
-    min-width: 120px; /* 确保按钮不会换行 */
+    min-width: 120px;
+    /* 确保按钮不会换行 */
     font-size: 14px;
 }
 
@@ -1154,7 +1166,8 @@ body {
     font-size: 16px;
     font-weight: 600;
     transition: all 0.2s ease;
-    min-width: 100px; /* 确保取消按钮不会换行 */
+    min-width: 100px;
+    /* 确保取消按钮不会换行 */
 }
 
 #editRepeatedStepsModal .confirm-btn {
@@ -1227,7 +1240,7 @@ body {
     .basic-info-item {
         width: 100%;
     }
-    
+
     .basic-info-row {
         width: 100%;
     }
@@ -1261,39 +1274,39 @@ body {
     .success-rate-display {
         font-size: 14px;
     }
-    
+
     .result-section {
         margin-bottom: 80px;
     }
-    
+
     .result-section-header {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
     }
-    
+
     .repeat-count-controls .value-input {
         width: 80px;
         padding: 8px;
         font-size: 14px;
     }
-    
+
     .repeat-count-controls .value-btn {
         padding: 6px 12px;
         font-size: 14px;
     }
-    
+
     #editRepeatedStepsModal .property-value-input {
         width: 80px;
         padding: 6px 10px;
     }
-    
+
     #editRepeatedStepsModal .modal-action-btn {
         padding: 8px 15px;
         font-size: 14px;
     }
-    
+
     #editRepeatedStepsModal .confirm-btn,
     #editRepeatedStepsModal .cancel-btn {
         padding: 10px 20px;
@@ -1330,64 +1343,65 @@ body {
     .property-selection-modal {
         padding: 10px;
     }
-    
+
     .modal-content {
         padding: 15px;
     }
-    
+
     .modal-content h2 {
         font-size: 18px;
     }
-    
+
     .paste-step-options-modal .paste-options input {
         width: 60px;
         padding: 8px;
     }
-    
+
     .repeat-count-controls .value-input {
         width: 80px;
         padding: 8px;
         font-size: 14px;
     }
-    
+
     .repeat-count-controls .value-btn {
         padding: 6px 12px;
         font-size: 14px;
     }
-    
+
     #editRepeatedStepsModal .property-value-input {
         width: 80px;
         padding: 6px 10px;
         font-size: 13px;
     }
-    
+
     #editRepeatedStepsModal .modal-action-btn {
         padding: 8px 15px;
         font-size: 14px;
     }
-    
+
     #editRepeatedStepsModal .confirm-btn,
     #editRepeatedStepsModal .cancel-btn {
         padding: 10px 20px;
         font-size: 14px;
-        min-width: 100px; /* 确保取消按钮不会换行 */
+        min-width: 100px;
+        /* 确保取消按钮不会换行 */
     }
-    
+
     .operation-buttons {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .result-section-header {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
     }
-    
+
     .result-section-header h2 {
         font-size: 16px;
     }
-    
+
     .copy-btn {
         padding: 8px 12px;
         font-size: 14px;
@@ -1515,7 +1529,7 @@ body {
     background-color: #f5f8fa;
     color: #d32f2f;
     transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .clear-options-modal li:last-child {
@@ -1563,7 +1577,7 @@ body {
     background-color: #f5f8fa;
     color: #008CBA;
     transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .add-step-options-modal li:last-child {
@@ -1634,7 +1648,7 @@ body {
     background-color: #f5f8fa;
     color: #008CBA;
     transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .paste-step-options-modal li:last-child {
