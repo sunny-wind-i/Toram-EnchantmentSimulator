@@ -1396,6 +1396,8 @@ body {
         padding: 10px 20px;
         font-size: 14px;
         min-width: 100px;
+        height: 40px;
+        margin-top: 0;
         /* 确保取消按钮不会换行 */
     }
 
