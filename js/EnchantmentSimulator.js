@@ -598,7 +598,7 @@ function importData() {
             // 关闭弹窗
             document.body.removeChild(modal);
 
-            alert('导入成功');
+            showMessage('导入成功');
         } catch (error) {
             alert('导入失败: ' + error.message);
         }
@@ -2668,37 +2668,57 @@ function updateRepeatedSteps() {
     const groupedSteps = groupRepeatedSteps(enchantRecord.enchantmentSteps);
     const group = groupedSteps[currentEditingGroup.groupIndex];
 
-    // 获取第一个步骤作为模板
-    const templateStep = group.steps[0];
+    // 获取步骤组中的所有步骤
+    const stepsInGroup = group.steps;
 
-    // 构造新的步骤数据
-    const newSteps = [];
-    for (let i = 0; i < newCount; i++) {
-        const newStep = {
-            enchantments: newEnchantments.map(enchant => ({
-                propertyId: enchant.propertyId,
-                value: enchant.value
-            })),
-            isIgnored: templateStep.isIgnored // 保持忽略状态
-        };
-        newSteps.push(newStep);
+    // 调整步骤数量
+    if (newCount > stepsInGroup.length) {
+        // 需要增加步骤
+        const stepsToAdd = newCount - stepsInGroup.length;
+        const templateStep = stepsInGroup[0];
+        
+        // 创建新步骤
+        for (let i = 0; i < stepsToAdd; i++) {
+            const newStepData = {
+                enchantments: newEnchantments.map(enchant => ({
+                    propertyId: enchant.propertyId,
+                    value: enchant.value
+                })),
+                isIgnored: templateStep.isIgnored
+            };
+            
+            // 在组末尾添加新步骤
+            const lastIndex = enchantRecord.enchantmentSteps.indexOf(stepsInGroup[stepsInGroup.length - 1]);
+            enchantRecord.addEnchantmentStep(newStepData, lastIndex + 1 + i);
+        }
+    } else if (newCount < stepsInGroup.length) {
+        // 需要减少步骤
+        const stepsToRemove = stepsInGroup.length - newCount;
+        // 从组末尾开始删除步骤
+        for (let i = 0; i < stepsToRemove; i++) {
+            const stepIndex = stepsInGroup.length - 1 - i;
+            enchantRecord.removeEnchantmentStep(stepsInGroup[stepIndex].id);
+        }
     }
 
-    // 找到要替换的步骤范围
-    const firstStepIndex = enchantRecord.enchantmentSteps.indexOf(group.steps[0]);
-    const stepCount = group.steps.length;
-
-    // 删除原有的步骤
-    for (let i = 0; i < stepCount; i++) {
-        const step = enchantRecord.enchantmentSteps[firstStepIndex];
-        enchantRecord.removeEnchantmentStep(step.id);
-    }
-
-    // 在相同位置插入新的步骤
-    let insertIndex = firstStepIndex;
-    newSteps.forEach(stepData => {
-        enchantRecord.addEnchantmentStep(stepData, insertIndex);
-        insertIndex++;
+    // 更新所有步骤的属性值（包括原有步骤和新增步骤）
+    // 重新获取分组后的步骤，因为可能已添加或删除了步骤
+    const updatedGroupedSteps = groupRepeatedSteps(enchantRecord.enchantmentSteps);
+    const updatedGroup = updatedGroupedSteps[currentEditingGroup.groupIndex];
+    
+    // 更新所有步骤的属性值
+    updatedGroup.steps.forEach(step => {
+        // 更新每个附魔属性的值
+        newEnchantments.forEach(enchant => {
+            // 查找对应的附魔属性
+            const enchantment = step.enchantments.find(e => e.property.id === enchant.propertyId);
+            if (enchantment) {
+                enchantment.value = enchant.value;
+            }
+        });
+        
+        // 重新计算步骤
+        enchantRecord.updateEnchantmentStep(step.id, step);
     });
 
     // 更新显示
