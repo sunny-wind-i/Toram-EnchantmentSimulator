@@ -294,7 +294,7 @@ function createNewEnchantment() {
 // 删除当前附魔
 function deleteCurrentEnchantment() {
     if (enchantmentList.length <= 1) {
-        alert('至少需要保留一个附魔');
+        showMessage('至少需要保留一个附魔');
         return;
     }
 
@@ -419,7 +419,7 @@ function exportData() {
         const exportedData = enchantRecord.exportCustomData();
         // 复制到剪贴板
         navigator.clipboard.writeText(exportedData).then(() => {
-            alert('导出数据已复制到剪贴板');
+            showMessage('导出数据已复制到剪贴板');
         }).catch(err => {
             // 如果复制失败，显示数据在弹窗中
             showExportData(exportedData);
@@ -460,7 +460,7 @@ function showExportData(data) {
         const textarea = modal.querySelector('#exportDataTextarea');
         textarea.select();
         document.execCommand('copy');
-        alert('已复制到剪贴板');
+        showMessage('已复制到剪贴板');
     };
 
     // 点击弹窗外部关闭
@@ -507,7 +507,7 @@ function importData() {
         const data = textarea.value.trim();
 
         if (!data) {
-            alert('请输入要导入的数据');
+            showMessage('请输入要导入的数据');
             return;
         }
 
@@ -659,6 +659,42 @@ function bindEvents() {
     const mobileSmithingLevel = document.getElementById('smithingLevelMobile');
     if (mobileSmithingLevel) {
         mobileSmithingLevel.addEventListener('change', onSmithingLevelChange);
+    }
+
+    // 同步输入事件，确保桌面端和移动端数据同步
+    // 附魔名称同步
+    if (document.getElementById('enchantmentName') && mobileEnchantmentName) {
+        document.getElementById('enchantmentName').addEventListener('input', function () {
+            mobileEnchantmentName.value = this.value;
+        });
+
+        mobileEnchantmentName.addEventListener('input', function () {
+            document.getElementById('enchantmentName').value = this.value;
+        });
+    }
+
+    // 装备潜力同步
+    const equipmentPotential = document.getElementById('equipmentPotential');
+    if (equipmentPotential && mobileEquipmentPotential) {
+        equipmentPotential.addEventListener('input', function () {
+            mobileEquipmentPotential.value = this.value;
+        });
+
+        mobileEquipmentPotential.addEventListener('input', function () {
+            equipmentPotential.value = this.value;
+        });
+    }
+
+    // 锻冶熟练度同步
+    const smithingLevel = document.getElementById('smithingLevel');
+    if (smithingLevel && mobileSmithingLevel) {
+        smithingLevel.addEventListener('input', function () {
+            mobileSmithingLevel.value = this.value;
+        });
+
+        mobileSmithingLevel.addEventListener('input', function () {
+            smithingLevel.value = this.value;
+        });
     }
 
     // 更多配置事件
@@ -915,7 +951,7 @@ function onPropertyCheckboxChange(event) {
         } else if (!isAlreadySelected) {
             // 超过8个，取消选择
             checkbox.checked = false;
-            alert('最多只能选择8个属性');
+            showMessage('最多只能选择8个属性');
             return;
         }
     } else {
@@ -2135,6 +2171,15 @@ function onEquipmentPotentialChange(event) {
     const potential = parseInt(event.target.value);
     if (!isNaN(potential) && potential > 0) {
         enchantRecord.equipmentPotential = potential;
+
+        // 同步更新所有设备上的装备潜力显示
+        // document.getElementById('equipmentPotential').value = potential;
+
+        // const mobileEquipmentPotential = document.getElementById('equipmentPotentialMobile');
+        // if (mobileEquipmentPotential) {
+        //     mobileEquipmentPotential.value = potential;
+        // }
+
         enchantRecord._recalculateAllSteps();
         updateDisplay();
         saveCurrentEnchantment(); // 保存到本地存储
@@ -2198,7 +2243,7 @@ function updateBasicInfoDisplay() {
     document.getElementById('smithingLevel').value = enchantRecord.smithingLevel;
     document.getElementById('enchantmentName').value = enchantRecord.getName();
 
-    // 更新移动端和平板端的元素
+    // 更新移动端元素
     const mobileEnchantmentName = document.getElementById('enchantmentNameMobile');
     if (mobileEnchantmentName) {
         mobileEnchantmentName.value = enchantRecord.getName();
@@ -2225,6 +2270,8 @@ function updateBasicInfoDisplay() {
     document.getElementById('understandingMedicine').value = enchantRecord.understandingSkills.medicine;
     document.getElementById('understandingMana').value = enchantRecord.understandingSkills.mana;
 
+    // 更新附魔选择器
+    // updateEnchantmentSelector();
 }
 
 function showMoreConfig() {
@@ -3706,7 +3753,7 @@ function copyResult() {
     document.body.removeChild(textarea);
 
     // 提示用户
-    alert('结果已复制到剪贴板');
+    showMessage('结果已复制到剪贴板');
 }
 
 // 显示属性编辑弹窗
