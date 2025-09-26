@@ -1141,7 +1141,7 @@ body {
 }
 
 #editRepeatedStepsModal .modal-section {
-    margin-bottom: 25px;
+    margin-bottom: 8px;
     padding-bottom: 0px;
     border-bottom: 1px solid #eee;
 }
@@ -1154,9 +1154,10 @@ body {
 
 #editRepeatedStepsModal .modal-section h3 {
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-bottom: 0px;
     color: #333;
-    padding-bottom: 10px;
+    padding-top: 8px;
+    padding-bottom: 8px;
     border-bottom: 1px solid #f0f0f0;
 }
 
@@ -1164,7 +1165,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 12px;
+    padding: 8px 12px;
     border-bottom: 1px solid #f0f0f0;
 }
 
@@ -1266,22 +1267,24 @@ body {
     display: flex;
     gap: 15px;
     justify-content: center;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
+    padding-top: 8px;
+    margin-bottom: 0px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
 }
 
 #editRepeatedStepsModal .confirm-btn,
 #editRepeatedStepsModal .cancel-btn {
-    padding: 12px 25px;
+    padding: 5px 20px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     transition: all 0.2s ease;
     min-width: 100px;
-    /* 确保取消按钮不会换行 */
+    margin-top: 0;
+    height: 40px;
 }
 
 #editRepeatedStepsModal .confirm-btn {
