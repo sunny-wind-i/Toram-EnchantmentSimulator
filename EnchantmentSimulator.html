@@ -25,13 +25,13 @@
                     <button id="newEnchantmentBtn" class="icon-btn primary" title="新建附魔">新建</button>
                     <button id="deleteEnchantmentBtn" class="icon-btn danger" title="删除附魔">删除</button>
                 </div>
-                
+
                 <div class="basic-info-group desktop-only">
                     <label for="enchantmentName">附魔名称:</label>
                     <input type="text" id="enchantmentName" value="自定义附魔1">
                 </div>
             </div>
-            
+
             <!-- 平板端第二行：附魔名称 -->
             <!-- 手机端第二行：附魔名称 -->
             <div class="basic-info-row row-2 mobile-only">
@@ -40,7 +40,7 @@
                     <input type="text" id="enchantmentNameMobile" value="自定义附魔1">
                 </div>
             </div>
-            
+
             <!-- 电脑端第二行：装备类型、玩家等级、装备潜力、锻冶熟练度 -->
             <!-- 平板端第三行：装备类型、玩家等级 -->
             <!-- 手机端第三行：装备类型、玩家等级 -->
@@ -54,23 +54,23 @@
                         <option value="armor">身体装备</option>
                     </select>
                 </div>
-                
+
                 <div class="basic-info-group">
                     <label for="playerLevel">玩家等级:</label>
                     <input type="number" id="playerLevel" min="200" value="290">
                 </div>
-                
+
                 <div class="basic-info-group desktop-only">
                     <label for="equipmentPotential">装备潜力:</label>
                     <input type="number" id="equipmentPotential" min="1" value="100">
                 </div>
-                
+
                 <div class="basic-info-group desktop-only">
                     <label for="smithingLevel">锻冶熟练度:</label>
                     <input type="number" id="smithingLevel" min="0" value="0">
                 </div>
             </div>
-            
+
             <!-- 平板端第四行：装备潜力、锻冶熟练度 -->
             <!-- 手机端第四行：装备潜力、锻冶熟练度 -->
             <div class="basic-info-row row-4 tablet-only mobile-only">
@@ -78,29 +78,29 @@
                     <label for="equipmentPotentialMobile">装备潜力:</label>
                     <input type="number" id="equipmentPotentialMobile" min="1" value="100">
                 </div>
-                
+
                 <div class="basic-info-group">
                     <label for="smithingLevelMobile">锻冶熟练度:</label>
                     <input type="number" id="smithingLevelMobile" min="0" value="0">
                 </div>
             </div>
-            
+
             <!-- 电脑端第三行：导入、导出、属性选择、更多配置 -->
             <div class="basic-info-row row-5">
                 <div class="basic-info-group">
                     <button id="exportBtn" class="export-btn">导出</button>
                     <button id="importBtn" class="import-btn">导入</button>
                 </div>
-                
+
                 <div class="basic-info-group desktop-only">
                     <button id="selectPropertiesBtn" class="select-properties-btn">选择属性</button>
                 </div>
-                
+
                 <div class="basic-info-group desktop-only">
                     <button id="moreConfigBtn" class="more-config-btn">⚙️ 更多配置</button>
                 </div>
             </div>
-            
+
             <!-- 移动端专用行：属性选择、更多配置 (单列堆叠) -->
             <div class="basic-info-row row-6 mobile-only">
                 <div class="basic-info-group">
@@ -124,7 +124,7 @@
                     <input type="number" id="baseEquipmentPotential" min="1" value="1">
                 </div>
 
-                <div class="config-item">
+                <div class="config-item" id="config-item-anvilLevel">
                     <label for="anvilLevel">铁砧技能等级:</label>
                     <input type="number" id="anvilLevel" min="0" max="40" value="40">
                 </div>
@@ -312,7 +312,7 @@
         <div class="modal-content edit-repeated-steps-modal">
             <span class="close">&times;</span>
             <h2>编辑重复步骤</h2>
-            
+
             <div class="modal-section">
                 <h3>重复次数</h3>
                 <div class="input-group repeat-count-controls">
@@ -321,12 +321,12 @@
                     <button id="increaseRepeatCountBtn" class="value-btn">+</button>
                 </div>
             </div>
-            
+
             <div class="modal-section">
                 <h3>属性值</h3>
                 <div id="repeatedStepProperties" class="repeated-step-properties"></div>
             </div>
-            
+
             <div class="modal-section">
                 <h3>操作</h3>
                 <div class="operation-buttons">
@@ -334,7 +334,7 @@
                     <button id="deleteRepeatedStepsBtn" class="modal-action-btn delete-btn">删除步骤</button>
                 </div>
             </div>
-            
+
             <div class="modal-buttons">
                 <button id="confirmRepeatedStepsBtn" class="confirm-btn">确认</button>
                 <button id="cancelRepeatedStepsBtn" class="cancel-btn">取消</button>

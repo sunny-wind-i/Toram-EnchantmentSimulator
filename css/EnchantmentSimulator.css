@@ -1960,3 +1960,8 @@ body {
         font-size: 12px;
     }
 }
+
+
+#config-item-anvilLevel {
+    display: none;
+}
