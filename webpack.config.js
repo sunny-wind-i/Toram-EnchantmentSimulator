@@ -9,6 +9,7 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         filename: 'static/js/EnchantmentSimulator.js',
         clean: true, // 每次打包前清理 /dist 文件夹
+        publicPath: '/', // 添加这一行确保正确的资源路径
     },
     // 加载器
     module: {
@@ -39,16 +40,6 @@ module.exports = {
             filename: 'EnchantmentSimulator.html',
         }),
     ],
-    // 开发服务器
-    devServer: {
-        static: {
-            directory: path.join(__dirname, 'dist'),
-        },
-        compress: true,
-        host: 'localhost',
-        port: 9000,
-        open: true, // 自动打开浏览器
-    },
     // 模式
     mode: 'development'
 };
