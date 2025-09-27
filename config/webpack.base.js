@@ -3,10 +3,12 @@ const path = require('path');
 
 module.exports = {
     // 入口文件
-    entry: './src/js/EnchantmentSimulator.js',
+    entry: {
+        app: './src/js/EnchantmentSimulator.js'
+    },
     // 输出文件
     output: {
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, '../dist'),
         filename: 'static/js/EnchantmentSimulator.js',
         clean: true, // 每次打包前清理 /dist 文件夹
         publicPath: '/', // 添加这一行确保正确的资源路径
@@ -36,10 +38,8 @@ module.exports = {
     // 插件
     plugins: [
         new HtmlWebpackPlugin({
-            template: path.resolve(__dirname, 'public/EnchantmentSimulator.html'),
+            template: path.resolve(__dirname, '../public/EnchantmentSimulator.html'),
             filename: 'EnchantmentSimulator.html',
         }),
     ],
-    // 模式
-    mode: 'development'
 };
