@@ -16,14 +16,6 @@ module.exports = {
     // 加载器
     module: {
         rules: [
-            // 处理 CSS 文件
-            {
-                test: /\.css$/,
-                use: [
-                    'style-loader',
-                    'css-loader'
-                ]
-            },
             // babel
             {
                 test: /\.m?js$/,
