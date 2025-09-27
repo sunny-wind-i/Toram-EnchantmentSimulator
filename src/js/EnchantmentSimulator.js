@@ -17,36 +17,114 @@ let enchantmentList = []; // 存储附魔列表
 let currentEnchantmentIndex = 0; // 当前选中的附魔索引
 const PM = new PropertyManager();
 
-// 初始化
+// 初始化函数
+function initializeApp() {
+    try {
+        // 检查是否已经初始化
+        if (window.enchantSimulatorInitialized) {
+            console.log('附魔模拟器已初始化，跳过重复初始化');
+            return;
+        }
+        
+        console.log('开始初始化附魔模拟器');
+        
+        // 标记已初始化
+        window.enchantSimulatorInitialized = true;
+
+        // 更严格的 MediaWiki 环境检测
+        const isMediaWikiEnvironment = typeof mw !== 'undefined' && 
+                                      mw !== null && 
+                                      typeof mw.config !== 'undefined' && 
+                                      mw.config !== null;
+
+        if (isMediaWikiEnvironment) {
+            console.log('检测到 MediaWiki 环境，启用兼容模式');
+        }
+
+        propertyManager = new PropertyManager();
+
+        // 初始化附魔记录
+        initializeEnchantRecord();
+
+        // 绑定事件
+        bindEvents();
+
+        // 更新选中属性
+        updateSelectedPropertiesFromImport();
+        // 更新显示
+        updateDisplay();
+        // 更新基础信息
+        updateBasicInfoDisplay();
+        // 更新表格表头
+        updateTableHeader();
+        // 更新附魔选择器
+        updateEnchantmentSelector();
+
+        console.log('附魔模拟器初始化完成', enchantRecord);
+    } catch (error) {
+        console.error('初始化附魔模拟器时出错:', error);
+        // 即使在 MediaWiki 环境中出错，也尝试基本初始化
+        try {
+            propertyManager = new PropertyManager();
+            initializeEnchantRecord();
+            bindEvents();
+            updateDisplay();
+            updateBasicInfoDisplay();
+            updateTableHeader();
+            updateEnchantmentSelector();
+        } catch (fallbackError) {
+            console.error('备用初始化也失败了:', fallbackError);
+        }
+    }
+}
+
+// 提供一个公共函数供外部调用
+window.initializeEnchantSimulator = function() {
+    console.log('通过公共函数初始化附魔模拟器');
+    initializeApp();
+};
+
+// DOMContentLoaded 事件处理
 document.addEventListener('DOMContentLoaded', function () {
-    propertyManager = new PropertyManager();
-
-    // 初始化附魔记录
-    initializeEnchantRecord();
-
-    // 绑定事件
-    bindEvents();
-
-    // 更新显示
-    // updateDisplay();
-    // updateBasicInfoDisplay();
-    // updatePropertyButtons();
-    // updateTableHeader();
-
-    // 更新选中属性
-    updateSelectedPropertiesFromImport();
-    // 更新显示
-    updateDisplay();
-    // 更新基础信息
-    updateBasicInfoDisplay();
-    // 更新表格表头
-    updateTableHeader();
-    // 更新附魔选择器
-    updateEnchantmentSelector();
-
-    console.log('ini\n', enchantRecord);
-
+    console.log('DOMContentLoaded事件触发');
+    initializeApp();
 });
+
+// 兼容 MediaWiki 环境的初始化方法
+if (typeof mw !== 'undefined' && mw.hook) {
+    console.log('注册MediaWiki钩子');
+    // MediaWiki 环境下使用 mw.hook
+    mw.hook('wikipage.content').add(function () {
+        console.log('MediaWiki内容加载完成');
+        setTimeout(initializeApp, 0);
+    });
+    
+    // 注册ResourceLoader加载完成事件
+    mw.hook('resourceLoader.modulesDone').add(function () {
+        console.log('ResourceLoader模块加载完成');
+        setTimeout(initializeApp, 0);
+    });
+} 
+
+// 检查是否页面已经加载完成
+if (document.readyState === 'loading') {
+    // 页面仍在加载中
+    console.log('页面仍在加载中，等待DOMContentLoaded');
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    // 页面已经加载完成
+    console.log('页面已加载完成，立即初始化');
+    setTimeout(initializeApp, 0);
+}
+
+// 添加 jQuery ready 兼容性检查
+if (typeof jQuery !== 'undefined') {
+    console.log('检测到jQuery，注册ready事件');
+    jQuery(document).ready(function () {
+        console.log('jQuery ready事件触发');
+        initializeApp();
+    });
+}
 
 // 初始化附魔记录
 function initializeEnchantRecord() {
