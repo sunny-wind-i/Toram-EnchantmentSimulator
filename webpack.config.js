@@ -1,3 +1,4 @@
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
 module.exports = {
@@ -33,11 +34,21 @@ module.exports = {
     },
     // 插件
     plugins: [
-        // new webpack.ProvidePlugin({
-        //     $: 'jquery',
-        //     jQuery: 'jquery'
-        // })
+        new HtmlWebpackPlugin({
+            template: path.resolve(__dirname, 'public/EnchantmentSimulator.html'),
+            filename: 'EnchantmentSimulator.html',
+        }),
     ],
+    // 开发服务器
+    devServer: {
+        static: {
+            directory: path.join(__dirname, 'dist'),
+        },
+        compress: true,
+        host: 'localhost',
+        port: 9000,
+        open: true, // 自动打开浏览器
+    },
     // 模式
     mode: 'development'
 };
