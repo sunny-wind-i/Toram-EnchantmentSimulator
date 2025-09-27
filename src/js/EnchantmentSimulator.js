@@ -2315,6 +2315,9 @@ function onEnchantmentNameChange() {
         updateEnchantmentSelector();
     }
 
+    // 更新结果展示
+    updateResultDisplay();
+
     // 保存到本地存储
     saveCurrentEnchantment();
 }

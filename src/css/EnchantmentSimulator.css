@@ -609,7 +609,7 @@ body {
 /* 工作区 */
 .workspace-section {
     background-color: #fff;
-    padding: 15px;
+    padding: 12px;
     margin-bottom: 5px;
     /* 为悬浮工具栏留出空间 */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -618,7 +618,7 @@ body {
 /* 结果展示区 */
 .result-section {
     background-color: #fff;
-    padding: 15px;
+    padding: 12px;
     margin-top: 5px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -626,8 +626,8 @@ body {
 
 /* 附魔结果区域 */
 .result-section {
-    margin-top: 20px;
-    padding: 20px;
+    margin-top: 0px;
+    padding: 12px;
     border-top: 1px solid #ddd;
 }
 
@@ -1138,7 +1138,7 @@ body {
 /* 结果展示区 */
 .result-section {
     background-color: #fff;
-    padding: 20px;
+    padding: 12px;
     margin-bottom: 70px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
