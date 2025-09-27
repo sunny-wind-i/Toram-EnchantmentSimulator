@@ -5,9 +5,10 @@ const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 
 module.exports = merge(common, {
   mode: 'production',
-  devtool: 'source-map',
+  devtool: false, // 禁用 source map
   output: {
-    publicPath: './'
+    publicPath: './',
+    filename: 'static/js/EnchantmentSimulator.js', // 固定文件名
   },
   module: {
     rules: [
@@ -23,8 +24,7 @@ module.exports = merge(common, {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: 'static/css/[name].[contenthash].css',
-      chunkFilename: 'static/css/[id].[contenthash].css'
+      filename: 'static/css/EnchantmentSimulator.css', // 固定文件名
     })
   ],
   optimization: {
