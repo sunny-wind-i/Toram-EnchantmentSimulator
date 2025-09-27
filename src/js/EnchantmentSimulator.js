@@ -25,17 +25,17 @@ function initializeApp() {
             console.log('附魔模拟器已初始化，跳过重复初始化');
             return;
         }
-        
+
         console.log('开始初始化附魔模拟器');
-        
+
         // 标记已初始化
         window.enchantSimulatorInitialized = true;
 
         // 更严格的 MediaWiki 环境检测
-        const isMediaWikiEnvironment = typeof mw !== 'undefined' && 
-                                      mw !== null && 
-                                      typeof mw.config !== 'undefined' && 
-                                      mw.config !== null;
+        const isMediaWikiEnvironment = typeof mw !== 'undefined' &&
+            mw !== null &&
+            typeof mw.config !== 'undefined' &&
+            mw.config !== null;
 
         if (isMediaWikiEnvironment) {
             console.log('检测到 MediaWiki 环境，启用兼容模式');
@@ -79,7 +79,7 @@ function initializeApp() {
 }
 
 // 提供一个公共函数供外部调用
-window.initializeEnchantSimulator = function() {
+window.initializeEnchantSimulator = function () {
     console.log('通过公共函数初始化附魔模拟器');
     initializeApp();
 };
@@ -98,13 +98,13 @@ if (typeof mw !== 'undefined' && mw.hook) {
         console.log('MediaWiki内容加载完成');
         setTimeout(initializeApp, 0);
     });
-    
+
     // 注册ResourceLoader加载完成事件
     mw.hook('resourceLoader.modulesDone').add(function () {
         console.log('ResourceLoader模块加载完成');
         setTimeout(initializeApp, 0);
     });
-} 
+}
 
 // 检查是否页面已经加载完成
 if (document.readyState === 'loading') {
@@ -839,6 +839,7 @@ function bindEvents() {
     document.getElementById('enchantTable').addEventListener('touchstart', onTableTouchStart);
     document.getElementById('enchantTable').addEventListener('touchmove', onTableTouchMove);
     document.getElementById('enchantTable').addEventListener('touchend', onTableTouchEnd);
+    document.getElementById('tableViewModeBtn').addEventListener('click', switchViewMode);
 
     // 悬浮工具栏事件
     document.getElementById('addStepBtn').addEventListener('click', onAddStep);
@@ -1224,8 +1225,8 @@ function updateSelectedPropertiesDisplay() {
 function updateDisplay() {
     updateTableContent();
     updateSuccessRate();
+    updateTableSuccessRate(); // 更新表格下方的成功率显示
     updateResultDisplay();
-    console.log('dip\n', enchantRecord);
 }
 
 // 检查两个步骤是否具有相同的附魔变化值
@@ -1964,6 +1965,21 @@ function updateTableContent() {
                 selectedCell = cell;
             }
         });
+    }
+}
+
+// 更新表格下方的成功率显示
+function updateTableSuccessRate() {
+    const successRateElement = document.getElementById('tableSuccessRateValue');
+    if (successRateElement && enchantRecord.finalSingleSuccessRate !== null) {
+        const rate = Math.round(enchantRecord.finalSingleSuccessRate);
+        if (rate > 999) {
+            successRateElement.textContent = '>999';
+        } else {
+            successRateElement.textContent = rate;
+        }
+    } else if (successRateElement) {
+        successRateElement.textContent = 'N/A';
     }
 }
 
