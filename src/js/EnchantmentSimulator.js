@@ -3,6 +3,7 @@ import PropertyManager from './modules/PropertyManager.js';
 import { attrNumToActualNum, calAttrMaxLimit, calAttrMinLimit } from './modules/PotentialCalculator.js';
 import EquipmentType from './modules/EquipmentType.js';
 import EnchantType from './modules/EnchantType.js';
+import '../css/EnchantmentSimulator.css';
 
 // 全局变量
 let enchantRecord = null;
