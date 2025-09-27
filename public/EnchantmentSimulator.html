@@ -9,367 +9,369 @@
 </head>
 
 <body>
-    <!-- 基础信息区 -->
-    <div class="basic-info-section">
-        <div class="basic-info-container">
-            <!-- 电脑端第一行：选择附魔、新建、删除、附魔名称 -->
-            <!-- 平板端第一行：选择附魔、新建、删除 -->
-            <!-- 手机端第一行：选择附魔、新建、删除 -->
-            <!-- 平板端第二行：附魔名称 -->
-            <!-- 手机端第二行：附魔名称 -->
-            <div class="basic-info-row row-1">
-                <div class="basic-info-group">
-                    <label for="enchantmentSelector">选择附魔:</label>
-                    <select id="enchantmentSelector"></select>
-                    <button id="newEnchantmentBtn" class="icon-btn primary" title="新建附魔">新建</button>
-                    <button id="deleteEnchantmentBtn" class="icon-btn danger" title="删除附魔">删除</button>
+    <div class="EnchantmentSimulatorDiv">
+        <!-- 基础信息区 -->
+        <div class="basic-info-section">
+            <div class="basic-info-container">
+                <!-- 电脑端第一行：选择附魔、新建、删除、附魔名称 -->
+                <!-- 平板端第一行：选择附魔、新建、删除 -->
+                <!-- 手机端第一行：选择附魔、新建、删除 -->
+                <!-- 平板端第二行：附魔名称 -->
+                <!-- 手机端第二行：附魔名称 -->
+                <div class="basic-info-row row-1">
+                    <div class="basic-info-group">
+                        <label for="enchantmentSelector">选择附魔:</label>
+                        <select id="enchantmentSelector"></select>
+                        <button id="newEnchantmentBtn" class="icon-btn primary" title="新建附魔">新建</button>
+                        <button id="deleteEnchantmentBtn" class="icon-btn danger" title="删除附魔">删除</button>
+                    </div>
+
+                    <div class="basic-info-group desktop-only">
+                        <label for="enchantmentName">附魔名称:</label>
+                        <input type="text" id="enchantmentName" value="自定义附魔1">
+                    </div>
                 </div>
 
-                <div class="basic-info-group desktop-only">
-                    <label for="enchantmentName">附魔名称:</label>
-                    <input type="text" id="enchantmentName" value="自定义附魔1">
-                </div>
-            </div>
-
-            <!-- 平板端第二行：附魔名称 -->
-            <!-- 手机端第二行：附魔名称 -->
-            <div class="basic-info-row row-2 mobile-only">
-                <div class="basic-info-group">
-                    <label for="enchantmentNameMobile">附魔名称:</label>
-                    <input type="text" id="enchantmentNameMobile" value="自定义附魔1">
-                </div>
-            </div>
-
-            <!-- 电脑端第二行：装备类型、玩家等级、装备潜力、锻冶熟练度 -->
-            <!-- 平板端第三行：装备类型、玩家等级 -->
-            <!-- 手机端第三行：装备类型、玩家等级 -->
-            <!-- 平板端第四行：装备潜力、锻冶熟练度 -->
-            <!-- 手机端第四行：装备潜力、锻冶熟练度 -->
-            <div class="basic-info-row row-3">
-                <div class="basic-info-group">
-                    <label for="equipmentType">装备类型:</label>
-                    <select id="equipmentType">
-                        <option value="weapon">武器</option>
-                        <option value="armor">身体装备</option>
-                    </select>
+                <!-- 平板端第二行：附魔名称 -->
+                <!-- 手机端第二行：附魔名称 -->
+                <div class="basic-info-row row-2 mobile-only">
+                    <div class="basic-info-group">
+                        <label for="enchantmentNameMobile">附魔名称:</label>
+                        <input type="text" id="enchantmentNameMobile" value="自定义附魔1">
+                    </div>
                 </div>
 
-                <div class="basic-info-group">
-                    <label for="playerLevel">玩家等级:</label>
-                    <input type="number" id="playerLevel" min="200" value="290">
+                <!-- 电脑端第二行：装备类型、玩家等级、装备潜力、锻冶熟练度 -->
+                <!-- 平板端第三行：装备类型、玩家等级 -->
+                <!-- 手机端第三行：装备类型、玩家等级 -->
+                <!-- 平板端第四行：装备潜力、锻冶熟练度 -->
+                <!-- 手机端第四行：装备潜力、锻冶熟练度 -->
+                <div class="basic-info-row row-3">
+                    <div class="basic-info-group">
+                        <label for="equipmentType">装备类型:</label>
+                        <select id="equipmentType">
+                            <option value="weapon">武器</option>
+                            <option value="armor">身体装备</option>
+                        </select>
+                    </div>
+
+                    <div class="basic-info-group">
+                        <label for="playerLevel">玩家等级:</label>
+                        <input type="number" id="playerLevel" min="200" value="290">
+                    </div>
+
+                    <div class="basic-info-group desktop-only">
+                        <label for="equipmentPotential">装备潜力:</label>
+                        <input type="number" id="equipmentPotential" min="1" value="100">
+                    </div>
+
+                    <div class="basic-info-group desktop-only">
+                        <label for="smithingLevel">锻冶熟练度:</label>
+                        <input type="number" id="smithingLevel" min="0" value="0">
+                    </div>
                 </div>
 
-                <div class="basic-info-group desktop-only">
-                    <label for="equipmentPotential">装备潜力:</label>
-                    <input type="number" id="equipmentPotential" min="1" value="100">
+                <!-- 平板端第四行：装备潜力、锻冶熟练度 -->
+                <!-- 手机端第四行：装备潜力、锻冶熟练度 -->
+                <div class="basic-info-row row-4 tablet-only mobile-only">
+                    <div class="basic-info-group">
+                        <label for="equipmentPotentialMobile">装备潜力:</label>
+                        <input type="number" id="equipmentPotentialMobile" min="1" value="100">
+                    </div>
+
+                    <div class="basic-info-group">
+                        <label for="smithingLevelMobile">锻冶熟练度:</label>
+                        <input type="number" id="smithingLevelMobile" min="0" value="0">
+                    </div>
                 </div>
 
-                <div class="basic-info-group desktop-only">
-                    <label for="smithingLevel">锻冶熟练度:</label>
-                    <input type="number" id="smithingLevel" min="0" value="0">
-                </div>
-            </div>
+                <!-- 电脑端第三行：导入、导出、属性选择、更多配置 -->
+                <div class="basic-info-row row-5">
+                    <div class="basic-info-group">
+                        <button id="exportBtn" class="export-btn">导出</button>
+                        <button id="importBtn" class="import-btn">导入</button>
+                    </div>
 
-            <!-- 平板端第四行：装备潜力、锻冶熟练度 -->
-            <!-- 手机端第四行：装备潜力、锻冶熟练度 -->
-            <div class="basic-info-row row-4 tablet-only mobile-only">
-                <div class="basic-info-group">
-                    <label for="equipmentPotentialMobile">装备潜力:</label>
-                    <input type="number" id="equipmentPotentialMobile" min="1" value="100">
-                </div>
+                    <div class="basic-info-group desktop-only">
+                        <button id="selectPropertiesBtn" class="select-properties-btn">选择属性</button>
+                    </div>
 
-                <div class="basic-info-group">
-                    <label for="smithingLevelMobile">锻冶熟练度:</label>
-                    <input type="number" id="smithingLevelMobile" min="0" value="0">
-                </div>
-            </div>
-
-            <!-- 电脑端第三行：导入、导出、属性选择、更多配置 -->
-            <div class="basic-info-row row-5">
-                <div class="basic-info-group">
-                    <button id="exportBtn" class="export-btn">导出</button>
-                    <button id="importBtn" class="import-btn">导入</button>
+                    <div class="basic-info-group desktop-only">
+                        <button id="moreConfigBtn" class="more-config-btn">⚙️ 更多配置</button>
+                    </div>
                 </div>
 
-                <div class="basic-info-group desktop-only">
-                    <button id="selectPropertiesBtn" class="select-properties-btn">选择属性</button>
-                </div>
-
-                <div class="basic-info-group desktop-only">
-                    <button id="moreConfigBtn" class="more-config-btn">⚙️ 更多配置</button>
-                </div>
-            </div>
-
-            <!-- 移动端专用行：属性选择、更多配置 (单列堆叠) -->
-            <div class="basic-info-row row-6 mobile-only">
-                <div class="basic-info-group">
-                    <button id="selectPropertiesBtnMobile" class="select-properties-btn">选择属性</button>
-                    <button id="moreConfigBtnMobile" class="more-config-btn">⚙️ 更多配置</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 更多配置弹窗 -->
-    <div id="moreConfigModal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>更多配置</h2>
-
-            <div class="config-group">
-                <h3>基础设置</h3>
-                <div class="config-item">
-                    <label for="baseEquipmentPotential">基础潜力:</label>
-                    <input type="number" id="baseEquipmentPotential" min="1" value="1">
-                </div>
-
-                <div class="config-item" id="config-item-anvilLevel">
-                    <label for="anvilLevel">铁砧技能等级:</label>
-                    <input type="number" id="anvilLevel" min="0" max="40" value="40">
-                </div>
-
-                <div class="config-item">
-                    <label for="masterEnhancement2Level">大师II等级:</label>
-                    <input type="number" id="masterEnhancement2Level" min="0" max="10" value="10">
-                </div>
-            </div>
-
-            <div class="config-group">
-                <h3>理解技能等级</h3>
-                <div class="config-item">
-                    <label for="understandingMetal">理解金属:</label>
-                    <input type="number" id="understandingMetal" min="0" max="10" value="0">
-                </div>
-
-                <div class="config-item">
-                    <label for="understandingCloth">理解布料:</label>
-                    <input type="number" id="understandingCloth" min="0" max="10" value="0">
-                </div>
-
-                <div class="config-item">
-                    <label for="understandingBeast">理解兽品:</label>
-                    <input type="number" id="understandingBeast" min="0" max="10" value="0">
-                </div>
-
-                <div class="config-item">
-                    <label for="understandingWood">理解木材:</label>
-                    <input type="number" id="understandingWood" min="0" max="10" value="0">
-                </div>
-
-                <div class="config-item">
-                    <label for="understandingMedicine">理解药品:</label>
-                    <input type="number" id="understandingMedicine" min="0" max="10" value="0">
-                </div>
-
-                <div class="config-item">
-                    <label for="understandingMana">理解魔素:</label>
-                    <input type="number" id="understandingMana" min="0" max="10" value="0">
-                </div>
-            </div>
-
-            <button id="saveConfigBtn" class="save-btn">保存配置</button>
-        </div>
-    </div>
-
-    <!-- 属性选择弹窗 -->
-    <div id="propertySelectionModal" class="modal hidden">
-        <div class="modal-content property-selection-modal">
-            <span class="close">&times;</span>
-            <h2>选择附魔属性（最多8项）</h2>
-
-            <div id="propertyCategoryList" class="property-category-list">
-                <!-- 属性分类将通过JavaScript动态生成 -->
-            </div>
-
-            <div class="selected-properties-summary">
-                <h3>已选择属性 (<span id="selectedCount">0</span>/8)</h3>
-                <div id="selectedPropertiesDisplay" class="selected-properties-display"></div>
-            </div>
-
-            <button id="confirmPropertiesBtn" class="confirm-btn">确认属性选择</button>
-        </div>
-    </div>
-
-    <!-- 工作区 -->
-    <div class="workspace-section">
-        <div class="table-container">
-            <table id="enchantTable" class="enchant-table">
-                <thead>
-                    <tr>
-                        <th>潜力</th>
-                        <!-- 属性列将通过JavaScript动态生成 -->
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- 表格内容将通过JavaScript动态生成 -->
-                </tbody>
-            </table>
-        </div>
-
-        <!-- 添加在表格下方的控件 -->
-        <div class="table-footer-controls">
-            <div class="view-mode-control">
-                <button id="tableViewModeBtn" class="control-btn">
-                    <span class="btn-text">切换视图</span>
-                </button>
-            </div>
-            <div class="success-rate-control">
-                <div class="success-rate-display">
-                    成功率: <span id="tableSuccessRateValue">100</span>%
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 悬浮操作栏 -->
-    <div class="floating-toolbar">
-        <button id="addStepBtn" class="toolbar-btn">+</button>
-        <button id="subtractStepBtn" class="toolbar-btn">-</button>
-
-        <button id="editPropertyBtn" class="toolbar-btn">✎</button>
-
-        <button id="operationMenuBtn" class="toolbar-btn">…</button>
-        <button id="switchViewBtn" class="toolbar-btn">&lt;=&gt;</button>
-        <div class="success-rate-display">
-            成功率: <span id="successRateValue">100</span>%
-        </div>
-    </div>
-
-    <!-- 属性编辑弹窗 -->
-    <div id="editPropertyModal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>编辑属性值</h2>
-            <div class="property-edit-content">
-                <div id="actualValueDisplay" class="actual-value-display"></div>
-                <div class="value-controls">
-                    <button id="minValueBtn" class="value-btn" title="最小值">min</button>
-                    <button id="decreaseValueBtn" class="value-btn" title="减少">-</button>
-                    <input type="number" id="propertyValueInput" class="value-input" placeholder="0">
-                    <button id="increaseValueBtn" class="value-btn" title="增加">+</button>
-                    <button id="maxValueBtn" class="value-btn" title="最大值">max</button>
-                    <button id="deleteValueBtn" class="value-btn delete-btn" title="删除">×</button>
-                </div>
-                <div class="slider-container">
-                    <input type="range" id="propertyValueSlider" class="value-slider">
-                    <div class="slider-labels">
-                        <span id="minSliderValue" class="slider-value">0</span>
-                        <span id="maxSliderValue" class="slider-value">100</span>
+                <!-- 移动端专用行：属性选择、更多配置 (单列堆叠) -->
+                <div class="basic-info-row row-6 mobile-only">
+                    <div class="basic-info-group">
+                        <button id="selectPropertiesBtnMobile" class="select-properties-btn">选择属性</button>
+                        <button id="moreConfigBtnMobile" class="more-config-btn">⚙️ 更多配置</button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- 操作菜单弹窗 -->
-    <div id="operationMenuModal" class="modal hidden">
-        <div class="modal-content operation-menu">
-            <span class="close">&times;</span>
-            <h2>操作菜单</h2>
-            <ul>
-                <li id="undoBtn">撤销</li>
-                <li id="addStepMenuBtn">增加行</li>
-                <li id="deleteRow">删除行</li>
-                <li id="clearBtn">删除选项></li>
-                <li id="copyStepBtn">复制步骤</li>
-                <li id="pasteStepBtn">粘贴步骤</li>
-                <li id="toggleIgnoreBtn">忽略/取消忽略</li>
-            </ul>
-        </div>
-    </div>
+        <!-- 更多配置弹窗 -->
+        <div id="moreConfigModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>更多配置</h2>
 
-    <!-- 清空操作选择弹窗 -->
-    <div id="clearOptionsModal" class="modal hidden">
-        <div class="modal-content clear-options-modal">
-            <span class="close">&times;</span>
-            <h2>清空选项</h2>
-            <ul>
-                <li id="clearCellBtn">清空单元格</li>
-                <li id="clearStepBtn">清空步骤</li>
-                <li id="deleteStepBtn">删除步骤</li>
-                <li id="deleteEmptyStepsBtn">删除所有空白步骤</li>
-                <li id="deleteAllStepsBtn">删除所有步骤</li>
-            </ul>
-        </div>
-    </div>
+                <div class="config-group">
+                    <h3>基础设置</h3>
+                    <div class="config-item">
+                        <label for="baseEquipmentPotential">基础潜力:</label>
+                        <input type="number" id="baseEquipmentPotential" min="1" value="1">
+                    </div>
 
-    <!-- 增加步骤选择弹窗 -->
-    <div id="addStepOptionsModal" class="modal hidden">
-        <div class="modal-content add-step-options-modal">
-            <span class="close">&times;</span>
-            <h2>增加步骤选项</h2>
-            <ul>
-                <li id="addStepAboveBtn">在上方增加一步</li>
-                <li id="addStepBelowBtn">在下方增加一步</li>
-            </ul>
-        </div>
-    </div>
+                    <div class="config-item" id="config-item-anvilLevel">
+                        <label for="anvilLevel">铁砧技能等级:</label>
+                        <input type="number" id="anvilLevel" min="0" max="40" value="40">
+                    </div>
 
-    <!-- 粘贴步骤选项弹窗 -->
-    <div id="pasteStepOptionsModal" class="modal hidden">
-        <div class="modal-content paste-step-options-modal">
-            <span class="close">&times;</span>
-            <h2>粘贴步骤选项</h2>
-            <div class="paste-options">
-                <label for="pasteCount">粘贴次数:</label>
-                <input type="number" id="pasteCount" min="1" value="1">
+                    <div class="config-item">
+                        <label for="masterEnhancement2Level">大师II等级:</label>
+                        <input type="number" id="masterEnhancement2Level" min="0" max="10" value="10">
+                    </div>
+                </div>
+
+                <div class="config-group">
+                    <h3>理解技能等级</h3>
+                    <div class="config-item">
+                        <label for="understandingMetal">理解金属:</label>
+                        <input type="number" id="understandingMetal" min="0" max="10" value="0">
+                    </div>
+
+                    <div class="config-item">
+                        <label for="understandingCloth">理解布料:</label>
+                        <input type="number" id="understandingCloth" min="0" max="10" value="0">
+                    </div>
+
+                    <div class="config-item">
+                        <label for="understandingBeast">理解兽品:</label>
+                        <input type="number" id="understandingBeast" min="0" max="10" value="0">
+                    </div>
+
+                    <div class="config-item">
+                        <label for="understandingWood">理解木材:</label>
+                        <input type="number" id="understandingWood" min="0" max="10" value="0">
+                    </div>
+
+                    <div class="config-item">
+                        <label for="understandingMedicine">理解药品:</label>
+                        <input type="number" id="understandingMedicine" min="0" max="10" value="0">
+                    </div>
+
+                    <div class="config-item">
+                        <label for="understandingMana">理解魔素:</label>
+                        <input type="number" id="understandingMana" min="0" max="10" value="0">
+                    </div>
+                </div>
+
+                <button id="saveConfigBtn" class="save-btn">保存配置</button>
             </div>
-            <ul>
-                <li id="pasteStepAboveBtn">在上方粘贴步骤</li>
-                <li id="pasteStepBelowBtn">在下方粘贴步骤</li>
-            </ul>
         </div>
-    </div>
 
-    <!-- 编辑折叠重复步骤弹窗 -->
-    <div id="editRepeatedStepsModal" class="modal hidden">
-        <div class="modal-content edit-repeated-steps-modal">
-            <span class="close">&times;</span>
-            <h2>编辑重复步骤</h2>
+        <!-- 属性选择弹窗 -->
+        <div id="propertySelectionModal" class="modal hidden">
+            <div class="modal-content property-selection-modal">
+                <span class="close">&times;</span>
+                <h2>选择附魔属性（最多8项）</h2>
 
-            <div class="modal-section">
-                <h3>重复次数</h3>
-                <div class="input-group repeat-count-controls">
-                    <button id="decreaseRepeatCountBtn" class="value-btn">-</button>
-                    <input type="number" id="repeatCountInput" min="1" max="1000" value="1" class="value-input">
-                    <button id="increaseRepeatCountBtn" class="value-btn">+</button>
+                <div id="propertyCategoryList" class="property-category-list">
+                    <!-- 属性分类将通过JavaScript动态生成 -->
+                </div>
+
+                <div class="selected-properties-summary">
+                    <h3>已选择属性 (<span id="selectedCount">0</span>/8)</h3>
+                    <div id="selectedPropertiesDisplay" class="selected-properties-display"></div>
+                </div>
+
+                <button id="confirmPropertiesBtn" class="confirm-btn">确认属性选择</button>
+            </div>
+        </div>
+
+        <!-- 工作区 -->
+        <div class="workspace-section">
+            <div class="table-container">
+                <table id="enchantTable" class="enchant-table">
+                    <thead>
+                        <tr>
+                            <th>潜力</th>
+                            <!-- 属性列将通过JavaScript动态生成 -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 表格内容将通过JavaScript动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 添加在表格下方的控件 -->
+            <div class="table-footer-controls">
+                <div class="view-mode-control">
+                    <button id="tableViewModeBtn" class="control-btn">
+                        <span class="btn-text">切换视图</span>
+                    </button>
+                </div>
+                <div class="success-rate-control">
+                    <div class="success-rate-display">
+                        成功率: <span id="tableSuccessRateValue">100</span>%
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="modal-section">
-                <h3>属性值</h3>
-                <div id="repeatedStepProperties" class="repeated-step-properties"></div>
+        <!-- 悬浮操作栏 -->
+        <div class="floating-toolbar">
+            <button id="addStepBtn" class="toolbar-btn">+</button>
+            <button id="subtractStepBtn" class="toolbar-btn">-</button>
+
+            <button id="editPropertyBtn" class="toolbar-btn">✎</button>
+
+            <button id="operationMenuBtn" class="toolbar-btn">…</button>
+            <button id="switchViewBtn" class="toolbar-btn">&lt;=&gt;</button>
+            <div class="success-rate-display">
+                成功率: <span id="successRateValue">100</span>%
             </div>
+        </div>
 
-            <div class="modal-buttons">
-                <button id="confirmRepeatedStepsBtn" class="confirm-btn">确认</button>
-                <button id="cancelRepeatedStepsBtn" class="cancel-btn">取消</button>
-            </div>
-
-            <div class="modal-section">
-                <h3>操作</h3>
-                <div class="operation-buttons">
-                    <button id="toggleIgnoreRepeatedStepsBtn" class="modal-action-btn">忽略/取消忽略</button>
-                    <button id="deleteRepeatedStepsBtn" class="modal-action-btn delete-btn">删除步骤</button>
+        <!-- 属性编辑弹窗 -->
+        <div id="editPropertyModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>编辑属性值</h2>
+                <div class="property-edit-content">
+                    <div id="actualValueDisplay" class="actual-value-display"></div>
+                    <div class="value-controls">
+                        <button id="minValueBtn" class="value-btn" title="最小值">min</button>
+                        <button id="decreaseValueBtn" class="value-btn" title="减少">-</button>
+                        <input type="number" id="propertyValueInput" class="value-input" placeholder="0">
+                        <button id="increaseValueBtn" class="value-btn" title="增加">+</button>
+                        <button id="maxValueBtn" class="value-btn" title="最大值">max</button>
+                        <button id="deleteValueBtn" class="value-btn delete-btn" title="删除">×</button>
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" id="propertyValueSlider" class="value-slider">
+                        <div class="slider-labels">
+                            <span id="minSliderValue" class="slider-value">0</span>
+                            <span id="maxSliderValue" class="slider-value">100</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-
         </div>
-    </div>
 
-    <!-- 附魔结果展示区 -->
-    <div class="result-section">
-        <div class="result-section-header">
-            <h2>附魔结果</h2>
-            <div class="result-actions">
-                <label class="include-export-checkbox">
-                    <input type="checkbox" id="includeExportData"> 附带代码
-                </label>
-                <button id="copyResultBtn" class="copy-btn">📋 复制结果</button>
+        <!-- 操作菜单弹窗 -->
+        <div id="operationMenuModal" class="modal hidden">
+            <div class="modal-content operation-menu">
+                <span class="close">&times;</span>
+                <h2>操作菜单</h2>
+                <ul>
+                    <li id="undoBtn">撤销</li>
+                    <li id="addStepMenuBtn">增加行</li>
+                    <li id="deleteRow">删除行</li>
+                    <li id="clearBtn">删除选项></li>
+                    <li id="copyStepBtn">复制步骤</li>
+                    <li id="pasteStepBtn">粘贴步骤</li>
+                    <li id="toggleIgnoreBtn">忽略/取消忽略</li>
+                </ul>
             </div>
         </div>
-        <div id="resultDisplay" class="result-display">
-            <!-- 结果将通过JavaScript动态生成 -->
+
+        <!-- 清空操作选择弹窗 -->
+        <div id="clearOptionsModal" class="modal hidden">
+            <div class="modal-content clear-options-modal">
+                <span class="close">&times;</span>
+                <h2>清空选项</h2>
+                <ul>
+                    <li id="clearCellBtn">清空单元格</li>
+                    <li id="clearStepBtn">清空步骤</li>
+                    <li id="deleteStepBtn">删除步骤</li>
+                    <li id="deleteEmptyStepsBtn">删除所有空白步骤</li>
+                    <li id="deleteAllStepsBtn">删除所有步骤</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 增加步骤选择弹窗 -->
+        <div id="addStepOptionsModal" class="modal hidden">
+            <div class="modal-content add-step-options-modal">
+                <span class="close">&times;</span>
+                <h2>增加步骤选项</h2>
+                <ul>
+                    <li id="addStepAboveBtn">在上方增加一步</li>
+                    <li id="addStepBelowBtn">在下方增加一步</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 粘贴步骤选项弹窗 -->
+        <div id="pasteStepOptionsModal" class="modal hidden">
+            <div class="modal-content paste-step-options-modal">
+                <span class="close">&times;</span>
+                <h2>粘贴步骤选项</h2>
+                <div class="paste-options">
+                    <label for="pasteCount">粘贴次数:</label>
+                    <input type="number" id="pasteCount" min="1" value="1">
+                </div>
+                <ul>
+                    <li id="pasteStepAboveBtn">在上方粘贴步骤</li>
+                    <li id="pasteStepBelowBtn">在下方粘贴步骤</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 编辑折叠重复步骤弹窗 -->
+        <div id="editRepeatedStepsModal" class="modal hidden">
+            <div class="modal-content edit-repeated-steps-modal">
+                <span class="close">&times;</span>
+                <h2>编辑重复步骤</h2>
+
+                <div class="modal-section">
+                    <h3>重复次数</h3>
+                    <div class="input-group repeat-count-controls">
+                        <button id="decreaseRepeatCountBtn" class="value-btn">-</button>
+                        <input type="number" id="repeatCountInput" min="1" max="1000" value="1" class="value-input">
+                        <button id="increaseRepeatCountBtn" class="value-btn">+</button>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>属性值</h3>
+                    <div id="repeatedStepProperties" class="repeated-step-properties"></div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button id="confirmRepeatedStepsBtn" class="confirm-btn">确认</button>
+                    <button id="cancelRepeatedStepsBtn" class="cancel-btn">取消</button>
+                </div>
+
+                <div class="modal-section">
+                    <h3>操作</h3>
+                    <div class="operation-buttons">
+                        <button id="toggleIgnoreRepeatedStepsBtn" class="modal-action-btn">忽略/取消忽略</button>
+                        <button id="deleteRepeatedStepsBtn" class="modal-action-btn delete-btn">删除步骤</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 附魔结果展示区 -->
+        <div class="result-section">
+            <div class="result-section-header">
+                <h2>附魔结果</h2>
+                <div class="result-actions">
+                    <label class="include-export-checkbox">
+                        <input type="checkbox" id="includeExportData"> 附带代码
+                    </label>
+                    <button id="copyResultBtn" class="copy-btn">📋 复制结果</button>
+                </div>
+            </div>
+            <div id="resultDisplay" class="result-display">
+                <!-- 结果将通过JavaScript动态生成 -->
+            </div>
         </div>
     </div>
 
