@@ -4,6 +4,7 @@ import MaterialType from "./MaterialType.js";
  * 计算单个附魔步骤的材料消耗
  * @param {Object} enchantmentStep - 附魔步骤对象
  * @param {Object} preEnchantmentProperties - 附魔前各属性值状态
+ * @param {number} anvilLevel - 铁砧技能等级
  * @param {number} smithingLevel - 玩家锻冶熟练度
  * @param {Object} understandingSkills - 存储六种理解技能等级的对象
  * @returns {Object} 包含总材料消耗和每条属性材料消耗的对象
@@ -70,6 +71,7 @@ export function calEnchantmentStepMaterialCost(enchantmentStep, preEnchantmentPr
  * @param {Object} property - 附魔属性对象
  * @param {number} preValue - 附魔前属性值
  * @param {number} postValue - 附魔后属性值
+ * @param {number} anvilLevel - 铁砧技能等级
  * @param {number} smithingLevel - 玩家锻冶熟练度
  * @param {Object} understandingSkills - 理解技能等级对象
  * @returns {Object} 六种材料的素材消耗对象
