@@ -2432,14 +2432,22 @@ function saveConfig() {
     };
 
     enchantRecord.baseEquipmentPotential = parseInt(document.getElementById('baseEquipmentPotential').value);
-    enchantRecord.anvilLevel = parseInt(document.getElementById('anvilLevel').value);
-    enchantRecord.masterEnhancement2Level = parseInt(document.getElementById('masterEnhancement2Level').value);
-    enchantRecord.understandingSkills.metal = parseInt(document.getElementById('understandingMetal').value);
-    enchantRecord.understandingSkills.cloth = parseInt(document.getElementById('understandingCloth').value);
-    enchantRecord.understandingSkills.beast = parseInt(document.getElementById('understandingBeast').value);
-    enchantRecord.understandingSkills.wood = parseInt(document.getElementById('understandingWood').value);
-    enchantRecord.understandingSkills.medicine = parseInt(document.getElementById('understandingMedicine').value);
-    enchantRecord.understandingSkills.mana = parseInt(document.getElementById('understandingMana').value);
+
+    // 铁砧技能等级范围校验：0-40
+    const anvilLevelInput = parseInt(document.getElementById('anvilLevel').value);
+    enchantRecord.anvilLevel = Math.max(0, Math.min(40, anvilLevelInput));
+
+    // 大师II等级范围校验：0-10
+    const masterEnhancement2LevelInput = parseInt(document.getElementById('masterEnhancement2Level').value);
+    enchantRecord.masterEnhancement2Level = Math.max(0, Math.min(10, masterEnhancement2LevelInput));
+
+    // 理解技能等级范围校验：0-10（假设最大值也是10）
+    enchantRecord.understandingSkills.metal = Math.max(0, Math.min(10, parseInt(document.getElementById('understandingMetal').value)));
+    enchantRecord.understandingSkills.cloth = Math.max(0, Math.min(10, parseInt(document.getElementById('understandingCloth').value)));
+    enchantRecord.understandingSkills.beast = Math.max(0, Math.min(10, parseInt(document.getElementById('understandingBeast').value)));
+    enchantRecord.understandingSkills.wood = Math.max(0, Math.min(10, parseInt(document.getElementById('understandingWood').value)));
+    enchantRecord.understandingSkills.medicine = Math.max(0, Math.min(10, parseInt(document.getElementById('understandingMedicine').value)));
+    enchantRecord.understandingSkills.mana = Math.max(0, Math.min(10, parseInt(document.getElementById('understandingMana').value)));
 
     // 检查配置是否发生变化
     const configChanged =
