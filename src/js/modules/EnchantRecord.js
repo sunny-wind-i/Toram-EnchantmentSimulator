@@ -17,7 +17,7 @@ export default class EnchantRecord {
      * 创建一个新的附魔模拟实例
      * @param {Object} config - 配置对象
      * @param {Object} config.equipmentType - 装备类型 (EquipmentType.EQUIPMENT_TYPE_WEAPON 或 EquipmentType.EQUIPMENT_TYPE_ARMOR)
-     * @param {number} [config.playerLevel=290] - 玩家等级
+     * @param {number} [config.playerLevel=300] - 玩家等级
      * @param {number} [config.equipmentPotential=100] - 装备潜力值
      * @param {number} [config.baseEquipmentPotential=1] - 装备基础潜力值
      * @param {number} [config.smithingLevel=0] - 玩家锻冶熟练度
@@ -47,30 +47,30 @@ export default class EnchantRecord {
      */
     constructor(config = {}) {
         // 基础信息（只出现一次的固定数据）
-        this.equipmentType = config.equipmentType || EquipmentType.EQUIPMENT_TYPE_WEAPON; // 装备类型
-        this.playerLevel = config.playerLevel || 290; // 玩家等级，默认290
-        this.equipmentPotential = config.equipmentPotential || 100; // 装备潜力值
-        this.baseEquipmentPotential = config.baseEquipmentPotential || 1; // 装备基础潜力值
-        this.smithingLevel = config.smithingLevel || 0; // 玩家锻冶熟练度
+        this.equipmentType = config.equipmentType ?? EquipmentType.EQUIPMENT_TYPE_WEAPON; // 装备类型
+        this.playerLevel = config.playerLevel ?? 300; // 玩家等级，默认300
+        this.equipmentPotential = config.equipmentPotential ?? 100; // 装备潜力值
+        this.baseEquipmentPotential = config.baseEquipmentPotential ?? 1; // 装备基础潜力值
+        this.smithingLevel = config.smithingLevel ?? 0; // 玩家锻冶熟练度
         // TODO:铁砧技能影响
-        this.anvilLevel = config.anvilLevel || 40; // 铁砧技能等级，默认为40
-        this.masterEnhancement2Level = config.masterEnhancement2Level || 10; // 大师级强化技术2技能等级，默认为10
+        this.anvilLevel = config.anvilLevel ?? 40; // 铁砧技能等级，默认为40
+        this.masterEnhancement2Level = config.masterEnhancement2Level ?? 10; // 大师级强化技术2技能等级，默认为10
 
         // 附魔名称
-        this.name = config.name || "自定义附魔1";
+        this.name = config.name ?? "自定义附魔1";
 
         // 玩家"理解xx"技能等级（减少对应素材消耗量）
         this.understandingSkills = {
-            metal: config.understandingSkills?.metal || 0,      // 理解金属
-            cloth: config.understandingSkills?.cloth || 0,      // 理解布料
-            beast: config.understandingSkills?.beast || 0,      // 理解兽品
-            wood: config.understandingSkills?.wood || 0,        // 理解木材
-            medicine: config.understandingSkills?.medicine || 0, // 理解药品
-            mana: config.understandingSkills?.mana || 0         // 理解魔素
+            metal: config.understandingSkills?.metal ?? 0,      // 理解金属
+            cloth: config.understandingSkills?.cloth ?? 0,      // 理解布料
+            beast: config.understandingSkills?.beast ?? 0,      // 理解兽品
+            wood: config.understandingSkills?.wood ?? 0,        // 理解木材
+            medicine: config.understandingSkills?.medicine ?? 0, // 理解药品
+            mana: config.understandingSkills?.mana ?? 0         // 理解魔素
         };
 
         // 选中的属性，保持选择顺序，最多8个
-        this.selectedProperties = config.selectedProperties || [];
+        this.selectedProperties = config.selectedProperties ?? [];
 
         // 附魔操作步骤记录
         this.enchantmentSteps = [];
@@ -125,14 +125,14 @@ export default class EnchantRecord {
      */
     addEnchantmentStep(step) {
         // 生成步骤ID（如果未提供）
-        const stepId = step.id || this._generateStepId();
+        const stepId = step.id ?? this._generateStepId();
 
         // 创建附魔步骤对象
         const enchantmentStep = {
             id: stepId,
             enchantments: step.enchantments.map(enchant => {
                 // 如果提供了property对象，则直接使用；否则根据propertyId获取属性对象
-                const property = enchant.property || PM.properties[enchant.propertyId];
+                const property = enchant.property ?? PM.properties[enchant.propertyId];
                 return {
                     property: property,
                     value: enchant.value
@@ -185,6 +185,7 @@ export default class EnchantRecord {
         const materialCostsResult = calEnchantmentStepMaterialCost(
             enchantmentStep,
             previousProperties,
+            this.anvilLevel,
             this.smithingLevel,
             this.understandingSkills
         );
@@ -919,7 +920,7 @@ export default class EnchantRecord {
     getProperty(property) {
         // 返回指定属性的当前值，如果不存在则返回null
         const currentProperties = this.getCurrentProperties();
-        return currentProperties[property.id] || null;
+        return currentProperties[property.id] ?? null;
     }
 
     /**
@@ -959,7 +960,7 @@ export default class EnchantRecord {
     getFinalProperty(property) {
         // 返回指定属性的最终值，如果不存在则返回null
         const finalProperties = this.getFinalProperties();
-        return finalProperties[property.id] || null;
+        return finalProperties[property.id] ?? null;
     }
 
     /**
@@ -1000,7 +1001,7 @@ export default class EnchantRecord {
             const step = this.enchantmentSteps[i];
             if (!step.isIgnored && step.isValid) {
                 const enchantedProperties = step.enchantedProperties;
-                return enchantedProperties[property.id] || false;
+                return enchantedProperties[property.id] ?? false;
             }
         }
 
@@ -1009,7 +1010,7 @@ export default class EnchantRecord {
             const step = this.enchantmentSteps[i];
             if (!step.isIgnored) {
                 const enchantedProperties = step.enchantedProperties;
-                return enchantedProperties[property.id] || false;
+                return enchantedProperties[property.id] ?? false;
             }
         }
 

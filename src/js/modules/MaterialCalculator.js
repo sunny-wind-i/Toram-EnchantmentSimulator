@@ -8,17 +8,9 @@ import MaterialType from "./MaterialType.js";
  * @param {Object} understandingSkills - 存储六种理解技能等级的对象
  * @returns {Object} 包含总材料消耗和每条属性材料消耗的对象
  */
-export function calEnchantmentStepMaterialCost(enchantmentStep, preEnchantmentProperties, smithingLevel, understandingSkills) {
+export function calEnchantmentStepMaterialCost(enchantmentStep, preEnchantmentProperties, anvilLevel, smithingLevel, understandingSkills) {
     // 初始化六种材料的消耗量
-    // TODO: 验证铁砧技能对素材的影响
-    // 共有 7 个 TODO 标记需要验证：
-    // EnchantRecord.js: 54 - 铁砧技能影响
-    // EnchantRecord.js: 1058 - 导出正确性
-    // EnchantRecord.js: 1269 - 导入准确性
-    // EnchantmentSimulator.js: 198 - 铁砧等级问题
-    // EnchantmentSimulator.js: 2078 - 检查结果展示
-    // EnchantmentSimulator.js: 2367 - 检查UI更新
-    // EnchantmentSimulator.js: 2408 / 2428 - 检查配置保存
+    // （已验证）DONE: 验证铁砧技能对素材的影响
     const materialCosts = {
         [MaterialType.MATERIAL_TYPE_METAL.id]: 0,
         [MaterialType.MATERIAL_TYPE_CLOTH.id]: 0,
@@ -40,7 +32,7 @@ export function calEnchantmentStepMaterialCost(enchantmentStep, preEnchantmentPr
 
         // 计算该属性的材料消耗并累加到总消耗中
         const propertyCosts = calSinglePropertyMaterialCost(
-            property, preValue, postValue, smithingLevel, understandingSkills
+            property, preValue, postValue, anvilLevel, smithingLevel, understandingSkills
         );
 
         // 将各材料消耗累加
@@ -82,7 +74,7 @@ export function calEnchantmentStepMaterialCost(enchantmentStep, preEnchantmentPr
  * @param {Object} understandingSkills - 理解技能等级对象
  * @returns {Object} 六种材料的素材消耗对象
  */
-function calSinglePropertyMaterialCost(property, preValue, postValue, smithingLevel, understandingSkills) {
+function calSinglePropertyMaterialCost(property, preValue, postValue, anvilLevel, smithingLevel, understandingSkills) {
     // 初始化六种材料的消耗量
     const materialCosts = {
         [MaterialType.MATERIAL_TYPE_METAL.id]: 0,
@@ -98,6 +90,10 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, smithingLe
 
     // 获取基础材料消耗
     const baseMaterialCost = property.baseMaterialCost;
+
+    // 铁砧技能影响：影响基础素材消耗（300级附魔新特性）
+    const anvilLevelReduction = Math.floor(baseMaterialCost * anvilLevel / 100 * 2) / 2;
+    const newBaseMaterialCost = baseMaterialCost - anvilLevelReduction;
 
     // 计算锻冶熟练度减少的百分比 (每10级-1%，每50级再-1%)
     const smithingReduction = Math.floor(smithingLevel / 10) + Math.floor(smithingLevel / 50);
@@ -115,7 +111,7 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, smithingLe
             // 正向增长
             for (let level = startLevel + 1; level <= endLevel; level++) {
                 const layerCost = calculateLayerMaterialCost(
-                    baseMaterialCost, level, smithingReduction, understandingLevel
+                    newBaseMaterialCost, level, smithingReduction, understandingLevel
                 );
                 materialCosts[materialType.id] += layerCost;
             }
@@ -123,7 +119,7 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, smithingLe
             // 负向减少
             for (let level = startLevel - 1; level >= endLevel; level--) {
                 const layerCost = calculateLayerMaterialCost(
-                    baseMaterialCost, level + 1, smithingReduction, understandingLevel
+                    newBaseMaterialCost, level + 1, smithingReduction, understandingLevel
                 );
                 materialCosts[materialType.id] += layerCost;
             }
@@ -139,7 +135,7 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, smithingLe
             // 负向增长（变得更负）
             for (let level = startLevel + 1; level <= endLevel; level++) {
                 const layerCost = calculateLayerMaterialCost(
-                    baseMaterialCost, level, smithingReduction, understandingLevel
+                    newBaseMaterialCost, level, smithingReduction, understandingLevel
                 );
                 materialCosts[materialType.id] += layerCost;
             }
@@ -147,7 +143,7 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, smithingLe
             // 负向减少（接近0）
             for (let level = startLevel - 1; level >= endLevel; level--) {
                 const layerCost = calculateLayerMaterialCost(
-                    baseMaterialCost, level + 1, smithingReduction, understandingLevel
+                    newBaseMaterialCost, level + 1, smithingReduction, understandingLevel
                 );
                 materialCosts[materialType.id] += layerCost;
             }
@@ -160,7 +156,7 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, smithingLe
         const startLevel = preValue;
         for (let level = startLevel - 1; level >= 0; level--) {
             const layerCost = calculateLayerMaterialCost(
-                baseMaterialCost, level + 1, smithingReduction, understandingLevel
+                newBaseMaterialCost, level + 1, smithingReduction, understandingLevel
             );
             materialCosts[materialType.id] += layerCost;
         }
@@ -169,7 +165,7 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, smithingLe
         const endLevel = Math.abs(postValue);
         for (let level = 1; level <= endLevel; level++) {
             const layerCost = calculateLayerMaterialCost(
-                baseMaterialCost, level, smithingReduction, understandingLevel
+                newBaseMaterialCost, level, smithingReduction, understandingLevel
             );
             materialCosts[materialType.id] += layerCost;
         }
@@ -180,7 +176,7 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, smithingLe
         const startLevel = Math.abs(preValue);
         for (let level = startLevel - 1; level >= 0; level--) {
             const layerCost = calculateLayerMaterialCost(
-                baseMaterialCost, level + 1, smithingReduction, understandingLevel
+                newBaseMaterialCost, level + 1, smithingReduction, understandingLevel
             );
             materialCosts[materialType.id] += layerCost;
         }
@@ -189,7 +185,7 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, smithingLe
         const endLevel = postValue;
         for (let level = 1; level <= endLevel; level++) {
             const layerCost = calculateLayerMaterialCost(
-                baseMaterialCost, level, smithingReduction, understandingLevel
+                newBaseMaterialCost, level, smithingReduction, understandingLevel
             );
             materialCosts[materialType.id] += layerCost;
         }

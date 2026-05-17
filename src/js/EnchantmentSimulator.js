@@ -193,7 +193,7 @@ function initializeEnchantRecord() {
 function createNewEnchantRecord() {
     const config = {
         equipmentType: EquipmentType.EQUIPMENT_TYPE_WEAPON,
-        playerLevel: 290,
+        playerLevel: 300,
         equipmentPotential: 100,
         baseEquipmentPotential: 1,
         // TODO:铁砧等级问题
@@ -328,7 +328,7 @@ function createNewEnchantment() {
     // 创建新的附魔记录
     const config = {
         equipmentType: EquipmentType.EQUIPMENT_TYPE_WEAPON,
-        playerLevel: 290,
+        playerLevel: 300,
         equipmentPotential: 100,
         baseEquipmentPotential: 1,
         smithingLevel: 0,
@@ -2350,7 +2350,7 @@ function onEnchantmentSelectorChange() {
 // function updateBasicInfo() {
 //     const equipmentType = document.getElementById('equipmentType').value === 'weapon' ?
 //         EquipmentType.EQUIPMENT_TYPE_WEAPON : EquipmentType.EQUIPMENT_TYPE_ARMOR;
-//     const playerLevel = parseInt(document.getElementById('playerLevel').value) || 290;
+//     const playerLevel = parseInt(document.getElementById('playerLevel').value) || 300;
 //     const equipmentPotential = parseInt(document.getElementById('equipmentPotential').value) || 100;
 //     const smithingLevel = parseInt(document.getElementById('smithingLevel').value) || 0;
 
