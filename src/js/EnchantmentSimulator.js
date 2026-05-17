@@ -2048,6 +2048,12 @@ function updateResultDisplay() {
         resultText += `锻冶熟练度｜${enchantRecord.smithingLevel}\n`;
     }
 
+    // 铁砧等级改为一直显示
+    // if (enchantRecord.anvilLevel !== 40) {
+    //     resultText += `铁砧等级｜${enchantRecord.anvilLevel}\n`;
+    // }
+    resultText += `铁砧技能总等级｜Lv.${enchantRecord.anvilLevel}\n`;
+
     // 理解技能等级（只有非默认值才显示）
     const understandingSkills = enchantRecord.understandingSkills;
     let understandingText = '';
@@ -2074,11 +2080,6 @@ function updateResultDisplay() {
         // 去掉末尾的"｜"
         understandingText = understandingText.slice(0, -1);
         resultText += `理解素材｜${understandingText}\n`;
-    }
-
-    // TODO:检查铁砧
-    if (enchantRecord.anvilLevel !== 40) {
-        resultText += `铁砧等级｜${enchantRecord.anvilLevel}\n`;
     }
 
     if (enchantRecord.masterEnhancement2Level !== 10) {
