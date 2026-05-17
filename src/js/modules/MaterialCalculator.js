@@ -94,11 +94,11 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, anvilLevel
     const baseMaterialCost = property.baseMaterialCost;
 
     // 铁砧技能影响：影响基础素材消耗（300级附魔新特性）
-    const anvilLevelReduction = Math.floor(baseMaterialCost * anvilLevel / 100 * 2) / 2;
+    const anvilLevelReduction = Math.floor((baseMaterialCost * anvilLevel / 100 * 2).toFixed(5)) / 2;
     const newBaseMaterialCost = baseMaterialCost - anvilLevelReduction;
 
     // 计算锻冶熟练度减少的百分比 (每10级-1%，每50级再-1%)
-    const smithingReduction = Math.floor(smithingLevel / 10) + Math.floor(smithingLevel / 50);
+    const smithingReduction = Math.floor((smithingLevel / 10).toFixed(5)) + Math.floor((smithingLevel / 50).toFixed(5));
 
     // 获取对应理解技能的等级 (默认为10级)
     const understandingLevel = getUnderstandingLevelByMaterialType(understandingSkills, materialType);
@@ -206,14 +206,14 @@ function calSinglePropertyMaterialCost(property, preValue, postValue, anvilLevel
  */
 function calculateLayerMaterialCost(baseMaterialCost, level, smithingReduction, understandingLevel) {
     // 1. 计算原素材消耗 = [n * x^2]
-    const originalCost = Math.floor((baseMaterialCost * level * level).toFixed(2));
+    const originalCost = Math.floor((baseMaterialCost * level * level).toFixed(4));
 
     // 2. 计算理解素材减少后的消耗 = 原素材消耗 - [原素材消耗 * 理解技能减少百分比]
     const understandingReduction = understandingLevel * 1; // 每级减少1%
-    const costAfterUnderstanding = originalCost - Math.floor((originalCost * understandingReduction / 100).toFixed(2));
+    const costAfterUnderstanding = originalCost - Math.floor((originalCost * understandingReduction / 100).toFixed(4));
 
     // 3. 计算锻冶熟练度减少后的消耗 = [理解素材后消耗 * (1 - 锻冶减少百分比)]
-    const finalCost = Math.floor((costAfterUnderstanding * (100 - smithingReduction) / 100).toFixed(2));
+    const finalCost = Math.floor((costAfterUnderstanding * (100 - smithingReduction) / 100).toFixed(4));
 
     return finalCost;
 }
