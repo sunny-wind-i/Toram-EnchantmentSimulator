@@ -196,6 +196,7 @@ function createNewEnchantRecord() {
         playerLevel: 290,
         equipmentPotential: 100,
         baseEquipmentPotential: 1,
+        // TODO:铁砧等级问题
         smithingLevel: 0,
         anvilLevel: 40,
         masterEnhancement2Level: 10,
@@ -2075,6 +2076,7 @@ function updateResultDisplay() {
         resultText += `理解素材｜${understandingText}\n`;
     }
 
+    // TODO:检查铁砧
     if (enchantRecord.anvilLevel !== 40) {
         resultText += `铁砧等级｜${enchantRecord.anvilLevel}\n`;
     }
@@ -2363,6 +2365,7 @@ function onEnchantmentSelectorChange() {
 
 
 // 更新基础信息显示
+// TODO:检查铁砧等级
 function updateBasicInfoDisplay() {
     document.getElementById('equipmentType').value = enchantRecord.equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON ? 'weapon' : 'armor';
     document.getElementById('playerLevel').value = enchantRecord.playerLevel;
@@ -2403,6 +2406,7 @@ function updateBasicInfoDisplay() {
 
 function showMoreConfig() {
     // 填充当前配置值
+    // TODO:检查铁砧
     document.getElementById('baseEquipmentPotential').value = enchantRecord.baseEquipmentPotential;
     document.getElementById('anvilLevel').value = enchantRecord.anvilLevel;
     document.getElementById('masterEnhancement2Level').value = enchantRecord.masterEnhancement2Level;
@@ -2422,6 +2426,7 @@ function closeMoreConfig() {
 
 function saveConfig() {
     // 保存配置
+    // TODO:检查铁砧
     const oldConfig = {
         baseEquipmentPotential: enchantRecord.baseEquipmentPotential,
         anvilLevel: enchantRecord.anvilLevel,

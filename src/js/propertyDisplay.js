@@ -2,7 +2,7 @@ import { attrNumToActualNum, calAttrMaxLimit, calAttrMinLimit, calDoublePotlAtta
 import PropertyManager from "./modules/PropertyManager.js";
 
 // 默认玩家等级
-let playerLevel = 290;
+let playerLevel = 300;
 const PM = new PropertyManager();
 
 // 更新表格函数

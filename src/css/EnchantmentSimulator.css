@@ -2245,6 +2245,7 @@ body {
 }
 
 /* 隐藏铁砧等级，因为国服没实装我验证不了计算方法 */
-#config-item-anvilLevel {
+/* 300版本国服已实装 */
+/* #config-item-anvilLevel {
     display: none;
-}
+} */

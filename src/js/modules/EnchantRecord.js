@@ -52,6 +52,7 @@ export default class EnchantRecord {
         this.equipmentPotential = config.equipmentPotential || 100; // 装备潜力值
         this.baseEquipmentPotential = config.baseEquipmentPotential || 1; // 装备基础潜力值
         this.smithingLevel = config.smithingLevel || 0; // 玩家锻冶熟练度
+        // TODO:铁砧技能影响
         this.anvilLevel = config.anvilLevel || 40; // 铁砧技能等级，默认为40
         this.masterEnhancement2Level = config.masterEnhancement2Level || 10; // 大师级强化技术2技能等级，默认为10
 
@@ -395,12 +396,12 @@ export default class EnchantRecord {
                         hasNonOriginProperty = true;
                     }
                 }
-                
+
                 // 检查是否为原属性（OriginalElement）
                 if (propId === 'OriginalElement') {
                     hasOriginalElement = true;
                 }
-                
+
                 // 检查是否为非原属性（OtherElement）
                 if (propId === 'OtherElement') {
                     hasOtherElement = true;
@@ -414,7 +415,7 @@ export default class EnchantRecord {
             step.invalidReason = '同时存在原属性和非原属性';
             return;
         }
-        
+
         // 如果同时存在原属性（OriginalElement）和非原属性（OtherElement），则步骤无效
         if (hasOriginalElement && hasOtherElement) {
             step.isValid = false;
@@ -1055,6 +1056,7 @@ export default class EnchantRecord {
         const baseEquipmentPotential = Math.min(Math.max(this.baseEquipmentPotential, 0), 255);
         data += String.fromCharCode(baseEquipmentPotential);
 
+        // TODO:检查铁砧技能导出正确性
         // 铁砧技能等级 (1字节)
         const anvilLevel = Math.min(Math.max(this.anvilLevel, 0), 255);
         data += String.fromCharCode(anvilLevel);
@@ -1265,6 +1267,7 @@ export default class EnchantRecord {
             // 装备基础潜力
             this.baseEquipmentPotential = data.charCodeAt(offset++);
 
+            // TODO:检查准确性
             // 铁砧技能等级
             this.anvilLevel = data.charCodeAt(offset++);
 

@@ -11,6 +11,14 @@ import MaterialType from "./MaterialType.js";
 export function calEnchantmentStepMaterialCost(enchantmentStep, preEnchantmentProperties, smithingLevel, understandingSkills) {
     // 初始化六种材料的消耗量
     // TODO: 验证铁砧技能对素材的影响
+    // 共有 7 个 TODO 标记需要验证：
+    // EnchantRecord.js: 54 - 铁砧技能影响
+    // EnchantRecord.js: 1058 - 导出正确性
+    // EnchantRecord.js: 1269 - 导入准确性
+    // EnchantmentSimulator.js: 198 - 铁砧等级问题
+    // EnchantmentSimulator.js: 2078 - 检查结果展示
+    // EnchantmentSimulator.js: 2367 - 检查UI更新
+    // EnchantmentSimulator.js: 2408 / 2428 - 检查配置保存
     const materialCosts = {
         [MaterialType.MATERIAL_TYPE_METAL.id]: 0,
         [MaterialType.MATERIAL_TYPE_CLOTH.id]: 0,
