@@ -19,7 +19,7 @@ const PM = new PropertyManager();
  * 1. config (Object) - 基础配置，与 EnchantRecord 构造参数完全一致：
  *    {
  *        equipmentType: EquipmentType,          // 装备类型
- *        playerLevel: number,                   // 玩家等级（默认300）
+ *        playerLevel: number,                   // 玩家等级（默认值见 GameDefaults.PLAYER_LEVEL）
  *        equipmentPotential: number,            // 装备潜力值
  *        baseEquipmentPotential: number,        // 装备基础潜力值
  *        smithingLevel: number,                 // 锻冶熟练度

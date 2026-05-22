@@ -1,8 +1,9 @@
 import { attrNumToActualNum, calAttrMaxLimit, calAttrMinLimit, calDoublePotlAttain } from "./modules/PotentialCalculator.js";
 import PropertyManager from "./modules/PropertyManager.js";
+import GameDefaults from "./modules/GameDefaults.js";
 
 // 默认玩家等级
-let playerLevel = 300;
+let playerLevel = GameDefaults.PLAYER_LEVEL;
 const PM = new PropertyManager();
 
 // 更新表格函数

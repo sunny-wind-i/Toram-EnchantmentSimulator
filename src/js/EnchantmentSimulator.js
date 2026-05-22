@@ -1,5 +1,6 @@
 import EnchantRecord from './modules/EnchantRecord.js';
 import PropertyManager from './modules/PropertyManager.js';
+import GameDefaults from './modules/GameDefaults.js';
 import { attrNumToActualNum, calAttrMaxLimit, calAttrMinLimit } from './modules/PotentialCalculator.js';
 import EquipmentType from './modules/EquipmentType.js';
 import EnchantType from './modules/EnchantType.js';
@@ -193,21 +194,21 @@ function initializeEnchantRecord() {
 function createNewEnchantRecord() {
     const config = {
         equipmentType: EquipmentType.EQUIPMENT_TYPE_WEAPON,
-        playerLevel: 300,
-        equipmentPotential: 100,
-        baseEquipmentPotential: 1,
-        smithingLevel: 0,
-        anvilLevel: 40,
-        masterEnhancement2Level: 10,
+        playerLevel: GameDefaults.PLAYER_LEVEL,
+        equipmentPotential: GameDefaults.EQUIPMENT_POTENTIAL,
+        baseEquipmentPotential: GameDefaults.BASE_EQUIPMENT_POTENTIAL,
+        smithingLevel: GameDefaults.SMITHING_LEVEL,
+        anvilLevel: GameDefaults.ANVIL_LEVEL,
+        masterEnhancement2Level: GameDefaults.MASTER_ENHANCEMENT_2_LEVEL,
         understandingSkills: {
-            metal: 0,
-            cloth: 0,
-            beast: 0,
-            wood: 0,
-            medicine: 0,
-            mana: 0
+            metal: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            cloth: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            beast: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            wood: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            medicine: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            mana: GameDefaults.UNDERSTANDING_SKILL_LEVEL
         },
-        name: "自定义附魔1"
+        name: GameDefaults.ENCHANTMENT_NAME
     };
 
     enchantRecord = new EnchantRecord(config);
@@ -327,19 +328,19 @@ function createNewEnchantment() {
     // 创建新的附魔记录
     const config = {
         equipmentType: EquipmentType.EQUIPMENT_TYPE_WEAPON,
-        playerLevel: 300,
-        equipmentPotential: 100,
-        baseEquipmentPotential: 1,
-        smithingLevel: 0,
-        anvilLevel: 40,
-        masterEnhancement2Level: 10,
+        playerLevel: GameDefaults.PLAYER_LEVEL,
+        equipmentPotential: GameDefaults.EQUIPMENT_POTENTIAL,
+        baseEquipmentPotential: GameDefaults.BASE_EQUIPMENT_POTENTIAL,
+        smithingLevel: GameDefaults.SMITHING_LEVEL,
+        anvilLevel: GameDefaults.ANVIL_LEVEL,
+        masterEnhancement2Level: GameDefaults.MASTER_ENHANCEMENT_2_LEVEL,
         understandingSkills: {
-            metal: 0,
-            cloth: 0,
-            beast: 0,
-            wood: 0,
-            medicine: 0,
-            mana: 0
+            metal: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            cloth: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            beast: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            wood: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            medicine: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            mana: GameDefaults.UNDERSTANDING_SKILL_LEVEL
         },
         name: newName
     };

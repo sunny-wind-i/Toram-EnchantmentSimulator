@@ -1,6 +1,7 @@
 import PropertyManager from './PropertyManager.js';
 import EquipmentType from './EquipmentType.js';
 import EnchantType from './EnchantType.js';
+import GameDefaults from './GameDefaults.js';
 import { calPostEnchantmentPotentialChanges } from './PotentialCalculator.js';
 import { calSingleSuccessRate, calExpectedSuccessRate } from './SuccessCalculator.js';
 import { calEnchantmentStepMaterialCost } from './MaterialCalculator.js';
@@ -48,24 +49,24 @@ export default class EnchantRecord {
     constructor(config = {}) {
         // 基础信息（只出现一次的固定数据）
         this.equipmentType = config.equipmentType ?? EquipmentType.EQUIPMENT_TYPE_WEAPON; // 装备类型
-        this.playerLevel = config.playerLevel ?? 300; // 玩家等级，默认300
-        this.equipmentPotential = config.equipmentPotential ?? 100; // 装备潜力值
-        this.baseEquipmentPotential = config.baseEquipmentPotential ?? 1; // 装备基础潜力值
-        this.smithingLevel = config.smithingLevel ?? 0; // 玩家锻冶熟练度
-        this.anvilLevel = config.anvilLevel ?? 40; // 铁砧技能等级，默认为40
-        this.masterEnhancement2Level = config.masterEnhancement2Level ?? 10; // 大师级强化技术2技能等级，默认为10
+        this.playerLevel = config.playerLevel ?? GameDefaults.PLAYER_LEVEL; // 玩家等级
+        this.equipmentPotential = config.equipmentPotential ?? GameDefaults.EQUIPMENT_POTENTIAL; // 装备潜力值
+        this.baseEquipmentPotential = config.baseEquipmentPotential ?? GameDefaults.BASE_EQUIPMENT_POTENTIAL; // 装备基础潜力值
+        this.smithingLevel = config.smithingLevel ?? GameDefaults.SMITHING_LEVEL; // 玩家锻冶熟练度
+        this.anvilLevel = config.anvilLevel ?? GameDefaults.ANVIL_LEVEL; // 铁砧技能等级
+        this.masterEnhancement2Level = config.masterEnhancement2Level ?? GameDefaults.MASTER_ENHANCEMENT_2_LEVEL; // 大师级强化技术2技能等级
 
         // 附魔名称
-        this.name = config.name ?? "自定义附魔1";
+        this.name = config.name ?? GameDefaults.ENCHANTMENT_NAME;
 
         // 玩家"理解xx"技能等级（减少对应素材消耗量）
         this.understandingSkills = {
-            metal: config.understandingSkills?.metal ?? 0,      // 理解金属
-            cloth: config.understandingSkills?.cloth ?? 0,      // 理解布料
-            beast: config.understandingSkills?.beast ?? 0,      // 理解兽品
-            wood: config.understandingSkills?.wood ?? 0,        // 理解木材
-            medicine: config.understandingSkills?.medicine ?? 0, // 理解药品
-            mana: config.understandingSkills?.mana ?? 0         // 理解魔素
+            metal: config.understandingSkills?.metal ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,      // 理解金属
+            cloth: config.understandingSkills?.cloth ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,      // 理解布料
+            beast: config.understandingSkills?.beast ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,      // 理解兽品
+            wood: config.understandingSkills?.wood ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,        // 理解木材
+            medicine: config.understandingSkills?.medicine ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL, // 理解药品
+            mana: config.understandingSkills?.mana ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL         // 理解魔素
         };
 
         // 选中的属性，保持选择顺序，最多8个
