@@ -624,12 +624,18 @@ function getImportDefaultConfig() {
  * 更新导入预览中的状态图标
  * @param {string} fieldId - 字段ID
  * @param {boolean} hasData - 是否有数据
+ * @param {string} tooltipText - 提示文本（可选）
  */
-function updateImportPreviewStatus(fieldId, hasData) {
+function updateImportPreviewStatus(fieldId, hasData, tooltipText) {
     const statusEl = document.getElementById(fieldId);
     if (statusEl) {
         statusEl.className = 'import-status-icon ' + (hasData ? 'has-data' : 'no-data');
         statusEl.textContent = hasData ? '✓' : '⚠';
+        if (!hasData) {
+            statusEl.dataset.tooltip = tooltipText || '未解析到该数据，将使用默认值，可自行修改';
+        } else {
+            delete statusEl.dataset.tooltip;
+        }
     }
 }
 
@@ -648,13 +654,35 @@ function fillImportPreview(parseResult) {
     let record = parseResult.record;
     let missingFields = parseResult.missingFields || [];
 
-    // 附魔名称
+    // 附魔名称 - 留空让用户自己填，显示⚠提示
     const nameInput = document.getElementById('importPreviewName');
+    const nameStatus = document.getElementById('importPreviewNameStatus');
     if (record && record.getName) {
         nameInput.value = record.getName();
+        nameStatus.className = 'import-status-icon has-data';
+        nameStatus.textContent = '✓';
+        delete nameStatus.dataset.tooltip;
     } else {
-        nameInput.value = '导入附魔';
+        nameInput.value = '';
+        nameInput.placeholder = '请输入附魔名称（必填）';
+        nameStatus.className = 'import-status-icon no-data';
+        nameStatus.textContent = '⚠';
+        nameStatus.dataset.tooltip = '未解析到附魔名称，请手动输入（必填）';
     }
+
+    // 监听名称输入变化，实时更新状态
+    nameInput.addEventListener('input', function onNameInput() {
+        const status = document.getElementById('importPreviewNameStatus');
+        if (this.value.trim()) {
+            status.className = 'import-status-icon has-data';
+            status.textContent = '✓';
+            delete status.dataset.tooltip;
+        } else {
+            status.className = 'import-status-icon no-data';
+            status.textContent = '⚠';
+            status.dataset.tooltip = '附魔名称不能为空，请手动输入';
+        }
+    });
 
     // 装备类型
     const equipmentTypeSelect = document.getElementById('importPreviewEquipmentType');
@@ -662,52 +690,52 @@ function fillImportPreview(parseResult) {
     equipmentTypeSelect.value = hasEquipmentType
         ? (record.equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON ? 'weapon' : 'armor')
         : (defaults.equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON ? 'weapon' : 'armor');
-    updateImportPreviewStatus('importPreviewEquipmentTypeStatus', hasEquipmentType);
+    updateImportPreviewStatus('importPreviewEquipmentTypeStatus', hasEquipmentType, '未解析到装备类型，将使用默认值');
 
     // 玩家等级
     const playerLevelInput = document.getElementById('importPreviewPlayerLevel');
     const hasPlayerLevel = record && record.playerLevel !== undefined && !missingFields.includes('playerLevel');
     playerLevelInput.value = hasPlayerLevel ? record.playerLevel : defaults.playerLevel;
-    updateImportPreviewStatus('importPreviewPlayerLevelStatus', hasPlayerLevel);
+    updateImportPreviewStatus('importPreviewPlayerLevelStatus', hasPlayerLevel, '未解析到玩家等级，将使用默认值');
 
     // 装备潜力
     const potentialInput = document.getElementById('importPreviewEquipmentPotential');
     const hasPotential = record && record.equipmentPotential !== undefined && !missingFields.includes('equipmentPotential');
     potentialInput.value = hasPotential ? record.equipmentPotential : defaults.equipmentPotential;
-    updateImportPreviewStatus('importPreviewEquipmentPotentialStatus', hasPotential);
+    updateImportPreviewStatus('importPreviewEquipmentPotentialStatus', hasPotential, '未解析到装备潜力，将使用默认值');
 
     // 基础潜力
     const basePotentialInput = document.getElementById('importPreviewBasePotential');
     const hasBasePotential = record && record.baseEquipmentPotential !== undefined && !missingFields.includes('baseEquipmentPotential');
     basePotentialInput.value = hasBasePotential ? record.baseEquipmentPotential : defaults.baseEquipmentPotential;
-    updateImportPreviewStatus('importPreviewBasePotentialStatus', hasBasePotential);
+    updateImportPreviewStatus('importPreviewBasePotentialStatus', hasBasePotential, '未解析到基础潜力，将使用默认值');
 
     // 锻冶熟练度
     const smithingInput = document.getElementById('importPreviewSmithingLevel');
     const hasSmithing = record && record.smithingLevel !== undefined && !missingFields.includes('smithingLevel');
     smithingInput.value = hasSmithing ? record.smithingLevel : defaults.smithingLevel;
-    updateImportPreviewStatus('importPreviewSmithingLevelStatus', hasSmithing);
+    updateImportPreviewStatus('importPreviewSmithingLevelStatus', hasSmithing, '未解析到锻冶熟练度，将使用默认值');
 
     // 铁砧技能等级
     const anvilInput = document.getElementById('importPreviewAnvilLevel');
     const hasAnvil = record && record.anvilLevel !== undefined && !missingFields.includes('anvilLevel');
     anvilInput.value = hasAnvil ? record.anvilLevel : defaults.anvilLevel;
-    updateImportPreviewStatus('importPreviewAnvilLevelStatus', hasAnvil);
+    updateImportPreviewStatus('importPreviewAnvilLevelStatus', hasAnvil, '未解析到铁砧技能等级，将使用默认值');
 
     // 大师II等级
     const masterInput = document.getElementById('importPreviewMasterEnhancement2Level');
     const hasMaster = record && record.masterEnhancement2Level !== undefined && !missingFields.includes('masterEnhancement2Level');
     masterInput.value = hasMaster ? record.masterEnhancement2Level : defaults.masterEnhancement2Level;
-    updateImportPreviewStatus('importPreviewMasterEnhancement2LevelStatus', hasMaster);
+    updateImportPreviewStatus('importPreviewMasterEnhancement2LevelStatus', hasMaster, '未解析到大师II等级，将使用默认值');
 
     // 理解技能
     const understandingFields = [
-        { id: 'importPreviewUnderstandingMetal', key: 'metal' },
-        { id: 'importPreviewUnderstandingCloth', key: 'cloth' },
-        { id: 'importPreviewUnderstandingBeast', key: 'beast' },
-        { id: 'importPreviewUnderstandingWood', key: 'wood' },
-        { id: 'importPreviewUnderstandingMedicine', key: 'medicine' },
-        { id: 'importPreviewUnderstandingMana', key: 'mana' }
+        { id: 'importPreviewUnderstandingMetal', key: 'metal', label: '金属' },
+        { id: 'importPreviewUnderstandingCloth', key: 'cloth', label: '布料' },
+        { id: 'importPreviewUnderstandingBeast', key: 'beast', label: '兽品' },
+        { id: 'importPreviewUnderstandingWood', key: 'wood', label: '木材' },
+        { id: 'importPreviewUnderstandingMedicine', key: 'medicine', label: '药品' },
+        { id: 'importPreviewUnderstandingMana', key: 'mana', label: '魔素' }
     ];
 
     understandingFields.forEach(field => {
@@ -716,30 +744,145 @@ function fillImportPreview(parseResult) {
         const hasSkill = record && record.understandingSkills && record.understandingSkills[field.key] !== undefined
             && !missingFields.includes('understandingSkills');
         input.value = hasSkill ? record.understandingSkills[field.key] : defaults.understandingSkills[field.key];
-        updateImportPreviewStatus(statusId, hasSkill);
+        updateImportPreviewStatus(statusId, hasSkill, `未解析到理解${field.label}等级，将使用默认值`);
     });
 
-    // 附魔步骤预览
-    const stepsContainer = document.getElementById('importPreviewSteps');
-    stepsContainer.innerHTML = '';
-
+    // 最终附魔结果预览（包含成功率和步骤）
+    const finalResultContainer = document.getElementById('importPreviewFinalResult');
     if (record && record.enchantmentSteps && record.enchantmentSteps.length > 0) {
-        record.enchantmentSteps.forEach((step, index) => {
-            const stepDiv = document.createElement('div');
-            stepDiv.className = 'import-preview-step';
-            const nonZeroEnchants = step.enchantments.filter(e => e.value !== 0);
-            if (nonZeroEnchants.length > 0) {
-                const stepText = `步骤${index + 1}: ` + nonZeroEnchants.map(e =>
-                    `${e.property.nameChsAbbr}${e.value > 0 ? '+' : ''}${e.value}`
-                ).join(', ');
-                stepDiv.textContent = stepText;
-            } else {
-                stepDiv.textContent = `步骤${index + 1}: (空步骤)`;
+        // 复用 updateResultDisplay 中的逻辑来生成步骤文本
+        let resultText = '';
+
+        // 顶部属性总览
+        const finalProperties = record.getFinalProperties();
+        let propertyOverview = '附魔结果';
+        const allProperties = record.getSelectedProperties();
+        allProperties.forEach(property => {
+            const value = finalProperties[property.id];
+            if (value !== 0) {
+                const actualValue = attrNumToActualNum(property, value);
+                if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                    propertyOverview += `｜${property.nameChsAbbr}`;
+                } else {
+                    const sign = actualValue > 0 ? '+' : '';
+                    propertyOverview += `｜${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
+                }
             }
-            stepsContainer.appendChild(stepDiv);
         });
+        resultText += propertyOverview + '\n\n';
+
+        // 附魔步骤（与 updateResultDisplay 中相同的逻辑）
+        let validStepIndex = 1;
+        let i = 0;
+        while (i < record.enchantmentSteps.length) {
+            const currentStep = record.enchantmentSteps[i];
+
+            // 跳过空步骤、无效步骤和被忽略的步骤
+            if (!currentStep.isValid || currentStep.enchantments.every(e => e.value === 0) || currentStep.isIgnored) {
+                i++;
+                continue;
+            }
+
+            // 预读后续步骤，查找连续的重复步骤
+            let repeatCount = 1;
+            let j = i + 1;
+            while (j < record.enchantmentSteps.length) {
+                const nextStep = record.enchantmentSteps[j];
+                if (!nextStep.isValid || nextStep.enchantments.every(e => e.value === 0) || nextStep.isIgnored) {
+                    j++;
+                    continue;
+                }
+                if (areStepsEqual(currentStep, nextStep)) {
+                    repeatCount++;
+                    j++;
+                } else {
+                    break;
+                }
+            }
+
+            if (repeatCount > 1) {
+                // 分次附
+                resultText += `${validStepIndex}. 分次附、每次附`;
+                const enchantments = currentStep.enchantments.filter(enchant => enchant.value !== 0);
+                const enchantmentText = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        const actualValue = attrNumToActualNum(property, enchant.value);
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            const sign = actualValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('、');
+                resultText += enchantmentText;
+
+                resultText += `、直到`;
+                let lastValidStep = null;
+                for (let k = j - 1; k >= i; k--) {
+                    const step = record.enchantmentSteps[k];
+                    if (step.isValid && !step.isIgnored && !step.enchantments.every(e => e.value === 0)) {
+                        lastValidStep = step;
+                        break;
+                    }
+                }
+                const finalEnchantments = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        const finalValue = lastValidStep.currentProperties[property.id] || 0;
+                        const actualFinalValue = attrNumToActualNum(property, finalValue);
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            const sign = actualFinalValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualFinalValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('、');
+                resultText += finalEnchantments;
+                resultText += `｜${lastValidStep.postEnchantmentPotential}pt\n`;
+                validStepIndex++;
+                i = j;
+            } else {
+                // 单个步骤
+                resultText += `${validStepIndex}. 附 `;
+                const enchantments = currentStep.enchantments.filter(enchant => enchant.value !== 0);
+                const enchantmentText = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        const currentValue = currentStep.currentProperties[property.id] || 0;
+                        const actualCurrentValue = attrNumToActualNum(property, currentValue);
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            const sign = actualCurrentValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('｜');
+                resultText += enchantmentText;
+                resultText += `｜${currentStep.postEnchantmentPotential}pt\n`;
+                validStepIndex++;
+                i++;
+            }
+        }
+
+        // 成功率
+        resultText += '\n';
+        if (record.finalSingleSuccessRate !== null) {
+            let singleRateText = Math.round(record.finalSingleSuccessRate);
+            if (singleRateText > 999) {
+                singleRateText = '>999';
+            }
+            resultText += `单条成功率｜${singleRateText}%`;
+        } else {
+            resultText += `单条成功率｜N/A`;
+        }
+
+        finalResultContainer.textContent = resultText;
     } else {
-        stepsContainer.innerHTML = '<div class="import-preview-step" style="color:#999;">（暂无步骤数据，具体解析待实现）</div>';
+        finalResultContainer.textContent = '（暂无步骤数据，具体解析待实现）';
     }
 
     // 保存解析结果供后续导入使用
@@ -760,7 +903,12 @@ function executeImport() {
     }
 
     // 从预览中获取用户修改后的值
-    const finalName = document.getElementById('importPreviewName').value.trim() || '导入附魔';
+    const finalName = document.getElementById('importPreviewName').value.trim();
+    if (!finalName) {
+        alert('请输入附魔名称后再导入');
+        document.getElementById('importPreviewName').focus();
+        return;
+    }
     const equipmentType = document.getElementById('importPreviewEquipmentType').value;
     const playerLevel = parseInt(document.getElementById('importPreviewPlayerLevel').value) || 290;
     const equipmentPotential = parseInt(document.getElementById('importPreviewEquipmentPotential').value) || 100;
@@ -823,13 +971,7 @@ function executeImport() {
         // 重置展开的重复步骤组状态
         expandedGroups = {};
 
-        // 更新显示
-        updateSelectedPropertiesFromImport();
-        updateDisplay();
-        updateBasicInfoDisplay();
-        updateEnchantmentSelector();
-
-        // 保存到本地存储
+        // 先更新列表，再更新UI
         if (existingIndex >= 0) {
             enchantmentList[existingIndex] = {
                 name: finalName,
@@ -846,6 +988,13 @@ function executeImport() {
 
         saveEnchantmentListToStorage();
         localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
+
+        // 更新显示（此时enchantmentList已更新，updateEnchantmentSelector能正确获取数据）
+        updateSelectedPropertiesFromImport();
+        updateDisplay();
+        updateBasicInfoDisplay();
+        updateTableHeader();
+        updateEnchantmentSelector();
 
         // 关闭弹窗
         closeImportModal();
