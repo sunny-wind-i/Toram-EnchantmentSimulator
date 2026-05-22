@@ -1225,7 +1225,8 @@ function checkElementAwakeningInSteps() {
     let hasOther = false;
 
     enchantRecord.enchantmentSteps.forEach(step => {
-        if (!step.isValid || step.isIgnored) return;
+        // 只跳过忽略步骤，无效步骤也需要检查（因为无效步骤仍然有属性觉醒词条）
+        if (step.isIgnored) return;
         step.enchantments.forEach(enchant => {
             if (enchant.value === 0) return;
             if (enchant.property.id === 'OriginalElement') {
@@ -1354,13 +1355,13 @@ function doExportCyteriaFormat(elementBase) {
 
                 // 多条属性变化或属性觉醒，不能合并为重复步骤，按普通步骤分开导出
                 group.steps.forEach(step => {
-                    if (step.enchantments.every(e => e.value === 0) || step.isIgnored) return;
+                    if (step.enchantments.every(e => e.value === 0)) return;
 
                     const stats = convertStepToCyteriaStats(step);
                     if (stats.length > 0) {
                         cyteriaData.equipment.steps.push({
                             type: 0,
-                            hidden: false,
+                            hidden: step.isIgnored, // 忽略步骤设置 hidden: true
                             step: 1,
                             stats: stats
                         });
@@ -1369,13 +1370,13 @@ function doExportCyteriaFormat(elementBase) {
             } else {
                 // 普通步骤（非重复步骤）
                 group.steps.forEach(step => {
-                    if (step.enchantments.every(e => e.value === 0) || step.isIgnored) return;
+                    if (step.enchantments.every(e => e.value === 0)) return;
 
                     const stats = convertStepToCyteriaStats(step);
                     if (stats.length > 0) {
                         cyteriaData.equipment.steps.push({
                             type: 0,
-                            hidden: false,
+                            hidden: step.isIgnored, // 忽略步骤设置 hidden: true
                             step: 1,
                             stats: stats
                         });
