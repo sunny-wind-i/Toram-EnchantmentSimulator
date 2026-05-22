@@ -1590,7 +1590,9 @@ function updateTableContent() {
                 if (lastStep.isIgnored) {
                     potentialCell.textContent = 'N/A';
                 } else {
-                    potentialCell.textContent = lastStep.postEnchantmentPotential;
+                    // 添加占位序号标记，与展开状态保持列宽一致
+                    const totalCount = group.steps.length;
+                    potentialCell.innerHTML = `<span class="repeat-step-order">${totalCount}/${totalCount}</span> ${lastStep.postEnchantmentPotential}`;
                 }
                 potentialCell.dataset.groupIndex = groupIndex;
                 potentialCell.dataset.columnType = 'potential';

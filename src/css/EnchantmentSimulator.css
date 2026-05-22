@@ -2301,6 +2301,30 @@ body {
     text-align: center;
 }
 
+/* 无效重复步骤的序号标记（展开状态） */
+.enchant-table tr.repeated-step.invalid .repeat-step-order {
+    color: #ef5350;
+    background-color: #ffebee;
+}
+
+/* 忽略重复步骤的序号标记（展开状态） */
+.enchant-table tr.repeated-step.ignored .repeat-step-order {
+    color: #9e9e9e;
+    background-color: #eeeeee;
+}
+
+/* 无效重复步骤的序号标记（折叠状态） */
+.enchant-table tr.repeated-steps.invalid .repeat-step-order {
+    color: #ef5350;
+    background-color: #ffebee;
+}
+
+/* 忽略重复步骤的序号标记（折叠状态） */
+.enchant-table tr.repeated-steps.has-ignored-steps .repeat-step-order {
+    color: #9e9e9e;
+    background-color: #eeeeee;
+}
+
 /* 隐藏编辑按钮，因为我发现好像没什么用 */
 #editPropertyBtn {
     display: none;
