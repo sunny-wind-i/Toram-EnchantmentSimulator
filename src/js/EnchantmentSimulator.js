@@ -497,206 +497,432 @@ function updateEnchantmentSelector() {
     selector.value = currentEnchantmentIndex;
 }
 
-// 导出数据
+// ==================== 导入导出功能 ====================
+
+// 导入数据 - 打开导入弹窗
+function importData() {
+    const modal = document.getElementById('importModal');
+    modal.classList.remove('hidden');
+
+    // 重置弹窗状态
+    document.getElementById('importTextarea').value = '';
+    document.getElementById('importFileName').textContent = '';
+    document.getElementById('importFileInput').value = '';
+    document.getElementById('importPreviewSection').classList.add('hidden');
+    document.getElementById('importDropZone').classList.remove('drag-over');
+    document.getElementById('importDragOverlay').classList.add('hidden');
+
+    // 清除之前存储的解析数据
+    window._importParsedData = null;
+}
+
+// 关闭导入弹窗
+function closeImportModal() {
+    document.getElementById('importModal').classList.add('hidden');
+}
+
+// 导出数据 - 打开导出弹窗
 function exportData() {
+    const modal = document.getElementById('exportModal');
+    modal.classList.remove('hidden');
+}
+
+// 关闭导出弹窗
+function closeExportModal() {
+    document.getElementById('exportModal').classList.add('hidden');
+}
+
+// ==================== 导入解析逻辑 ====================
+
+/**
+ * 尝试解析导入的文本，按顺序尝试三种解析方式
+ * @param {string} text - 要解析的文本
+ * @returns {Object|null} 解析结果对象，如果全部失败则返回null
+ */
+function tryParseImportText(text) {
+    // 方法1: 尝试用原本方法解析（自定义编码格式）
+    try {
+        const tempRecord = new EnchantRecord({});
+        tempRecord.importCustomData(text);
+        // 解析成功，返回结果
+        return {
+            method: 'original',
+            record: tempRecord,
+            hasFullInfo: true, // 原本方法包含所有信息
+            missingFields: []
+        };
+    } catch (e) {
+        // 解析失败，继续尝试下一种方法
+        console.log('方法1（原本方法）解析失败:', e.message);
+    }
+
+    // 方法2: 尝试用布偶的魔法书 JSON 格式解析
+    try {
+        const parsed = JSON.parse(text);
+        // 检查是否是布偶的魔法书格式（具体实现待定）
+        if (parsed && typeof parsed === 'object') {
+            // 这里先做基础框架，具体解析逻辑以后实现
+            // 返回一个占位结果
+            return {
+                method: 'bouh',
+                record: null, // 具体解析后生成
+                hasFullInfo: false,
+                missingFields: ['equipmentType', 'playerLevel', 'equipmentPotential', 'baseEquipmentPotential', 'smithingLevel', 'anvilLevel', 'masterEnhancement2Level', 'understandingSkills'],
+                rawData: parsed
+            };
+        }
+    } catch (e) {
+        console.log('方法2（布偶的魔法书格式）解析失败:', e.message);
+    }
+
+    // 方法3: 尝试用附魔公式文本解析
+    try {
+        // 具体解析方式以后实现
+        // 这里先做基础框架
+        if (text && text.length > 0) {
+            return {
+                method: 'formula',
+                record: null, // 具体解析后生成
+                hasFullInfo: false,
+                missingFields: ['equipmentType', 'playerLevel', 'equipmentPotential', 'baseEquipmentPotential', 'smithingLevel', 'anvilLevel', 'masterEnhancement2Level', 'understandingSkills'],
+                rawData: text
+            };
+        }
+    } catch (e) {
+        console.log('方法3（附魔公式文本）解析失败:', e.message);
+    }
+
+    // 所有方法都失败
+    return null;
+}
+
+/**
+ * 获取导入数据的默认值
+ * @returns {Object} 默认配置对象
+ */
+function getImportDefaultConfig() {
+    return {
+        equipmentType: EquipmentType.EQUIPMENT_TYPE_WEAPON,
+        playerLevel: GameDefaults.PLAYER_LEVEL,
+        equipmentPotential: GameDefaults.EQUIPMENT_POTENTIAL,
+        baseEquipmentPotential: GameDefaults.BASE_EQUIPMENT_POTENTIAL,
+        smithingLevel: GameDefaults.SMITHING_LEVEL,
+        anvilLevel: GameDefaults.ANVIL_LEVEL,
+        masterEnhancement2Level: GameDefaults.MASTER_ENHANCEMENT_2_LEVEL,
+        understandingSkills: {
+            metal: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            cloth: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            beast: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            wood: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            medicine: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            mana: GameDefaults.UNDERSTANDING_SKILL_LEVEL
+        }
+    };
+}
+
+/**
+ * 更新导入预览中的状态图标
+ * @param {string} fieldId - 字段ID
+ * @param {boolean} hasData - 是否有数据
+ */
+function updateImportPreviewStatus(fieldId, hasData) {
+    const statusEl = document.getElementById(fieldId);
+    if (statusEl) {
+        statusEl.className = 'import-status-icon ' + (hasData ? 'has-data' : 'no-data');
+        statusEl.textContent = hasData ? '✓' : '⚠';
+    }
+}
+
+/**
+ * 填充导入预览信息
+ * @param {Object} parseResult - 解析结果
+ */
+function fillImportPreview(parseResult) {
+    const previewSection = document.getElementById('importPreviewSection');
+    previewSection.classList.remove('hidden');
+
+    // 获取默认配置
+    const defaults = getImportDefaultConfig();
+
+    // 根据解析方法获取数据
+    let record = parseResult.record;
+    let missingFields = parseResult.missingFields || [];
+
+    // 附魔名称
+    const nameInput = document.getElementById('importPreviewName');
+    if (record && record.getName) {
+        nameInput.value = record.getName();
+    } else {
+        nameInput.value = '导入附魔';
+    }
+
+    // 装备类型
+    const equipmentTypeSelect = document.getElementById('importPreviewEquipmentType');
+    const hasEquipmentType = record && record.equipmentType && !missingFields.includes('equipmentType');
+    equipmentTypeSelect.value = hasEquipmentType
+        ? (record.equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON ? 'weapon' : 'armor')
+        : (defaults.equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON ? 'weapon' : 'armor');
+    updateImportPreviewStatus('importPreviewEquipmentTypeStatus', hasEquipmentType);
+
+    // 玩家等级
+    const playerLevelInput = document.getElementById('importPreviewPlayerLevel');
+    const hasPlayerLevel = record && record.playerLevel !== undefined && !missingFields.includes('playerLevel');
+    playerLevelInput.value = hasPlayerLevel ? record.playerLevel : defaults.playerLevel;
+    updateImportPreviewStatus('importPreviewPlayerLevelStatus', hasPlayerLevel);
+
+    // 装备潜力
+    const potentialInput = document.getElementById('importPreviewEquipmentPotential');
+    const hasPotential = record && record.equipmentPotential !== undefined && !missingFields.includes('equipmentPotential');
+    potentialInput.value = hasPotential ? record.equipmentPotential : defaults.equipmentPotential;
+    updateImportPreviewStatus('importPreviewEquipmentPotentialStatus', hasPotential);
+
+    // 基础潜力
+    const basePotentialInput = document.getElementById('importPreviewBasePotential');
+    const hasBasePotential = record && record.baseEquipmentPotential !== undefined && !missingFields.includes('baseEquipmentPotential');
+    basePotentialInput.value = hasBasePotential ? record.baseEquipmentPotential : defaults.baseEquipmentPotential;
+    updateImportPreviewStatus('importPreviewBasePotentialStatus', hasBasePotential);
+
+    // 锻冶熟练度
+    const smithingInput = document.getElementById('importPreviewSmithingLevel');
+    const hasSmithing = record && record.smithingLevel !== undefined && !missingFields.includes('smithingLevel');
+    smithingInput.value = hasSmithing ? record.smithingLevel : defaults.smithingLevel;
+    updateImportPreviewStatus('importPreviewSmithingLevelStatus', hasSmithing);
+
+    // 铁砧技能等级
+    const anvilInput = document.getElementById('importPreviewAnvilLevel');
+    const hasAnvil = record && record.anvilLevel !== undefined && !missingFields.includes('anvilLevel');
+    anvilInput.value = hasAnvil ? record.anvilLevel : defaults.anvilLevel;
+    updateImportPreviewStatus('importPreviewAnvilLevelStatus', hasAnvil);
+
+    // 大师II等级
+    const masterInput = document.getElementById('importPreviewMasterEnhancement2Level');
+    const hasMaster = record && record.masterEnhancement2Level !== undefined && !missingFields.includes('masterEnhancement2Level');
+    masterInput.value = hasMaster ? record.masterEnhancement2Level : defaults.masterEnhancement2Level;
+    updateImportPreviewStatus('importPreviewMasterEnhancement2LevelStatus', hasMaster);
+
+    // 理解技能
+    const understandingFields = [
+        { id: 'importPreviewUnderstandingMetal', key: 'metal' },
+        { id: 'importPreviewUnderstandingCloth', key: 'cloth' },
+        { id: 'importPreviewUnderstandingBeast', key: 'beast' },
+        { id: 'importPreviewUnderstandingWood', key: 'wood' },
+        { id: 'importPreviewUnderstandingMedicine', key: 'medicine' },
+        { id: 'importPreviewUnderstandingMana', key: 'mana' }
+    ];
+
+    understandingFields.forEach(field => {
+        const input = document.getElementById(field.id);
+        const statusId = field.id + 'Status';
+        const hasSkill = record && record.understandingSkills && record.understandingSkills[field.key] !== undefined
+            && !missingFields.includes('understandingSkills');
+        input.value = hasSkill ? record.understandingSkills[field.key] : defaults.understandingSkills[field.key];
+        updateImportPreviewStatus(statusId, hasSkill);
+    });
+
+    // 附魔步骤预览
+    const stepsContainer = document.getElementById('importPreviewSteps');
+    stepsContainer.innerHTML = '';
+
+    if (record && record.enchantmentSteps && record.enchantmentSteps.length > 0) {
+        record.enchantmentSteps.forEach((step, index) => {
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'import-preview-step';
+            const nonZeroEnchants = step.enchantments.filter(e => e.value !== 0);
+            if (nonZeroEnchants.length > 0) {
+                const stepText = `步骤${index + 1}: ` + nonZeroEnchants.map(e =>
+                    `${e.property.nameChsAbbr}${e.value > 0 ? '+' : ''}${e.value}`
+                ).join(', ');
+                stepDiv.textContent = stepText;
+            } else {
+                stepDiv.textContent = `步骤${index + 1}: (空步骤)`;
+            }
+            stepsContainer.appendChild(stepDiv);
+        });
+    } else {
+        stepsContainer.innerHTML = '<div class="import-preview-step" style="color:#999;">（暂无步骤数据，具体解析待实现）</div>';
+    }
+
+    // 保存解析结果供后续导入使用
+    window._importParsedData = {
+        parseResult: parseResult,
+        defaults: defaults
+    };
+}
+
+/**
+ * 执行导入操作
+ */
+function executeImport() {
+    const parsedData = window._importParsedData;
+    if (!parsedData) {
+        showMessage('请先解析数据');
+        return;
+    }
+
+    // 从预览中获取用户修改后的值
+    const finalName = document.getElementById('importPreviewName').value.trim() || '导入附魔';
+    const equipmentType = document.getElementById('importPreviewEquipmentType').value;
+    const playerLevel = parseInt(document.getElementById('importPreviewPlayerLevel').value) || 290;
+    const equipmentPotential = parseInt(document.getElementById('importPreviewEquipmentPotential').value) || 100;
+    const baseEquipmentPotential = parseInt(document.getElementById('importPreviewBasePotential').value) || 1;
+    const smithingLevel = parseInt(document.getElementById('importPreviewSmithingLevel').value) || 0;
+    const anvilLevel = parseInt(document.getElementById('importPreviewAnvilLevel').value) || 40;
+    const masterEnhancement2Level = parseInt(document.getElementById('importPreviewMasterEnhancement2Level').value) || 10;
+
+    const understandingSkills = {
+        metal: parseInt(document.getElementById('importPreviewUnderstandingMetal').value) || 0,
+        cloth: parseInt(document.getElementById('importPreviewUnderstandingCloth').value) || 0,
+        beast: parseInt(document.getElementById('importPreviewUnderstandingBeast').value) || 0,
+        wood: parseInt(document.getElementById('importPreviewUnderstandingWood').value) || 0,
+        medicine: parseInt(document.getElementById('importPreviewUnderstandingMedicine').value) || 0,
+        mana: parseInt(document.getElementById('importPreviewUnderstandingMana').value) || 0
+    };
+
+    try {
+        let newRecord;
+
+        if (parsedData.parseResult.method === 'original' && parsedData.parseResult.record) {
+            // 原本方法：直接使用解析出的记录
+            newRecord = parsedData.parseResult.record;
+        } else {
+            // 其他方法：创建新记录并应用配置（具体步骤解析待实现）
+            newRecord = new EnchantRecord({
+                equipmentType: equipmentType === 'weapon' ? EquipmentType.EQUIPMENT_TYPE_WEAPON : EquipmentType.EQUIPMENT_TYPE_ARMOR,
+                playerLevel: playerLevel,
+                equipmentPotential: equipmentPotential,
+                baseEquipmentPotential: baseEquipmentPotential,
+                smithingLevel: smithingLevel,
+                anvilLevel: anvilLevel,
+                masterEnhancement2Level: masterEnhancement2Level,
+                understandingSkills: understandingSkills,
+                name: finalName
+            });
+            // TODO: 根据解析结果添加附魔步骤
+        }
+
+        // 设置名称
+        newRecord.setName(finalName);
+
+        // 检查是否存在同名附魔
+        const existingIndex = enchantmentList.findIndex(item => item.name === finalName);
+
+        if (existingIndex >= 0) {
+            const shouldOverwrite = confirm(`已存在名为"${finalName}"的附魔，是否要覆盖它？`);
+            if (!shouldOverwrite) {
+                showMessage('请修改附魔名称以避免冲突');
+                return;
+            }
+        }
+
+        // 导入数据到当前记录
+        enchantRecord = newRecord;
+
+        // 更新选中属性
+        selectedProperties = [...enchantRecord.getSelectedProperties()];
+
+        // 重置展开的重复步骤组状态
+        expandedGroups = {};
+
+        // 更新显示
+        updateSelectedPropertiesFromImport();
+        updateDisplay();
+        updateBasicInfoDisplay();
+        updateEnchantmentSelector();
+
+        // 保存到本地存储
+        if (existingIndex >= 0) {
+            enchantmentList[existingIndex] = {
+                name: finalName,
+                data: enchantRecord.exportCustomData()
+            };
+            currentEnchantmentIndex = existingIndex;
+        } else {
+            enchantmentList.push({
+                name: finalName,
+                data: enchantRecord.exportCustomData()
+            });
+            currentEnchantmentIndex = enchantmentList.length - 1;
+        }
+
+        saveEnchantmentListToStorage();
+        localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
+
+        // 关闭弹窗
+        closeImportModal();
+        showMessage('导入成功');
+    } catch (error) {
+        alert('导入失败: ' + error.message);
+    }
+}
+
+// ==================== 导出逻辑 ====================
+
+/**
+ * 导出为原本格式并复制到剪贴板
+ */
+function exportOriginalAndCopy() {
     try {
         const exportedData = enchantRecord.exportCustomData();
-        // 复制到剪贴板
         navigator.clipboard.writeText(exportedData).then(() => {
-            showMessage('导出数据已复制到剪贴板');
+            showMessage('导出代码已复制到剪贴板');
+            closeExportModal();
         }).catch(err => {
-            // 如果复制失败，显示数据在弹窗中
-            showExportData(exportedData);
+            // 如果复制失败，使用备用方法
+            const textarea = document.createElement('textarea');
+            textarea.value = exportedData;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showMessage('导出代码已复制到剪贴板');
+            closeExportModal();
         });
     } catch (error) {
         alert('导出失败: ' + error.message);
     }
 }
 
-// 显示导出数据
-function showExportData(data) {
-    // 创建弹窗元素
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>导出数据</h2>
-            <p>附魔名称: ${enchantRecord.getName()}</p>
-            <p>请复制以下数据:</p>
-            <textarea id="exportDataTextarea" rows="5" cols="50" readonly>${data}</textarea>
-            <button id="copyExportDataBtn">复制</button>
-        </div>
-    `;
+/**
+ * 导出为布偶的魔法书格式并下载
+ */
+function exportBouhFormat() {
+    try {
+        // 具体实现待定，先创建一个占位JSON
+        const bouhData = {
+            version: 1,
+            source: 'Toram-EnchantmentSimulator',
+            name: enchantRecord.getName(),
+            // TODO: 填充布偶的魔法书格式数据
+            equipmentType: enchantRecord.equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON ? 'weapon' : 'armor',
+            playerLevel: enchantRecord.playerLevel,
+            equipmentPotential: enchantRecord.equipmentPotential,
+            steps: enchantRecord.enchantmentSteps.map(step => ({
+                enchantments: step.enchantments
+                    .filter(e => e.value !== 0)
+                    .map(e => ({
+                        propertyId: e.property.id,
+                        value: e.value
+                    }))
+            }))
+        };
 
-    document.body.appendChild(modal);
+        const jsonStr = JSON.stringify(bouhData, null, 2);
+        const blob = new Blob([jsonStr], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
 
-    // 显示弹窗
-    modal.style.display = 'block';
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${enchantRecord.getName()}_布偶的魔法书.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
 
-    // 绑定关闭事件
-    modal.querySelector('.close').onclick = () => {
-        document.body.removeChild(modal);
-    };
-
-    // 绑定复制按钮事件
-    modal.querySelector('#copyExportDataBtn').onclick = () => {
-        const textarea = modal.querySelector('#exportDataTextarea');
-        textarea.select();
-        document.execCommand('copy');
-        showMessage('已复制到剪贴板');
-    };
-
-    // 点击弹窗外部关闭
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            document.body.removeChild(modal);
-        }
-    };
-}
-
-// 导入数据
-function importData() {
-    // 创建导入弹窗
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-        <div class="modal-content import-modal">
-            <span class="close">&times;</span>
-            <h2>导入数据</h2>
-            <p>请粘贴导出的数据:</p>
-            <textarea id="importDataTextarea" rows="5" cols="50"></textarea>
-            <div id="importNameSection" class="import-name-section">
-                <label for="importedName">附魔名称:</label>
-                <input type="text" id="importedName">
-            </div>
-            <div class="import-button-group">
-                <button id="parseImportDataBtn" class="parse-btn">解析</button>
-                <button id="importDataBtn" class="import-btn-inner" style="display: none;">导入</button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    // 显示弹窗
-    modal.style.display = 'block';
-
-    // 绑定关闭事件
-    modal.querySelector('.close').onclick = () => {
-        document.body.removeChild(modal);
-    };
-
-    // 绑定解析按钮事件
-    modal.querySelector('#parseImportDataBtn').onclick = () => {
-        const textarea = modal.querySelector('#importDataTextarea');
-        const data = textarea.value.trim();
-
-        if (!data) {
-            showMessage('请输入要导入的数据');
-            return;
-        }
-
-        try {
-            // 创建临时记录来解析名称
-            const tempRecord = new EnchantRecord({});
-            tempRecord.importCustomData(data);
-            const importedName = tempRecord.getName();
-
-            // 显示名称输入框
-            const nameSection = modal.querySelector('#importNameSection');
-            const nameInput = modal.querySelector('#importedName');
-            nameSection.style.display = 'block';
-            nameInput.value = importedName;
-
-            // 隐藏解析按钮，显示导入按钮
-            modal.querySelector('#parseImportDataBtn').style.display = 'none';
-            modal.querySelector('#importDataBtn').style.display = 'block';
-
-            // 保存解析的数据
-            modal.parsedData = data;
-            modal.importedName = importedName;
-        } catch (error) {
-            alert('解析失败: ' + error.message);
-        }
-    };
-
-    // 绑定导入按钮事件
-    modal.querySelector('#importDataBtn').onclick = () => {
-        const nameInput = modal.querySelector('#importedName');
-        const finalName = nameInput.value.trim() || modal.importedName;
-
-        try {
-            // 创建临时记录来处理数据
-            const tempRecord = new EnchantRecord({});
-            tempRecord.importCustomData(modal.parsedData);
-            tempRecord.setName(finalName);
-
-            // 检查是否存在同名附魔
-            const existingIndex = enchantmentList.findIndex(item => item.name === finalName);
-
-            // 如果存在同名附魔，询问是否覆盖
-            if (existingIndex >= 0) {
-                const shouldOverwrite = confirm(`已存在名为"${finalName}"的附魔，是否要覆盖它？`);
-                if (!shouldOverwrite) {
-                    // 用户选择不覆盖，返回到名称编辑界面
-                    alert('请修改附魔名称以避免冲突');
-                    // 恢复界面状态，允许用户重新编辑名称
-                    return;
-                }
-            }
-
-            // 导入数据到当前记录
-            enchantRecord.importCustomData(tempRecord.exportCustomData());
-
-            // 检查是否需要添加到列表或更新现有项
-            const existingIndexWithName = enchantmentList.findIndex(item => item.name === finalName);
-            if (existingIndexWithName >= 0) {
-                // 更新现有条目
-                enchantmentList[existingIndexWithName].data = enchantRecord.exportCustomData();
-                currentEnchantmentIndex = existingIndexWithName;
-            } else {
-                // 添加新条目
-                enchantmentList.push({
-                    name: finalName,
-                    data: enchantRecord.exportCustomData()
-                });
-                currentEnchantmentIndex = enchantmentList.length - 1;
-            }
-
-            // 重置展开的重复步骤组状态
-            expandedGroups = {};
-
-            // 更新选中属性
-            updateSelectedPropertiesFromImport();
-
-            // 更新显示
-            updateDisplay();
-            updateBasicInfoDisplay();
-            updateEnchantmentSelector(); // 添加这行来更新下拉框
-
-            // 注意：这里不需要手动调用updateTableHeader
-            // 因为updateDisplay已经包含了这些操作
-
-            // 保存到本地存储
-            saveEnchantmentListToStorage();
-            localStorage.setItem('toram_enchant_last_selected', currentEnchantmentIndex.toString());
-
-            // 关闭弹窗
-            document.body.removeChild(modal);
-
-            showMessage('导入成功');
-        } catch (error) {
-            alert('导入失败: ' + error.message);
-        }
-    };
-
-    // 点击弹窗外部关闭
-    // window.onclick = function (event) {
-    //     if (event.target === modal) {
-    //         document.body.removeChild(modal);
-    //     }
-    // };
+        showMessage('布偶的魔法书格式已下载');
+        closeExportModal();
+    } catch (error) {
+        alert('导出失败: ' + error.message);
+    }
 }
 
 // 根据导入的数据更新选中属性
@@ -792,6 +1018,99 @@ function bindEvents() {
 
     // 添加导入按钮事件监听器
     document.getElementById('importBtn').addEventListener('click', importData);
+
+    // ==================== 导入弹窗事件绑定 ====================
+    // 关闭导入弹窗
+    document.querySelector('#importModal .close').addEventListener('click', closeImportModal);
+    document.getElementById('importModal').addEventListener('click', function (event) {
+        if (event.target === this) closeImportModal();
+    });
+
+    // 浏览文件按钮
+    document.getElementById('importBrowseBtn').addEventListener('click', function () {
+        document.getElementById('importFileInput').click();
+    });
+
+    // 文件输入变化
+    document.getElementById('importFileInput').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            document.getElementById('importFileName').textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('importTextarea').value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    // 拖拽事件
+    const dropZone = document.getElementById('importDropZone');
+    const dragOverlay = document.getElementById('importDragOverlay');
+
+    dropZone.addEventListener('dragover', function (event) {
+        event.preventDefault();
+        this.classList.add('drag-over');
+        dragOverlay.classList.remove('hidden');
+    });
+
+    dropZone.addEventListener('dragleave', function (event) {
+        event.preventDefault();
+        this.classList.remove('drag-over');
+        dragOverlay.classList.add('hidden');
+    });
+
+    dropZone.addEventListener('drop', function (event) {
+        event.preventDefault();
+        this.classList.remove('drag-over');
+        dragOverlay.classList.add('hidden');
+
+        const file = event.dataTransfer.files[0];
+        if (file) {
+            document.getElementById('importFileName').textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('importTextarea').value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    // 解析按钮
+    document.getElementById('importParseBtn').addEventListener('click', function () {
+        const text = document.getElementById('importTextarea').value.trim();
+        if (!text) {
+            showMessage('请输入或选择要导入的数据');
+            return;
+        }
+
+        const result = tryParseImportText(text);
+        if (result) {
+            fillImportPreview(result);
+            showMessage('解析成功：使用' +
+                (result.method === 'original' ? '原本格式' :
+                    result.method === 'bouh' ? '布偶的魔法书格式' : '附魔公式文本') +
+                '解析');
+        } else {
+            alert('解析失败：无法识别导入数据的格式，请检查数据是否正确');
+        }
+    });
+
+    // 确认导入按钮
+    document.getElementById('importConfirmBtn').addEventListener('click', executeImport);
+
+    // ==================== 导出弹窗事件绑定 ====================
+    // 关闭导出弹窗
+    document.querySelector('#exportModal .close').addEventListener('click', closeExportModal);
+    document.getElementById('exportModal').addEventListener('click', function (event) {
+        if (event.target === this) closeExportModal();
+    });
+
+    // 导出为原本格式
+    document.getElementById('exportOriginalBtn').addEventListener('click', exportOriginalAndCopy);
+
+    // 导出为布偶的魔法书格式
+    document.getElementById('exportBouhBtn').addEventListener('click', exportBouhFormat);
 
     // 选择属性按钮事件 (桌面端)
     document.getElementById('selectPropertiesBtn').addEventListener('click', showPropertySelection);

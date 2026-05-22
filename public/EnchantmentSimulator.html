@@ -230,7 +230,7 @@
             <button id="editPropertyBtn" class="toolbar-btn">✎</button>
 
             <button id="operationMenuBtn" class="toolbar-btn">…</button>
-            <button id="switchViewBtn" class="toolbar-btn">&lt;=&gt;</button>
+            <button id="switchViewBtn" class="toolbar-btn">&#x2261;</button>
             <div class="success-rate-display">
                 成功率: <span id="successRateValue">100</span>%
             </div>
@@ -355,6 +355,176 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+
+        <!-- ==================== 导入弹窗 ==================== -->
+        <div id="importModal" class="modal hidden">
+            <div class="modal-content import-modal">
+                <span class="close">&times;</span>
+                <h2>📥 导入附魔数据</h2>
+
+                <!-- 文本输入区（同时也是拖拽目标区） -->
+                <div id="importDropZone" class="import-drop-zone">
+                    <textarea id="importTextarea" class="import-textarea"
+                        placeholder="在此粘贴文本，或拖拽文件到此处（支持 .txt 文件）&#10;&#10;支持以下格式：&#10;1. 本模拟器导出的代码&#10;2. 布偶的魔法书 JSON 格式&#10;3. 附魔公式文本"></textarea>
+                    <div id="importDragOverlay" class="import-drag-overlay hidden">
+                        <span class="import-drag-icon">📄</span>
+                        <span class="import-drag-text">释放文件以导入</span>
+                    </div>
+                </div>
+
+                <!-- 文件选择按钮 -->
+                <div class="import-file-row">
+                    <button id="importBrowseBtn" class="import-browse-btn">📁 浏览文件</button>
+                    <input type="file" id="importFileInput" accept=".txt,.json" style="display:none">
+                    <span id="importFileName" class="import-file-name"></span>
+                </div>
+
+                <!-- 解析按钮 -->
+                <div class="import-parse-row">
+                    <button id="importParseBtn" class="parse-btn">解析</button>
+                </div>
+
+                <!-- 解析结果预览（解析后显示） -->
+                <div id="importPreviewSection" class="import-preview-section hidden">
+                    <h3>📋 解析结果预览</h3>
+
+                    <!-- 附魔名称 -->
+                    <div class="import-preview-item">
+                        <label>附魔名称</label>
+                        <input type="text" id="importPreviewName" class="import-preview-input">
+                    </div>
+
+                    <!-- 基础信息 -->
+                    <div class="import-preview-grid">
+                        <div class="import-preview-item">
+                            <label>装备类型</label>
+                            <select id="importPreviewEquipmentType" class="import-preview-select">
+                                <option value="weapon">武器</option>
+                                <option value="armor">身体装备</option>
+                            </select>
+                            <span id="importPreviewEquipmentTypeStatus" class="import-status-icon">✓</span>
+                        </div>
+                        <div class="import-preview-item">
+                            <label>玩家等级</label>
+                            <input type="number" id="importPreviewPlayerLevel" class="import-preview-input" min="200">
+                            <span id="importPreviewPlayerLevelStatus" class="import-status-icon">✓</span>
+                        </div>
+                        <div class="import-preview-item">
+                            <label>装备潜力</label>
+                            <input type="number" id="importPreviewEquipmentPotential" class="import-preview-input"
+                                min="1">
+                            <span id="importPreviewEquipmentPotentialStatus" class="import-status-icon">✓</span>
+                        </div>
+                        <div class="import-preview-item">
+                            <label>基础潜力</label>
+                            <input type="number" id="importPreviewBasePotential" class="import-preview-input" min="1">
+                            <span id="importPreviewBasePotentialStatus" class="import-status-icon">✓</span>
+                        </div>
+                        <div class="import-preview-item">
+                            <label>锻冶熟练度</label>
+                            <input type="number" id="importPreviewSmithingLevel" class="import-preview-input" min="0">
+                            <span id="importPreviewSmithingLevelStatus" class="import-status-icon">✓</span>
+                        </div>
+                        <div class="import-preview-item">
+                            <label>铁砧技能等级</label>
+                            <input type="number" id="importPreviewAnvilLevel" class="import-preview-input" min="0"
+                                max="40">
+                            <span id="importPreviewAnvilLevelStatus" class="import-status-icon">✓</span>
+                        </div>
+                        <div class="import-preview-item">
+                            <label>大师II等级</label>
+                            <input type="number" id="importPreviewMasterEnhancement2Level" class="import-preview-input"
+                                min="0" max="10">
+                            <span id="importPreviewMasterEnhancement2LevelStatus" class="import-status-icon">✓</span>
+                        </div>
+                    </div>
+
+                    <!-- 理解技能 -->
+                    <div class="import-preview-subsection">
+                        <h4>理解技能等级</h4>
+                        <div class="import-preview-grid">
+                            <div class="import-preview-item">
+                                <label>金属</label>
+                                <input type="number" id="importPreviewUnderstandingMetal" class="import-preview-input"
+                                    min="0" max="10">
+                                <span id="importPreviewUnderstandingMetalStatus" class="import-status-icon">✓</span>
+                            </div>
+                            <div class="import-preview-item">
+                                <label>布料</label>
+                                <input type="number" id="importPreviewUnderstandingCloth" class="import-preview-input"
+                                    min="0" max="10">
+                                <span id="importPreviewUnderstandingClothStatus" class="import-status-icon">✓</span>
+                            </div>
+                            <div class="import-preview-item">
+                                <label>兽品</label>
+                                <input type="number" id="importPreviewUnderstandingBeast" class="import-preview-input"
+                                    min="0" max="10">
+                                <span id="importPreviewUnderstandingBeastStatus" class="import-status-icon">✓</span>
+                            </div>
+                            <div class="import-preview-item">
+                                <label>木材</label>
+                                <input type="number" id="importPreviewUnderstandingWood" class="import-preview-input"
+                                    min="0" max="10">
+                                <span id="importPreviewUnderstandingWoodStatus" class="import-status-icon">✓</span>
+                            </div>
+                            <div class="import-preview-item">
+                                <label>药品</label>
+                                <input type="number" id="importPreviewUnderstandingMedicine"
+                                    class="import-preview-input" min="0" max="10">
+                                <span id="importPreviewUnderstandingMedicineStatus" class="import-status-icon">✓</span>
+                            </div>
+                            <div class="import-preview-item">
+                                <label>魔素</label>
+                                <input type="number" id="importPreviewUnderstandingMana" class="import-preview-input"
+                                    min="0" max="10">
+                                <span id="importPreviewUnderstandingManaStatus" class="import-status-icon">✓</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 附魔步骤预览 -->
+                    <div class="import-preview-subsection">
+                        <h4>附魔步骤预览</h4>
+                        <div id="importPreviewSteps" class="import-preview-steps"></div>
+                    </div>
+
+                    <!-- 导入按钮 -->
+                    <div class="import-preview-actions">
+                        <button id="importConfirmBtn" class="import-confirm-btn">📥 导入</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 导出弹窗 ==================== -->
+        <div id="exportModal" class="modal hidden">
+            <div class="modal-content export-modal">
+                <span class="close">&times;</span>
+                <h2>📤 导出附魔数据</h2>
+
+                <div class="export-options">
+                    <!-- 原本方法 -->
+                    <div class="export-option-card" id="exportOptionOriginal">
+                        <div class="export-option-icon">📋</div>
+                        <div class="export-option-info">
+                            <div class="export-option-title">复制代码（本模拟器格式）</div>
+                            <div class="export-option-desc">导出为模拟器专用代码，复制到剪贴板</div>
+                        </div>
+                        <button id="exportOriginalBtn" class="export-action-btn">复制</button>
+                    </div>
+
+                    <!-- 布偶的魔法书格式 -->
+                    <div class="export-option-card" id="exportOptionBouh">
+                        <div class="export-option-icon">💾</div>
+                        <div class="export-option-info">
+                            <div class="export-option-title">布偶的魔法书格式</div>
+                            <div class="export-option-desc">导出为布偶的魔法书兼容的 JSON 格式（.txt）</div>
+                        </div>
+                        <button id="exportBouhBtn" class="export-action-btn">下载</button>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -2350,3 +2350,352 @@ body {
 /* #config-item-anvilLevel {
     display: none;
 } */
+
+/* ==================== 导入弹窗样式 ==================== */
+.import-modal {
+    max-width: 700px;
+}
+
+.import-modal h2 {
+    text-align: center;
+    margin-top: 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    color: #333;
+}
+
+/* 拖拽区域 */
+.import-drop-zone {
+    position: relative;
+    margin: 15px 0;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background-color: #fafafa;
+}
+
+.import-drop-zone.drag-over {
+    border-color: #4CAF50;
+    background-color: #f0f8f0;
+}
+
+.import-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Microsoft YaHei', 'Courier New', monospace;
+    font-size: 14px;
+    resize: vertical;
+    box-sizing: border-box;
+    background: transparent;
+    line-height: 1.5;
+}
+
+.import-textarea:focus {
+    outline: none;
+}
+
+.import-drag-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(76, 175, 80, 0.1);
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.import-drag-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.import-drag-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #4CAF50;
+}
+
+/* 文件选择行 */
+.import-file-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.import-browse-btn {
+    padding: 8px 16px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.import-browse-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.import-file-name {
+    font-size: 13px;
+    color: #666;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
+/* 解析按钮行 */
+.import-parse-row {
+    margin-bottom: 15px;
+}
+
+.import-parse-row .parse-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #008CBA;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.import-parse-row .parse-btn:hover {
+    background-color: #007B9A;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 解析结果预览 */
+.import-preview-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #eee;
+}
+
+.import-preview-section h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.import-preview-section h4 {
+    margin: 0 0 10px 0;
+    color: #555;
+    font-size: 14px;
+}
+
+.import-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.import-preview-item label {
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+    min-width: 70px;
+    white-space: nowrap;
+}
+
+.import-preview-input,
+.import-preview-select {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    min-width: 0;
+}
+
+.import-preview-input:focus,
+.import-preview-select:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.import-preview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 15px;
+    margin-bottom: 15px;
+}
+
+.import-preview-subsection {
+    margin-bottom: 15px;
+    padding: 12px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+}
+
+.import-status-icon {
+    font-size: 14px;
+    min-width: 16px;
+    text-align: center;
+}
+
+.import-status-icon.has-data {
+    color: #4CAF50;
+}
+
+.import-status-icon.no-data {
+    color: #ff9800;
+}
+
+/* 步骤预览 */
+.import-preview-steps {
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 8px;
+}
+
+.import-preview-step {
+    padding: 4px 8px;
+    font-size: 13px;
+    color: #555;
+    border-bottom: 1px solid #f0f0f0;
+    font-family: 'Courier New', monospace;
+}
+
+.import-preview-step:last-child {
+    border-bottom: none;
+}
+
+/* 导入按钮 */
+.import-preview-actions {
+    margin-top: 20px;
+}
+
+.import-confirm-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.import-confirm-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ==================== 导出弹窗样式 ==================== */
+.export-modal {
+    max-width: 500px;
+}
+
+.export-modal h2 {
+    text-align: center;
+    margin-top: 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    color: #333;
+}
+
+.export-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.export-option-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fafafa;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.export-option-card:hover {
+    border-color: #4CAF50;
+    background-color: #f0f8f0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.export-option-icon {
+    font-size: 32px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.export-option-info {
+    flex: 1;
+}
+
+.export-option-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.export-option-desc {
+    font-size: 13px;
+    color: #888;
+}
+
+.export-action-btn {
+    padding: 8px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.export-action-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+    .import-preview-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .export-option-card {
+        flex-wrap: wrap;
+    }
+
+    .export-action-btn {
+        width: 100%;
+        margin-top: 8px;
+    }
+}
