@@ -4,6 +4,7 @@ import GameDefaults from './modules/GameDefaults.js';
 import { attrNumToActualNum, calAttrMaxLimit, calAttrMinLimit } from './modules/PotentialCalculator.js';
 import EquipmentType from './modules/EquipmentType.js';
 import EnchantType from './modules/EnchantType.js';
+import EnchantProperties from './modules/EnchantProperties.js';
 import '../css/EnchantmentSimulator.css';
 
 // 全局变量
@@ -559,15 +560,176 @@ function tryParseImportText(text) {
     // 方法2: 尝试用布偶的魔法书 JSON 格式解析
     try {
         const parsed = JSON.parse(text);
-        // 检查是否是布偶的魔法书格式（具体实现待定）
-        if (parsed && typeof parsed === 'object') {
-            // 这里先做基础框架，具体解析逻辑以后实现
-            // 返回一个占位结果
+        // 检查是否是布偶的魔法书格式
+        if (parsed && typeof parsed === 'object' && parsed.equipment && Array.isArray(parsed.equipment.steps)) {
+            // 解析布偶JSON格式
+            const cyteriaData = parsed;
+            const equipment = cyteriaData.equipment;
+
+            // 从布偶JSON中提取基础信息
+            const config = getImportDefaultConfig();
+
+            // 装备类型：布偶中的 fieldType (0=武器, 1=防具)
+            if (equipment.fieldType !== undefined) {
+                config.equipmentType = equipment.fieldType === 1
+                    ? EquipmentType.EQUIPMENT_TYPE_ARMOR
+                    : EquipmentType.EQUIPMENT_TYPE_WEAPON;
+            }
+            // 玩家等级：布偶中没有，使用默认值
+            // 装备潜力：布偶中的 originalPotential
+            if (equipment.originalPotential !== undefined) {
+                config.equipmentPotential = equipment.originalPotential;
+            }
+            // 基础潜力：布偶中的 basePotential
+            if (equipment.basePotential !== undefined) {
+                config.baseEquipmentPotential = equipment.basePotential;
+            }
+
+            // 附魔名称
+            if (cyteriaData.name) {
+                config.name = cyteriaData.name;
+            }
+
+            // 创建临时记录
+            const tempRecord = new EnchantRecord(config);
+
+            // 解析步骤
+            const allPropertyIds = new Set();
+            const stepDataList = [];
+
+            equipment.steps.forEach((step, stepIndex) => {
+                if (!step.stats || step.stats.length === 0) return;
+
+                // 处理 type: 1 的分步步骤 - 重复分步附魔
+                if (step.type === 1) {
+                    // type: 1 表示重复分步步骤，步长由 step 控制
+                    // 例如：当前值=1，value=26，step=2，则生成步骤：1→3→5→7→...→27（每次+2）
+                    // type: 1 的步骤最多只有一条属性
+                    const stepSize = step.step || 1; // 步长
+
+                    step.stats.forEach(stat => {
+                        // 解析属性
+                        let propertyId = null;
+                        let isElement = false;
+                        let elementMappings = [];
+
+                        if (EnchantProperties.isCyteriaElementBase(stat.base)) {
+                            elementMappings = EnchantProperties.mapCyteriaElementsToSystem(
+                                [stat],
+                                equipment.isOriginalElement || false
+                            );
+                            isElement = true;
+                        } else {
+                            propertyId = EnchantProperties.getPropertyIdByCyteriaMapping(stat.base, stat.type);
+                        }
+
+                        if (!propertyId && !isElement) return;
+
+                        // 计算需要生成的步骤数量
+                        // type: 1 表示重复分步步骤，每次附魔的变化值固定为 stepSize
+                        // 例如：value=26，step=2，则生成 13 个步骤，每个步骤的变化值都是 +2
+                        const targetValue = Math.abs(stat.value);
+                        const sign = stat.value >= 0 ? 1 : -1;
+                        const stepsCount = Math.ceil(targetValue / stepSize);
+                        const fixedStepValue = stepSize * sign; // 每次附魔的变化值固定为 stepSize
+
+                        for (let s = 0; s < stepsCount; s++) {
+                            const singleStepEnchantments = [];
+
+                            if (isElement) {
+                                elementMappings.forEach(mapping => {
+                                    singleStepEnchantments.push({
+                                        propertyId: mapping.propertyId,
+                                        value: mapping.value
+                                    });
+                                    allPropertyIds.add(mapping.propertyId);
+                                });
+                            } else {
+                                singleStepEnchantments.push({
+                                    propertyId: propertyId,
+                                    value: fixedStepValue
+                                });
+                                allPropertyIds.add(propertyId);
+                            }
+
+                            if (singleStepEnchantments.length > 0) {
+                                stepDataList.push(singleStepEnchantments);
+                            }
+                        }
+                    });
+                } else {
+                    // type: 0 的普通步骤：所有 stat 合并为一步
+                    const stepEnchantments = [];
+
+                    step.stats.forEach(stat => {
+                        // 先检查是否是属性觉醒元素
+                        if (EnchantProperties.isCyteriaElementBase(stat.base)) {
+                            // 属性觉醒特殊处理
+                            const elementMappings = EnchantProperties.mapCyteriaElementsToSystem(
+                                [stat],
+                                equipment.isOriginalElement || false
+                            );
+                            elementMappings.forEach(mapping => {
+                                stepEnchantments.push(mapping);
+                                allPropertyIds.add(mapping.propertyId);
+                            });
+                        } else {
+                            // 普通属性，通过映射查找
+                            const propertyId = EnchantProperties.getPropertyIdByCyteriaMapping(stat.base, stat.type);
+                            if (propertyId) {
+                                stepEnchantments.push({
+                                    propertyId: propertyId,
+                                    value: stat.value
+                                });
+                                allPropertyIds.add(propertyId);
+                            }
+                        }
+                    });
+
+                    if (stepEnchantments.length > 0) {
+                        stepDataList.push(stepEnchantments);
+                    }
+                }
+            });
+
+            // 设置选中的属性
+            const selectedProps = [];
+            allPropertyIds.forEach(propId => {
+                const prop = propertyManager.getProperty(propId);
+                if (prop) {
+                    selectedProps.push(prop);
+                }
+            });
+            tempRecord.setSelectedProperties(selectedProps);
+
+            // 添加步骤
+            stepDataList.forEach(stepEnchantments => {
+                const stepData = {
+                    enchantments: stepEnchantments.map(e => ({
+                        property: propertyManager.getProperty(e.propertyId),
+                        value: e.value
+                    }))
+                };
+                tempRecord.addEnchantmentStep(stepData);
+            });
+
+            // 确定缺失的字段
+            const missingFields = [];
+            if (equipment.fieldType === undefined) missingFields.push('equipmentType');
+            if (!equipment.originalPotential) missingFields.push('equipmentPotential');
+            if (!equipment.basePotential) missingFields.push('baseEquipmentPotential');
+            // 布偶JSON中没有以下字段
+            missingFields.push('playerLevel');
+            missingFields.push('smithingLevel');
+            missingFields.push('anvilLevel');
+            missingFields.push('masterEnhancement2Level');
+            missingFields.push('understandingSkills');
+
             return {
-                method: 'bouh',
-                record: null, // 具体解析后生成
+                method: 'cyteria',
+                record: tempRecord,
                 hasFullInfo: false,
-                missingFields: ['equipmentType', 'playerLevel', 'equipmentPotential', 'baseEquipmentPotential', 'smithingLevel', 'anvilLevel', 'masterEnhancement2Level', 'understandingSkills'],
+                missingFields: missingFields,
                 rawData: parsed
             };
         }
@@ -932,8 +1094,22 @@ function executeImport() {
         if (parsedData.parseResult.method === 'original' && parsedData.parseResult.record) {
             // 原本方法：直接使用解析出的记录
             newRecord = parsedData.parseResult.record;
+        } else if (parsedData.parseResult.method === 'cyteria' && parsedData.parseResult.record) {
+            // 布偶JSON方法：使用解析出的记录，但覆盖基础配置（用户可能在预览中修改了）
+            newRecord = parsedData.parseResult.record;
+            // 覆盖用户在预览中修改的配置
+            newRecord.setEquipmentType(equipmentType === 'weapon' ? EquipmentType.EQUIPMENT_TYPE_WEAPON : EquipmentType.EQUIPMENT_TYPE_ARMOR);
+            newRecord.playerLevel = playerLevel;
+            newRecord.equipmentPotential = equipmentPotential;
+            newRecord.baseEquipmentPotential = baseEquipmentPotential;
+            newRecord.smithingLevel = smithingLevel;
+            newRecord.anvilLevel = anvilLevel;
+            newRecord.masterEnhancement2Level = masterEnhancement2Level;
+            newRecord.understandingSkills = { ...understandingSkills };
+            // 重新计算所有步骤
+            newRecord._recalculateAllSteps();
         } else {
-            // 其他方法：创建新记录并应用配置（具体步骤解析待实现）
+            // 其他方法（如附魔公式文本）：创建新记录并应用配置
             newRecord = new EnchantRecord({
                 equipmentType: equipmentType === 'weapon' ? EquipmentType.EQUIPMENT_TYPE_WEAPON : EquipmentType.EQUIPMENT_TYPE_ARMOR,
                 playerLevel: playerLevel,
@@ -945,7 +1121,7 @@ function executeImport() {
                 understandingSkills: understandingSkills,
                 name: finalName
             });
-            // TODO: 根据解析结果添加附魔步骤
+            // TODO: 根据解析结果添加附魔步骤（附魔公式文本解析待实现）
         }
 
         // 设置名称
@@ -1034,28 +1210,67 @@ function exportOriginalAndCopy() {
 /**
  * 导出为布偶的魔法书格式并下载
  */
-function exportBouhFormat() {
+function exportCyteriaFormat() {
     try {
-        // 具体实现待定，先创建一个占位JSON
-        const bouhData = {
-            version: 1,
-            source: 'Toram-EnchantmentSimulator',
+        // 构建布偶的魔法书格式JSON
+        const cyteriaData = {
             name: enchantRecord.getName(),
-            // TODO: 填充布偶的魔法书格式数据
-            equipmentType: enchantRecord.equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON ? 'weapon' : 'armor',
-            playerLevel: enchantRecord.playerLevel,
-            equipmentPotential: enchantRecord.equipmentPotential,
-            steps: enchantRecord.enchantmentSteps.map(step => ({
-                enchantments: step.enchantments
-                    .filter(e => e.value !== 0)
-                    .map(e => ({
-                        propertyId: e.property.id,
-                        value: e.value
-                    }))
-            }))
+            equipment: {
+                basePotential: enchantRecord.baseEquipmentPotential,
+                originalPotential: enchantRecord.equipmentPotential,
+                fieldType: 0,
+                isOriginalElement: false, // 默认false，导出时无法确定原属性
+                steps: []
+            }
         };
 
-        const jsonStr = JSON.stringify(bouhData, null, 2);
+        // 遍历附魔步骤，转换为布偶格式
+        enchantRecord.enchantmentSteps.forEach(step => {
+            // 跳过空步骤和被忽略的步骤
+            if (step.enchantments.every(e => e.value === 0) || step.isIgnored) return;
+
+            const cyteriaStep = {
+                type: 0,
+                hidden: false,
+                step: 1,
+                stats: []
+            };
+
+            step.enchantments.forEach(enchant => {
+                if (enchant.value === 0) return;
+
+                const property = enchant.property;
+                const mapping = property.cyteriaMapping;
+
+                if (mapping) {
+                    // 普通属性，有cyteriaMapping
+                    cyteriaStep.stats.push({
+                        type: mapping.type,
+                        value: enchant.value,
+                        base: mapping.base
+                    });
+                } else if (property.id === 'OriginalElement' || property.id === 'OtherElement') {
+                    // 属性觉醒特殊处理
+                    // 需要确定原属性是什么元素，这里默认使用 element_fire
+                    const elementBase = property.id === 'OriginalElement' ? 'element_fire' : 'element_water';
+                    cyteriaStep.stats.push({
+                        type: 0,
+                        value: 1,
+                        base: elementBase
+                    });
+                    // 如果有原属性，设置 isOriginalElement = true
+                    if (property.id === 'OriginalElement') {
+                        cyteriaData.equipment.isOriginalElement = true;
+                    }
+                }
+            });
+
+            if (cyteriaStep.stats.length > 0) {
+                cyteriaData.equipment.steps.push(cyteriaStep);
+            }
+        });
+
+        const jsonStr = JSON.stringify(cyteriaData, null, 2);
         const blob = new Blob([jsonStr], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
 
@@ -1238,7 +1453,7 @@ function bindEvents() {
             fillImportPreview(result);
             showMessage('解析成功：使用' +
                 (result.method === 'original' ? '原本格式' :
-                    result.method === 'bouh' ? '布偶的魔法书格式' : '附魔公式文本') +
+                    result.method === 'cyteria' ? '布偶的魔法书格式' : '附魔公式文本') +
                 '解析');
         } else {
             alert('解析失败：无法识别导入数据的格式，请检查数据是否正确');
@@ -1259,7 +1474,7 @@ function bindEvents() {
     document.getElementById('exportOriginalBtn').addEventListener('click', exportOriginalAndCopy);
 
     // 导出为布偶的魔法书格式
-    document.getElementById('exportBouhBtn').addEventListener('click', exportBouhFormat);
+    document.getElementById('exportCyteriaBtn').addEventListener('click', exportCyteriaFormat);
 
     // 选择属性按钮事件 (桌面端)
     document.getElementById('selectPropertiesBtn').addEventListener('click', showPropertySelection);

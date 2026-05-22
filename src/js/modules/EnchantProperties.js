@@ -1588,7 +1588,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 150,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
-                cyteriaMapping: { base: "?", type: 0 },
+                cyteriaMapping: null, // 属性觉醒特殊处理，不在此映射
             },
             OtherElement: {
                 id: "OtherElement",
@@ -1611,7 +1611,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 150,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
-                cyteriaMapping: { base: "?", type: 0 },
+                cyteriaMapping: null, // 属性觉醒特殊处理，不在此映射
             }
         };
     }
@@ -1632,7 +1632,7 @@ export default class EnchantProperties {
      * @param {number} type - 布偶中的type值 (0=数值, 1=百分比)
      * @returns {string|null} 属性ID
      */
-    static getPropertyIdBycyteriaMapping(base, type) {
+    static getPropertyIdByCyteriaMapping(base, type) {
         const properties = this.getProperties();
         for (const [id, prop] of Object.entries(properties)) {
             if (prop.cyteriaMapping && prop.cyteriaMapping.base === base && prop.cyteriaMapping.type === type) {
@@ -1646,8 +1646,118 @@ export default class EnchantProperties {
      * 获取所有有布偶映射的属性列表
      * @returns {Array} 属性配置对象数组
      */
-    static getBouhMappedProperties() {
+    static getCyteriaMappedProperties() {
         const properties = this.getProperties();
         return Object.values(properties).filter(prop => prop.cyteriaMapping !== null);
+    }
+
+    // ==================== 属性觉醒（Element）特殊映射 ====================
+
+    /**
+     * 布偶的魔法书中6种元素的base值
+     */
+    static get CYTERIA_ELEMENT_BASES() {
+        return ['element_fire', 'element_water', 'element_earth', 'element_wind', 'element_light', 'element_dark'];
+    }
+
+    /**
+     * 布偶元素base值对应的中文名称
+     */
+    static get CYTERIA_ELEMENT_NAMES() {
+        return {
+            element_fire: '火',
+            element_water: '水',
+            element_earth: '地',
+            element_wind: '风',
+            element_light: '光',
+            element_dark: '暗'
+        };
+    }
+
+    /**
+     * 判断一个布偶base值是否为元素属性觉醒
+     * @param {string} base - 布偶中的base值
+     * @returns {boolean}
+     */
+    static isCyteriaElementBase(base) {
+        return this.CYTERIA_ELEMENT_BASES.includes(base);
+    }
+
+    /**
+     * 将布偶JSON中的属性觉醒数据映射到系统的 OriginalElement / OtherElement
+     * 
+     * 映射规则：
+     * - 布偶JSON中的 equipment.isOriginalElement 表示装备是否有原属性
+     * - 如果 isOriginalElement = true：
+     *   - 布偶中出现的第一个 element_xxx 映射为 OriginalElement（原属性）
+     *   - 其余 element_xxx 映射为 OtherElement（非原属性）
+     * - 如果 isOriginalElement = false：
+     *   - 所有 element_xxx 都映射为 OtherElement（非原属性）
+     * 
+     * @param {Array} cyteriaStats - 布偶JSON中 steps[].stats 数组
+     * @param {boolean} isOriginalElement - 布偶JSON中的 equipment.isOriginalElement
+     * @returns {Array} 映射后的属性步骤数据 [{propertyId, value}, ...]
+     */
+    static mapCyteriaElementsToSystem(cyteriaStats, isOriginalElement) {
+        const result = [];
+        let hasAssignedOriginal = false;
+
+        for (const stat of cyteriaStats) {
+            if (stat.type !== 0) continue; // 属性觉醒只有 type=0
+            if (!this.isCyteriaElementBase(stat.base)) continue;
+
+            if (isOriginalElement && !hasAssignedOriginal) {
+                // 第一个元素映射为原属性
+                result.push({
+                    propertyId: 'OriginalElement',
+                    value: stat.value
+                });
+                hasAssignedOriginal = true;
+            } else {
+                // 其余映射为非原属性
+                result.push({
+                    propertyId: 'OtherElement',
+                    value: stat.value
+                });
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 将系统的 OriginalElement / OtherElement 映射回布偶JSON中的具体元素
+     * 
+     * 由于布偶需要指定具体元素（如 element_fire），而系统只有"原属性/非原属性"，
+     * 导出时需要用户指定原属性是什么元素。
+     * 默认情况下，原属性映射为 element_fire，非原属性映射为其他元素。
+     * 
+     * @param {boolean} hasOriginalElement - 是否有原属性
+     * @param {boolean} hasOtherElement - 是否有非原属性
+     * @param {string} originalElementBase - 原属性对应的布偶元素base（默认 'element_fire'）
+     * @returns {Array} 布偶格式的 stats 数组 [{base, type, value}, ...]
+     */
+    static mapSystemElementsToCyteria(hasOriginalElement, hasOtherElement, originalElementBase = 'element_fire') {
+        const result = [];
+
+        if (hasOriginalElement) {
+            result.push({
+                base: originalElementBase,
+                type: 0,
+                value: 1
+            });
+        }
+
+        if (hasOtherElement) {
+            // 非原属性使用除原属性外的第一个可用元素
+            const otherBase = this.CYTERIA_ELEMENT_BASES.find(b => b !== originalElementBase) || 'element_water';
+            result.push({
+                base: otherBase,
+                type: 0,
+                value: 1
+            });
+        }
+
+        return result;
     }
 }
