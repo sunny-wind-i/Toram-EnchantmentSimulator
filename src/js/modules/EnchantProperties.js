@@ -21,6 +21,7 @@ import MaterialType from "./MaterialType.js";
 //  * @param {number} enchantProperty.postAttenuationIncrement - 衰减阈值后增长
 //  * @param {number} enchantProperty.baseMaterialCost - 基础耗材
 //  * @param {Object} enchantProperty.materialType - 消耗材料类型
+//  * @param {Object|null} enchantProperty.cyteriaMapping - 布偶的魔法书属性映射，{base: string, type: 0|1} 或 null
 //  */
 export default class EnchantProperties {
     static getProperties() {
@@ -46,6 +47,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST,
                 description: "",
+                cyteriaMapping: { base: "str", type: 0 }, // 布偶中没有对应属性
             },
             StrRate: {
                 id: "StrRate",
@@ -68,6 +70,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST,
                 description: "",
+                cyteriaMapping: { base: "str", type: 1 },
             },
             Int: {
                 id: "Int",
@@ -90,6 +93,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD,
                 description: "",
+                cyteriaMapping: { base: "int", type: 0 },
             },
             IntRate: {
                 id: "IntRate",
@@ -112,6 +116,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD,
                 description: "",
+                cyteriaMapping: { base: "int", type: 1 },
             },
             Vit: {
                 id: "Vit",
@@ -134,6 +139,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "vit", type: 0 },
             },
             VitRate: {
                 id: "VitRate",
@@ -156,6 +162,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "vit", type: 1 },
             },
             Agi: {
                 id: "Agi",
@@ -178,6 +185,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH,
                 description: "",
+                cyteriaMapping: { base: "agi", type: 0 },
             },
             AgiRate: {
                 id: "AgiRate",
@@ -200,6 +208,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH,
                 description: "",
+                cyteriaMapping: { base: "agi", type: 1 },
             },
             Dex: {
                 id: "Dex",
@@ -222,6 +231,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
                 description: "",
+                cyteriaMapping: { base: "dex", type: 0 },
             },
             DexRate: {
                 id: "DexRate",
@@ -244,6 +254,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
                 description: "",
+                cyteriaMapping: { base: "dex", type: 1 },
             },
             HpRecovery: {
                 id: "HpRecovery",
@@ -266,6 +277,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "natural_hp_regen", type: 0 },
             },
             HpRecoveryRate: {
                 id: "HpRecoveryRate",
@@ -288,6 +300,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "natural_hp_regen", type: 1 },
             },
             MpRecovery: {
                 id: "MpRecovery",
@@ -310,6 +323,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD,
                 description: "",
+                cyteriaMapping: { base: "natural_mp_regen", type: 0 },
             },
             MpRecoveryRate: {
                 id: "MpRecoveryRate",
@@ -332,6 +346,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 100,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD,
                 description: "",
+                cyteriaMapping: { base: "natural_mp_regen", type: 1 },
             },
             MaxHp: {
                 id: "MaxHp",
@@ -354,6 +369,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "max_hp", type: 0 },
             },
             MaxHpRate: {
                 id: "MaxHpRate",
@@ -376,6 +392,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "max_hp", type: 1 },
             },
             MaxMp: {
                 id: "MaxMp",
@@ -398,6 +415,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 33.5,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD,
                 description: "",
+                cyteriaMapping: { base: "max_mp", type: 0 },
             },
             Atk: {
                 id: "Atk",
@@ -420,6 +438,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST,
                 description: "攻击力, 攻击加成, 攻击力加成",
+                cyteriaMapping: { base: "atk", type: 0 },
             },
             AtkRate: {
                 id: "AtkRate",
@@ -442,6 +461,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST,
                 description: "",
+                cyteriaMapping: { base: "atk", type: 1 },
             },
             Matk: {
                 id: "Matk",
@@ -464,6 +484,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD,
                 description: "",
+                cyteriaMapping: { base: "matk", type: 0 },
             },
             MatkRate: {
                 id: "MatkRate",
@@ -486,6 +507,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD,
                 description: "",
+                cyteriaMapping: { base: "matk", type: 1 },
             },
             Sta: {
                 id: "Sta",
@@ -508,6 +530,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
                 description: "",
+                cyteriaMapping: { base: "stability", type: 0 },
             },
             DefBreaker: {
                 id: "DefBreaker",
@@ -530,6 +553,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 100,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST,
                 description: "",
+                cyteriaMapping: { base: "physical_pierce", type: 0 },
             },
             MdefBreaker: {
                 id: "MdefBreaker",
@@ -552,6 +576,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 100,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD,
                 description: "",
+                cyteriaMapping: { base: "magic_pierce", type: 0 },
             },
             Def: {
                 id: "Def",
@@ -574,6 +599,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "def", type: 0 },
             },
             DefRate: {
                 id: "DefRate",
@@ -596,6 +622,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "def", type: 1 },
             },
             Mdef: {
                 id: "Mdef",
@@ -618,6 +645,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "mdef", type: 0 },
             },
             MdefRate: {
                 id: "MdefRate",
@@ -640,6 +668,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "mdef", type: 1 },
             },
             PowerResist: {
                 id: "PowerResist",
@@ -662,6 +691,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "physical_resistance", type: 0 },
             },
             MagicResist: {
                 id: "MagicResist",
@@ -684,6 +714,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD,
                 description: "",
+                cyteriaMapping: { base: "magic_resistance", type: 0 },
             },
             SurroundingsResist: {
                 id: "SurroundingsResist",
@@ -706,6 +737,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 15,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "reduce_dmg_foe_epicenter", type: 0 },
             },
             RangeResist: {
                 id: "RangeResist",
@@ -728,6 +760,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 15,
                 materialType: MaterialType.MATERIAL_TYPE_METAL,
                 description: "",
+                cyteriaMapping: { base: "reduce_player_epicenter", type: 0 },
             },
             LineResist: {
                 id: "LineResist",
@@ -750,6 +783,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 15,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST,
                 description: "",
+                cyteriaMapping: { base: "reduce_dmg_straight_line", type: 0 },
             },
             MoveAttackResist: {
                 id: "MoveAttackResist",
@@ -772,6 +806,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 15,
                 materialType: MaterialType.MATERIAL_TYPE_BEAST,
                 description: "",
+                cyteriaMapping: { base: "reduce_dmg_charge", type: 0 },
             },
             VerticalResist: {
                 id: "VerticalResist",
@@ -794,6 +829,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 10,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
                 description: "",
+                cyteriaMapping: { base: "reduce_dmg_meteor", type: 0 },
             },
             BreathResist: {
                 id: "BreathResist",
@@ -816,6 +852,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 10,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
                 description: "",
+                cyteriaMapping: { base: "reduce_dmg_floor", type: 0 },
             },
             TranslationResist: {
                 id: "TranslationResist",
@@ -838,6 +875,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 10,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD,
                 description: "",
+                cyteriaMapping: { base: "reduce_dmg_bullet", type: 0 },
             },
             WallResist: {
                 id: "WallResist",
@@ -860,6 +898,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 10,
                 materialType: MaterialType.MATERIAL_TYPE_WOOD,
                 description: "",
+                cyteriaMapping: { base: "reduce_dmg_bowling", type: 0 },
             },
             Hit: {
                 id: "Hit",
@@ -882,6 +921,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
                 description: "",
+                cyteriaMapping: { base: "accuracy", type: 0 },
             },
             HitRate: {
                 id: "HitRate",
@@ -904,6 +944,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
                 description: "",
+                cyteriaMapping: { base: "accuracy", type: 1 },
             },
             Flee: {
                 id: "Flee",
@@ -926,6 +967,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH,
                 description: "",
+                cyteriaMapping: { base: "dodge", type: 0 },
             },
             FleeRate: {
                 id: "FleeRate",
@@ -948,6 +990,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 100,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH,
                 description: "",
+                cyteriaMapping: { base: "dodge", type: 1 },
             },
             Aspd: {
                 id: "Aspd",
@@ -970,6 +1013,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 1.5,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH,
                 description: "",
+                cyteriaMapping: { base: "aspd", type: 0 },
             },
             AspdRate: {
                 id: "AspdRate",
@@ -992,6 +1036,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 5,
                 materialType: MaterialType.MATERIAL_TYPE_CLOTH,
                 description: "",
+                cyteriaMapping: { base: "aspd", type: 1 },
             },
             Cspd: {
                 id: "Cspd",
@@ -1014,6 +1059,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 1.5,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
                 description: "",
+                cyteriaMapping: { base: "cspd", type: 0 },
             },
             CspdRate: {
                 id: "CspdRate",
@@ -1036,6 +1082,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 5,
                 materialType: MaterialType.MATERIAL_TYPE_MEDICINE,
                 description: "",
+                cyteriaMapping: { base: "cspd", type: 1 },
             },
             Critical: {
                 id: "Critical",
@@ -1058,6 +1105,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 5,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "critical_rate", type: 0 },
             },
             CriticalRate: {
                 id: "CriticalRate",
@@ -1080,6 +1128,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 5,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "critical_rate", type: 1 },
             },
             CriticalDmg: {
                 id: "CriticalDmg",
@@ -1102,6 +1151,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 16.5,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "critical_damage", type: 0 },
             },
             CriticalDmgRate: {
                 id: "CriticalDmgRate",
@@ -1124,6 +1174,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 50,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "critical_damage", type: 1 },
             },
             FireKiller: {
                 id: "FireKiller",
@@ -1146,6 +1197,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "stronger_against_fire", type: 0 },
             },
             EarthKiller: {
                 id: "EarthKiller",
@@ -1168,6 +1220,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "stronger_against_earth", type: 0 },
             },
             WindKiller: {
                 id: "WindKiller",
@@ -1190,6 +1243,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "stronger_against_wind", type: 0 },
             },
             WaterKiller: {
                 id: "WaterKiller",
@@ -1212,6 +1266,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "stronger_against_water", type: 0 },
             },
             LightKiller: {
                 id: "LightKiller",
@@ -1234,6 +1289,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "stronger_against_light", type: 0 },
             },
             DarkKiller: {
                 id: "DarkKiller",
@@ -1256,6 +1312,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "stronger_against_dark", type: 0 },
             },
             FireShield: {
                 id: "FireShield",
@@ -1278,6 +1335,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "fire_resistance", type: 0 },
             },
             EarthShield: {
                 id: "EarthShield",
@@ -1300,6 +1358,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "earth_resistance", type: 0 },
             },
             WindShield: {
                 id: "WindShield",
@@ -1322,6 +1381,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "wind_resistance", type: 0 },
             },
             WaterShield: {
                 id: "WaterShield",
@@ -1344,6 +1404,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "water_resistance", type: 0 },
             },
             LightShield: {
                 id: "LightShield",
@@ -1366,6 +1427,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "light_resistance", type: 0 },
             },
             DarkShield: {
                 id: "DarkShield",
@@ -1388,6 +1450,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 25,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "dark_resistance", type: 0 },
             },
             AntiVirus: {
                 id: "AntiVirus",
@@ -1410,6 +1473,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "ailment_resistance", type: 0 },
             },
             Guard: {
                 id: "Guard",
@@ -1432,6 +1496,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "guard_regenerate", type: 0 },
             },
             GardPower: {
                 id: "GardPower",
@@ -1454,6 +1519,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "guard_power", type: 0 },
             },
             Avoid: {
                 id: "Avoid",
@@ -1476,6 +1542,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 100,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "evasion_regenerate", type: 0 },
             },
             Hate: {
                 id: "Hate",
@@ -1498,6 +1565,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 33.5,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "aggro", type: 0 },
             },
             OriginalElement: {
                 id: "OriginalElement",
@@ -1520,6 +1588,7 @@ export default class EnchantProperties {
                 baseMaterialCost: 150,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "?", type: 0 },
             },
             OtherElement: {
                 id: "OtherElement",
@@ -1542,7 +1611,43 @@ export default class EnchantProperties {
                 baseMaterialCost: 150,
                 materialType: MaterialType.MATERIAL_TYPE_MANA,
                 description: "",
+                cyteriaMapping: { base: "?", type: 0 },
             }
         };
+    }
+
+    /**
+     * 根据属性ID获取属性配置
+     * @param {string} id - 属性ID
+     * @returns {Object|null} 属性配置对象
+     */
+    static getPropertyById(id) {
+        const properties = this.getProperties();
+        return properties[id] || null;
+    }
+
+    /**
+     * 根据布偶的魔法书映射查找属性
+     * @param {string} base - 布偶中的base值
+     * @param {number} type - 布偶中的type值 (0=数值, 1=百分比)
+     * @returns {string|null} 属性ID
+     */
+    static getPropertyIdBycyteriaMapping(base, type) {
+        const properties = this.getProperties();
+        for (const [id, prop] of Object.entries(properties)) {
+            if (prop.cyteriaMapping && prop.cyteriaMapping.base === base && prop.cyteriaMapping.type === type) {
+                return id;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 获取所有有布偶映射的属性列表
+     * @returns {Array} 属性配置对象数组
+     */
+    static getBouhMappedProperties() {
+        const properties = this.getProperties();
+        return Object.values(properties).filter(prop => prop.cyteriaMapping !== null);
     }
 }
