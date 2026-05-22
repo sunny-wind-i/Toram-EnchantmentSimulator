@@ -649,8 +649,13 @@ export default class EnchantRecord {
         if (stepIndex !== -1) {
             // 从数组中删除该步骤
             this.enchantmentSteps.splice(stepIndex, 1);
-            // 更新当前属性值
-            this._updateSummaryInfo();
+            // 如果删除后还有后续步骤，需要重新计算
+            if (stepIndex < this.enchantmentSteps.length) {
+                this._recalculateStepsFrom(stepIndex);
+            } else {
+                // 如果删除的是最后一个步骤，只需要更新汇总信息
+                this._updateSummaryInfo();
+            }
         }
     }
 
