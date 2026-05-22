@@ -460,10 +460,6 @@ export default class EnchantRecord {
             if (wasIgnored !== isIgnored) {
                 // 重新计算所有步骤以更新依赖数据
                 this._recalculateAllSteps();
-                // 触发UI重新渲染和分组逻辑
-                if (typeof saveCurrentEnchantment === 'function') {
-                    saveCurrentEnchantment();
-                }
             }
             return true;
         }

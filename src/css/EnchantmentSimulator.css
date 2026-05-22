@@ -1993,19 +1993,19 @@ body {
     background-color: #e0e0e0;
 }
 
-/* 无效的重复步骤样式（折叠状态 - 使用条纹/斜纹背景以区别于普通无效步骤） */
+/* 无效的重复步骤样式（折叠状态 - 使用灰白色条纹/斜纹背景） */
 .repeated-steps.invalid td {
-    background-color: #ffe0e0;
-    color: #ff0000;
+    background-color: #f5f0f0;
+    color: #999999;
     background-image: repeating-linear-gradient(45deg,
             transparent,
             transparent 5px,
-            rgba(255, 0, 0, 0.04) 5px,
-            rgba(255, 0, 0, 0.04) 10px);
+            rgba(150, 150, 150, 0.08) 5px,
+            rgba(150, 150, 150, 0.08) 10px);
 }
 
 .repeated-steps.invalid:hover td {
-    background-color: #ffd0d0;
+    background-color: #ece5e5;
 }
 
 .repeat-count {
