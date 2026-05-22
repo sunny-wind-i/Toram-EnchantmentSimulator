@@ -515,6 +515,12 @@ function importData() {
 
     // 清除之前存储的解析数据
     window._importParsedData = null;
+
+    // 弹窗内容滚动到顶部，方便用户查看
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.scrollTop = 0;
+    }
 }
 
 // 关闭导入弹窗

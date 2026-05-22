@@ -1687,12 +1687,13 @@ export default class EnchantProperties {
      * 将布偶JSON中的属性觉醒数据映射到系统的 OriginalElement / OtherElement
      * 
      * 映射规则：
-     * - 布偶JSON中的 equipment.isOriginalElement 表示装备是否有原属性
-     * - 如果 isOriginalElement = true：
-     *   - 布偶中出现的第一个 element_xxx 映射为 OriginalElement（原属性）
-     *   - 其余 element_xxx 映射为 OtherElement（非原属性）
-     * - 如果 isOriginalElement = false：
-     *   - 所有 element_xxx 都映射为 OtherElement（非原属性）
+     * - 原属性/非原属性的判断完全由 isOriginalElement 控制：
+     *   - 如果 isOriginalElement = true：所有元素 stat 都映射为 OriginalElement（原属性）
+     *   - 如果 isOriginalElement = false：所有元素 stat 都映射为 OtherElement（非原属性）
+     * - 如果一步内有多个元素 stat（如同时附水属性、火属性），它们被视为只有一个属性觉醒，
+     *   因此只生成一个 OriginalElement 或 OtherElement 的步骤。
+     * - 属性觉醒在系统中只有"有/无"两种状态，value 固定为 1（增加）或 -1（减少）
+     *   布偶JSON中元素 stat 的 value 值只用于判断正负号
      * 
      * @param {Array} cyteriaStats - 布偶JSON中 steps[].stats 数组
      * @param {boolean} isOriginalElement - 布偶JSON中的 equipment.isOriginalElement
@@ -1700,27 +1701,30 @@ export default class EnchantProperties {
      */
     static mapCyteriaElementsToSystem(cyteriaStats, isOriginalElement) {
         const result = [];
-        let hasAssignedOriginal = false;
+
+        // 检查是否有任何元素 stat
+        let hasElement = false;
+        let elementValue = 0; // 记录元素的 value（取第一个非零元素的符号）
 
         for (const stat of cyteriaStats) {
             if (stat.type !== 0) continue; // 属性觉醒只有 type=0
             if (!this.isCyteriaElementBase(stat.base)) continue;
 
-            if (isOriginalElement && !hasAssignedOriginal) {
-                // 第一个元素映射为原属性
-                result.push({
-                    propertyId: 'OriginalElement',
-                    value: stat.value
-                });
-                hasAssignedOriginal = true;
-            } else {
-                // 其余映射为非原属性
-                result.push({
-                    propertyId: 'OtherElement',
-                    value: stat.value
-                });
+            hasElement = true;
+            // 取第一个非零元素的符号作为系统 value
+            if (elementValue === 0 && stat.value !== 0) {
+                elementValue = stat.value > 0 ? 1 : -1;
             }
         }
+
+        if (!hasElement || elementValue === 0) return result;
+
+        // 根据 isOriginalElement 决定映射为原属性还是非原属性
+        // 一步内多个元素 stat 合并为一个属性觉醒
+        result.push({
+            propertyId: isOriginalElement ? 'OriginalElement' : 'OtherElement',
+            value: elementValue
+        });
 
         return result;
     }
