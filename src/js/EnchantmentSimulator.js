@@ -1224,7 +1224,7 @@ function exportCyteriaFormat() {
             equipment: {
                 basePotential: enchantRecord.baseEquipmentPotential,
                 originalPotential: enchantRecord.equipmentPotential,
-                fieldType: 0,
+                fieldType: enchantRecord.equipmentType === EquipmentType.EQUIPMENT_TYPE_ARMOR ? 1 : 0,
                 isOriginalElement: false, // 默认false，导出时无法确定原属性
                 steps: []
             }
