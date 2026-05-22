@@ -1955,10 +1955,12 @@ function updateTableContent() {
     tbody.appendChild(addRow);
 
     // 恢复选中状态
-    if (selectedCellInfo) {
+    if (selectedCellInfo && selectedCellInfo.stepIndex !== undefined) {
         const cells = tbody.querySelectorAll('td');
         cells.forEach(cell => {
-            if (cell.dataset.stepIndex === selectedCellInfo.stepIndex &&
+            // 只匹配有 stepIndex 的单元格（排除折叠行、控制行、添加按钮行）
+            if (cell.dataset.stepIndex !== undefined &&
+                cell.dataset.stepIndex === selectedCellInfo.stepIndex &&
                 ((cell.dataset.propertyId === selectedCellInfo.propertyId && selectedCellInfo.propertyId) ||
                     (cell.dataset.columnType === selectedCellInfo.columnType && !selectedCellInfo.propertyId))) {
                 cell.classList.add('selected');
@@ -2479,7 +2481,11 @@ function onTableClick(event) {
     const row = cell.parentElement;
     if (row.classList.contains('repeated-steps') || row.classList.contains('repeat-control-row')) {
         // 不允许选择折叠步骤的单元格进行编辑
-        // showMessage('折叠状态下的步骤无法直接编辑，请先展开再编辑');
+        return;
+    }
+
+    // 检查是否是"添加新步骤"按钮行，不允许选中
+    if (cell.textContent === '+ 添加新步骤') {
         return;
     }
 
