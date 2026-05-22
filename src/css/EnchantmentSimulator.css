@@ -2771,3 +2771,140 @@ body {
         margin-top: 8px;
     }
 }
+
+/* ==================== 布偶导出元素选择弹窗样式 ==================== */
+.cyteria-element-modal {
+    max-width: 450px;
+    text-align: center;
+}
+
+.cyteria-element-modal h2 {
+    text-align: center;
+    margin-top: 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    color: #333;
+}
+
+.cyteria-element-desc {
+    color: #666;
+    font-size: 14px;
+    margin: 15px 0;
+    line-height: 1.5;
+}
+
+.cyteria-element-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.cyteria-element-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #fafafa;
+}
+
+.cyteria-element-option:hover {
+    border-color: #4CAF50;
+    background-color: #f0f8f0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cyteria-element-option.selected {
+    border-color: #4CAF50;
+    background-color: #e8f5e9;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+}
+
+.cyteria-element-icon {
+    font-size: 28px;
+}
+
+.cyteria-element-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+.cyteria-element-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.cyteria-element-buttons .confirm-btn,
+.cyteria-element-buttons .cancel-btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    margin-top: 0;
+}
+
+.cyteria-element-buttons .confirm-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.cyteria-element-buttons .confirm-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cyteria-element-buttons .cancel-btn {
+    background-color: #f0f0f0;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.cyteria-element-buttons .cancel-btn:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+    .cyteria-element-options {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .cyteria-element-option {
+        padding: 12px 8px;
+    }
+
+    .cyteria-element-icon {
+        font-size: 24px;
+    }
+
+    .cyteria-element-name {
+        font-size: 13px;
+    }
+
+    .cyteria-element-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .cyteria-element-buttons .confirm-btn,
+    .cyteria-element-buttons .cancel-btn {
+        width: 100%;
+    }
+}

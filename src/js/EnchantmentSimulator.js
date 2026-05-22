@@ -1213,13 +1213,39 @@ function exportOriginalAndCopy() {
     }
 }
 
+// 存储用户选择的布偶导出元素（用于属性觉醒转换）
+let _cyteriaExportElementBase = 'element_fire';
+
+/**
+ * 检查附魔步骤中是否包含属性觉醒
+ * @returns {Object|null} 返回 { hasOriginal: boolean, hasOther: boolean } 或 null（如果没有属性觉醒）
+ */
+function checkElementAwakeningInSteps() {
+    let hasOriginal = false;
+    let hasOther = false;
+
+    enchantRecord.enchantmentSteps.forEach(step => {
+        if (!step.isValid || step.isIgnored) return;
+        step.enchantments.forEach(enchant => {
+            if (enchant.value === 0) return;
+            if (enchant.property.id === 'OriginalElement') {
+                hasOriginal = true;
+            } else if (enchant.property.id === 'OtherElement') {
+                hasOther = true;
+            }
+        });
+    });
+
+    if (!hasOriginal && !hasOther) return null;
+    return { hasOriginal, hasOther };
+}
+
 /**
  * 将单个附魔步骤转换为布偶格式的 stats 数组
  * @param {Object} step - 附魔步骤
- * @param {Object} cyteriaData - 布偶数据对象（用于设置 isOriginalElement）
  * @returns {Array} 布偶格式的 stats 数组
  */
-function convertStepToCyteriaStats(step, cyteriaData) {
+function convertStepToCyteriaStats(step) {
     const stats = [];
 
     step.enchantments.forEach(enchant => {
@@ -1236,17 +1262,12 @@ function convertStepToCyteriaStats(step, cyteriaData) {
                 base: mapping.base
             });
         } else if (property.id === 'OriginalElement' || property.id === 'OtherElement') {
-            // 属性觉醒特殊处理
-            const elementBase = property.id === 'OriginalElement' ? 'element_fire' : 'element_water';
+            // 属性觉醒特殊处理：不管原属性还是非原属性，都使用用户选择的元素base
             stats.push({
                 type: 0,
                 value: 1,
-                base: elementBase
+                base: _cyteriaExportElementBase
             });
-            // 如果有原属性，设置 isOriginalElement = true
-            if (property.id === 'OriginalElement') {
-                cyteriaData.equipment.isOriginalElement = true;
-            }
         }
     });
 
@@ -1254,10 +1275,23 @@ function convertStepToCyteriaStats(step, cyteriaData) {
 }
 
 /**
- * 导出为布偶的魔法书格式并下载
+ * 执行布偶格式导出（在用户选择元素后调用）
+ * @param {string} elementBase - 用户选择的元素base
  */
-function exportCyteriaFormat() {
+function doExportCyteriaFormat(elementBase) {
     try {
+        // 存储用户选择的元素base，供 convertStepToCyteriaStats 使用
+        _cyteriaExportElementBase = elementBase;
+
+        // 检查属性觉醒情况
+        const elementAwakening = checkElementAwakeningInSteps();
+
+        // 如果同时有原属性和非原属性，提示无法导出（双重保险）
+        if (elementAwakening && elementAwakening.hasOriginal && elementAwakening.hasOther) {
+            alert('附魔步骤中同时包含"原属性"和"非原属性"词条，无法导出为布偶的魔法书格式。\n请移除其中一个词条后再试。');
+            return;
+        }
+
         // 构建布偶的魔法书格式JSON
         const cyteriaData = {
             name: enchantRecord.getName(),
@@ -1265,10 +1299,18 @@ function exportCyteriaFormat() {
                 basePotential: enchantRecord.baseEquipmentPotential,
                 originalPotential: enchantRecord.equipmentPotential,
                 fieldType: enchantRecord.equipmentType === EquipmentType.EQUIPMENT_TYPE_ARMOR ? 1 : 0,
-                isOriginalElement: false, // 默认false，导出时无法确定原属性
+                isOriginalElement: false, // 默认false
                 steps: []
             }
         };
+
+        // 设置 isOriginalElement：
+        // - 如果没有属性觉醒词条 → false（装备默认视为非原属性）
+        // - 如果有原属性词条 → true
+        // - 如果有非原属性词条 → false
+        if (elementAwakening) {
+            cyteriaData.equipment.isOriginalElement = elementAwakening.hasOriginal;
+        }
 
         // 先对步骤进行分组，将连续的重复步骤合并
         const groupedSteps = groupRepeatedSteps(enchantRecord.enchantmentSteps);
@@ -1314,7 +1356,7 @@ function exportCyteriaFormat() {
                 group.steps.forEach(step => {
                     if (step.enchantments.every(e => e.value === 0) || step.isIgnored) return;
 
-                    const stats = convertStepToCyteriaStats(step, cyteriaData);
+                    const stats = convertStepToCyteriaStats(step);
                     if (stats.length > 0) {
                         cyteriaData.equipment.steps.push({
                             type: 0,
@@ -1329,7 +1371,7 @@ function exportCyteriaFormat() {
                 group.steps.forEach(step => {
                     if (step.enchantments.every(e => e.value === 0) || step.isIgnored) return;
 
-                    const stats = convertStepToCyteriaStats(step, cyteriaData);
+                    const stats = convertStepToCyteriaStats(step);
                     if (stats.length > 0) {
                         cyteriaData.equipment.steps.push({
                             type: 0,
@@ -1356,6 +1398,43 @@ function exportCyteriaFormat() {
 
         showMessage('布偶的魔法书格式已下载');
         closeExportModal();
+    } catch (error) {
+        alert('导出失败: ' + error.message);
+    }
+}
+
+/**
+ * 导出为布偶的魔法书格式
+ * 先检查属性觉醒情况，再决定是否弹出元素选择弹窗
+ */
+function exportCyteriaFormat() {
+    try {
+        // 检查属性觉醒情况
+        const elementAwakening = checkElementAwakeningInSteps();
+
+        // 如果同时有原属性和非原属性，提示无法导出
+        if (elementAwakening && elementAwakening.hasOriginal && elementAwakening.hasOther) {
+            alert('附魔步骤中同时包含"原属性"和"非原属性"词条，无法导出为布偶的魔法书格式。\n请移除其中一个词条后再试。');
+            return;
+        }
+
+        // 如果有属性觉醒（不管原属性还是非原属性），弹出元素选择弹窗
+        if (elementAwakening) {
+            // 显示元素选择弹窗
+            const modal = document.getElementById('cyteriaElementModal');
+            modal.classList.remove('hidden');
+
+            // 重置选择状态
+            document.querySelectorAll('.cyteria-element-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            // 默认选中火
+            document.querySelector('.cyteria-element-option[data-element="element_fire"]').classList.add('selected');
+            return;
+        }
+
+        // 没有属性觉醒，直接导出（使用默认元素base，但不会被用到）
+        doExportCyteriaFormat('element_fire');
     } catch (error) {
         alert('导出失败: ' + error.message);
     }
@@ -1547,6 +1626,28 @@ function bindEvents() {
 
     // 导出为布偶的魔法书格式
     document.getElementById('exportCyteriaBtn').addEventListener('click', exportCyteriaFormat);
+
+    // 布偶导出元素选择弹窗事件
+    document.getElementById('cyteriaElementConfirmBtn').addEventListener('click', function () {
+        const selectedOption = document.querySelector('.cyteria-element-option.selected');
+        if (selectedOption) {
+            const elementBase = selectedOption.dataset.element;
+            document.getElementById('cyteriaElementModal').classList.add('hidden');
+            doExportCyteriaFormat(elementBase);
+        } else {
+            alert('请选择一个元素');
+        }
+    });
+    document.getElementById('cyteriaElementCancelBtn').addEventListener('click', function () {
+        document.getElementById('cyteriaElementModal').classList.add('hidden');
+    });
+    // 元素选择选项点击事件
+    document.querySelectorAll('.cyteria-element-option').forEach(opt => {
+        opt.addEventListener('click', function () {
+            document.querySelectorAll('.cyteria-element-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
 
     // 选择属性按钮事件 (桌面端)
     document.getElementById('selectPropertiesBtn').addEventListener('click', showPropertySelection);

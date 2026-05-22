@@ -538,6 +538,45 @@
             </div>
         </div>
 
+        <!-- 布偶导出元素选择弹窗 -->
+        <div id="cyteriaElementModal" class="modal hidden">
+            <div class="modal-content cyteria-element-modal">
+                <span class="close">&times;</span>
+                <h2>选择属性觉醒元素</h2>
+                <p class="cyteria-element-desc">附魔步骤中包含属性觉醒词条，请选择要转换为哪个元素：</p>
+                <div class="cyteria-element-options">
+                    <div class="cyteria-element-option selected" data-element="element_fire">
+                        <span class="cyteria-element-icon">🔥</span>
+                        <span class="cyteria-element-name">火</span>
+                    </div>
+                    <div class="cyteria-element-option" data-element="element_water">
+                        <span class="cyteria-element-icon">💧</span>
+                        <span class="cyteria-element-name">水</span>
+                    </div>
+                    <div class="cyteria-element-option" data-element="element_wind">
+                        <span class="cyteria-element-icon">🌪️</span>
+                        <span class="cyteria-element-name">风</span>
+                    </div>
+                    <div class="cyteria-element-option" data-element="element_earth">
+                        <span class="cyteria-element-icon">🌍</span>
+                        <span class="cyteria-element-name">地</span>
+                    </div>
+                    <div class="cyteria-element-option" data-element="element_light">
+                        <span class="cyteria-element-icon">☀️</span>
+                        <span class="cyteria-element-name">光</span>
+                    </div>
+                    <div class="cyteria-element-option" data-element="element_dark">
+                        <span class="cyteria-element-icon">🌑</span>
+                        <span class="cyteria-element-name">暗</span>
+                    </div>
+                </div>
+                <div class="cyteria-element-buttons">
+                    <button id="cyteriaElementConfirmBtn" class="confirm-btn">确认导出</button>
+                    <button id="cyteriaElementCancelBtn" class="cancel-btn">取消</button>
+                </div>
+            </div>
+        </div>
+
         <!-- 附魔结果展示区 -->
         <div class="result-section">
             <div class="result-section-header">
