@@ -1214,6 +1214,46 @@ function exportOriginalAndCopy() {
 }
 
 /**
+ * 将单个附魔步骤转换为布偶格式的 stats 数组
+ * @param {Object} step - 附魔步骤
+ * @param {Object} cyteriaData - 布偶数据对象（用于设置 isOriginalElement）
+ * @returns {Array} 布偶格式的 stats 数组
+ */
+function convertStepToCyteriaStats(step, cyteriaData) {
+    const stats = [];
+
+    step.enchantments.forEach(enchant => {
+        if (enchant.value === 0) return;
+
+        const property = enchant.property;
+        const mapping = property.cyteriaMapping;
+
+        if (mapping) {
+            // 普通属性，有cyteriaMapping
+            stats.push({
+                type: mapping.type,
+                value: enchant.value,
+                base: mapping.base
+            });
+        } else if (property.id === 'OriginalElement' || property.id === 'OtherElement') {
+            // 属性觉醒特殊处理
+            const elementBase = property.id === 'OriginalElement' ? 'element_fire' : 'element_water';
+            stats.push({
+                type: 0,
+                value: 1,
+                base: elementBase
+            });
+            // 如果有原属性，设置 isOriginalElement = true
+            if (property.id === 'OriginalElement') {
+                cyteriaData.equipment.isOriginalElement = true;
+            }
+        }
+    });
+
+    return stats;
+}
+
+/**
  * 导出为布偶的魔法书格式并下载
  */
 function exportCyteriaFormat() {
@@ -1230,49 +1270,75 @@ function exportCyteriaFormat() {
             }
         };
 
-        // 遍历附魔步骤，转换为布偶格式
-        enchantRecord.enchantmentSteps.forEach(step => {
-            // 跳过空步骤和被忽略的步骤
-            if (step.enchantments.every(e => e.value === 0) || step.isIgnored) return;
+        // 先对步骤进行分组，将连续的重复步骤合并
+        const groupedSteps = groupRepeatedSteps(enchantRecord.enchantmentSteps);
 
-            const cyteriaStep = {
-                type: 0,
-                hidden: false,
-                step: 1,
-                stats: []
-            };
+        groupedSteps.forEach(group => {
+            if (group.isRepeated) {
+                // 重复步骤组
+                const firstStep = group.steps[0];
 
-            step.enchantments.forEach(enchant => {
-                if (enchant.value === 0) return;
+                // 检查是否只有一条属性变化（布偶的重复步骤只支持单属性）
+                const nonZeroEnchantments = firstStep.enchantments.filter(e => e.value !== 0);
 
-                const property = enchant.property;
-                const mapping = property.cyteriaMapping;
+                if (nonZeroEnchantments.length === 1) {
+                    // 只有一条属性变化，可以合并为布偶的重复步骤（type: 1）
+                    const enchant = nonZeroEnchantments[0];
+                    const property = enchant.property;
+                    const mapping = property.cyteriaMapping;
 
-                if (mapping) {
-                    // 普通属性，有cyteriaMapping
-                    cyteriaStep.stats.push({
-                        type: mapping.type,
-                        value: enchant.value,
-                        base: mapping.base
-                    });
-                } else if (property.id === 'OriginalElement' || property.id === 'OtherElement') {
-                    // 属性觉醒特殊处理
-                    // 需要确定原属性是什么元素，这里默认使用 element_fire
-                    const elementBase = property.id === 'OriginalElement' ? 'element_fire' : 'element_water';
-                    cyteriaStep.stats.push({
-                        type: 0,
-                        value: 1,
-                        base: elementBase
-                    });
-                    // 如果有原属性，设置 isOriginalElement = true
-                    if (property.id === 'OriginalElement') {
-                        cyteriaData.equipment.isOriginalElement = true;
+                    // 属性觉醒不支持重复步骤
+                    if (mapping) {
+                        // 计算总变化量
+                        const totalValue = enchant.value * group.count;
+                        // 步长就是每次的变化值
+                        const stepSize = Math.abs(enchant.value);
+
+                        const cyteriaStep = {
+                            type: 1,
+                            hidden: false,
+                            step: stepSize,
+                            stats: [{
+                                type: mapping.type,
+                                value: totalValue,
+                                base: mapping.base
+                            }]
+                        };
+
+                        cyteriaData.equipment.steps.push(cyteriaStep);
+                        return; // 跳过后续的普通步骤处理
                     }
                 }
-            });
 
-            if (cyteriaStep.stats.length > 0) {
-                cyteriaData.equipment.steps.push(cyteriaStep);
+                // 多条属性变化或属性觉醒，不能合并为重复步骤，按普通步骤分开导出
+                group.steps.forEach(step => {
+                    if (step.enchantments.every(e => e.value === 0) || step.isIgnored) return;
+
+                    const stats = convertStepToCyteriaStats(step, cyteriaData);
+                    if (stats.length > 0) {
+                        cyteriaData.equipment.steps.push({
+                            type: 0,
+                            hidden: false,
+                            step: 1,
+                            stats: stats
+                        });
+                    }
+                });
+            } else {
+                // 普通步骤（非重复步骤）
+                group.steps.forEach(step => {
+                    if (step.enchantments.every(e => e.value === 0) || step.isIgnored) return;
+
+                    const stats = convertStepToCyteriaStats(step, cyteriaData);
+                    if (stats.length > 0) {
+                        cyteriaData.equipment.steps.push({
+                            type: 0,
+                            hidden: false,
+                            step: 1,
+                            stats: stats
+                        });
+                    }
+                });
             }
         });
 
