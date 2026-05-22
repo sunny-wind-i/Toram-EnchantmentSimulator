@@ -1642,6 +1642,16 @@ function bindEvents() {
     document.getElementById('cyteriaElementCancelBtn').addEventListener('click', function () {
         document.getElementById('cyteriaElementModal').classList.add('hidden');
     });
+    // 元素选择弹窗关闭按钮
+    document.querySelector('#cyteriaElementModal .close').addEventListener('click', function () {
+        document.getElementById('cyteriaElementModal').classList.add('hidden');
+    });
+    // 点击模态框外部关闭
+    document.getElementById('cyteriaElementModal').addEventListener('click', function (event) {
+        if (event.target === this) {
+            this.classList.add('hidden');
+        }
+    });
     // 元素选择选项点击事件
     document.querySelectorAll('.cyteria-element-option').forEach(opt => {
         opt.addEventListener('click', function () {
