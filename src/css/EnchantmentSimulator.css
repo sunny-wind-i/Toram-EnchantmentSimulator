@@ -2229,6 +2229,84 @@ body {
     }
 }
 
+/* 展开的重复步骤组 - 用虚线框包裹整行 */
+/* ===== 有效重复步骤（蓝色虚线框） ===== */
+.enchant-table tr.repeated-step.repeated-step-first td {
+    border-top: 2px dashed #64b5f6;
+}
+
+.enchant-table tr.repeated-step.repeated-step-last td {
+    border-bottom: 2px dashed #64b5f6;
+}
+
+.enchant-table tr.repeated-step td:first-child {
+    border-left: 2px dashed #64b5f6;
+}
+
+.enchant-table tr.repeated-step td:last-child {
+    border-right: 2px dashed #64b5f6;
+}
+
+.enchant-table tr.repeated-step td {
+    background-color: #f5faff;
+}
+
+/* ===== 无效重复步骤（红色虚线框） ===== */
+.enchant-table tr.repeated-step.invalid.repeated-step-first td {
+    border-top: 2px dashed #ef5350;
+}
+
+.enchant-table tr.repeated-step.invalid.repeated-step-last td {
+    border-bottom: 2px dashed #ef5350;
+}
+
+.enchant-table tr.repeated-step.invalid td:first-child {
+    border-left: 2px dashed #ef5350;
+}
+
+.enchant-table tr.repeated-step.invalid td:last-child {
+    border-right: 2px dashed #ef5350;
+}
+
+.enchant-table tr.repeated-step.invalid td {
+    background-color: #fff5f5;
+}
+
+/* ===== 忽略重复步骤（灰色虚线框） ===== */
+.enchant-table tr.repeated-step.ignored.repeated-step-first td {
+    border-top: 2px dashed #bdbdbd;
+}
+
+.enchant-table tr.repeated-step.ignored.repeated-step-last td {
+    border-bottom: 2px dashed #bdbdbd;
+}
+
+.enchant-table tr.repeated-step.ignored td:first-child {
+    border-left: 2px dashed #bdbdbd;
+}
+
+.enchant-table tr.repeated-step.ignored td:last-child {
+    border-right: 2px dashed #bdbdbd;
+}
+
+.enchant-table tr.repeated-step.ignored td {
+    background-color: #fafafa;
+}
+
+/* 重复步骤序号标记样式 */
+.repeat-step-order {
+    display: inline-block;
+    font-size: 11px;
+    color: #64b5f6;
+    background-color: #e3f2fd;
+    border-radius: 3px;
+    padding: 0 4px;
+    margin-right: 4px;
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+}
+
 /* 隐藏编辑按钮，因为我发现好像没什么用 */
 #editPropertyBtn {
     display: none;

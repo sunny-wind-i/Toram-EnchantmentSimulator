@@ -1394,6 +1394,17 @@ function updateTableContent() {
                 // 展开状态 - 显示所有重复步骤
                 group.steps.forEach((step, indexInGroup) => {
                     const row = document.createElement('tr');
+                    row.classList.add('repeated-step'); // 标记为重复步骤组内的行
+                    row.dataset.groupIndex = groupIndex; // 标记所属组索引
+                    row.dataset.stepInGroup = indexInGroup; // 标记在组内的位置
+
+                    // 标记组内第一行和最后一行，用于虚线框样式
+                    if (indexInGroup === 0) {
+                        row.classList.add('repeated-step-first');
+                    }
+                    if (indexInGroup === group.steps.length - 1) {
+                        row.classList.add('repeated-step-last');
+                    }
 
                     // 添加忽略/无效步骤的样式类
                     if (step.isIgnored) {
@@ -1407,7 +1418,10 @@ function updateTableContent() {
                     if (step.isIgnored) {
                         potentialCell.textContent = 'N/A';
                     } else {
-                        potentialCell.textContent = step.postEnchantmentPotential;
+                        // 添加序号标记：③/5 表示第3个/共5个
+                        const orderNumber = indexInGroup + 1;
+                        const totalCount = group.steps.length;
+                        potentialCell.innerHTML = `<span class="repeat-step-order">${orderNumber}/${totalCount}</span> ${step.postEnchantmentPotential}`;
                     }
                     potentialCell.dataset.stepIndex = actualIndex; // 使用实际索引
                     potentialCell.dataset.actualIndex = actualIndex; // 保存实际索引
