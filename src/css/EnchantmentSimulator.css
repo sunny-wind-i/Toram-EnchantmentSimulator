@@ -736,9 +736,9 @@ body {
 }
 
 .enchant-table td.selected {
-    border: 2px solid #008CBA;
+    outline: 2px solid #008CBA;
+    outline-offset: -2px;
     background-color: #e6f7ff;
-    box-shadow: inset 0 0 0 1px #008CBA;
 }
 
 /* 添加确认按钮样式 */
@@ -986,12 +986,6 @@ body {
 
 .enchant-table td:hover {
     background-color: #f8f9fa;
-}
-
-.enchant-table td.selected {
-    border: 2px solid #008CBA;
-    background-color: #e6f7ff;
-    box-shadow: inset 0 0 0 1px #008CBA;
 }
 
 /* 视图模式选择弹窗 */
