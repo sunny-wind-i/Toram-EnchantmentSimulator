@@ -512,6 +512,7 @@ export default class FormulaParser {
 
     /**
      * 查找属性ID
+     * 匹配策略：精确匹配 > 特殊别名 > 包含匹配（按名称长度降序，长名称优先）
      */
     _findPropertyId(name, hasPercent) {
         // 1. 先检查别名映射
@@ -537,16 +538,30 @@ export default class FormulaParser {
             return specialAliases;
         }
 
-        // 4. 模糊匹配
+        // 4. 包含匹配（按名称长度降序，长名称优先匹配）
+        // 收集所有匹配的属性，按名称长度排序
+        const matches = [];
         for (const [id, prop] of Object.entries(this.properties)) {
+            // 检查 name 是否包含属性名，或属性名是否包含 name
             if (prop.nameChsFull.includes(name) || name.includes(prop.nameChsFull)) {
-                if (hasPercent && prop.isPercentage) return id;
-                if (!hasPercent && !prop.isPercentage) return id;
+                if (hasPercent && prop.isPercentage) {
+                    matches.push({ id, length: prop.nameChsFull.length });
+                } else if (!hasPercent && !prop.isPercentage) {
+                    matches.push({ id, length: prop.nameChsFull.length });
+                }
+            } else if (prop.nameChsAbbr.includes(name) || name.includes(prop.nameChsAbbr)) {
+                if (hasPercent && prop.isPercentage) {
+                    matches.push({ id, length: prop.nameChsAbbr.length });
+                } else if (!hasPercent && !prop.isPercentage) {
+                    matches.push({ id, length: prop.nameChsAbbr.length });
+                }
             }
-            if (prop.nameChsAbbr.includes(name) || name.includes(prop.nameChsAbbr)) {
-                if (hasPercent && prop.isPercentage) return id;
-                if (!hasPercent && !prop.isPercentage) return id;
-            }
+        }
+
+        // 按名称长度降序排序（长名称优先匹配）
+        if (matches.length > 0) {
+            matches.sort((a, b) => b.length - a.length);
+            return matches[0].id;
         }
 
         return null;
