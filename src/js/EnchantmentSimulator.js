@@ -5,6 +5,7 @@ import { attrNumToActualNum, calAttrMaxLimit, calAttrMinLimit } from './modules/
 import EquipmentType from './modules/EquipmentType.js';
 import EnchantType from './modules/EnchantType.js';
 import EnchantProperties from './modules/EnchantProperties.js';
+import FormulaParser from './modules/FormulaParser.js';
 import '../css/EnchantmentSimulator.css';
 
 // 全局变量
@@ -745,16 +746,62 @@ function tryParseImportText(text) {
 
     // 方法3: 尝试用附魔公式文本解析
     try {
-        // 具体解析方式以后实现
-        // 这里先做基础框架
         if (text && text.length > 0) {
-            return {
-                method: 'formula',
-                record: null, // 具体解析后生成
-                hasFullInfo: false,
-                missingFields: ['equipmentType', 'playerLevel', 'equipmentPotential', 'baseEquipmentPotential', 'smithingLevel', 'anvilLevel', 'masterEnhancement2Level', 'understandingSkills'],
-                rawData: text
-            };
+            const parser = new FormulaParser();
+            const parseResult = parser.parse(text);
+
+            if (parseResult && parseResult.steps.length > 0) {
+                // 解析成功，创建 EnchantRecord
+                const config = parser.convertToConfig(parseResult);
+                const tempRecord = new EnchantRecord(config);
+
+                // 设置选中的属性
+                const allPropertyIds = new Set();
+                parseResult.steps.forEach(step => {
+                    step.enchantments.forEach(enchant => {
+                        allPropertyIds.add(enchant.propertyId);
+                    });
+                });
+
+                const selectedProps = [];
+                allPropertyIds.forEach(propId => {
+                    const prop = propertyManager.getProperty(propId);
+                    if (prop) {
+                        selectedProps.push(prop);
+                    }
+                });
+                tempRecord.setSelectedProperties(selectedProps);
+
+                // 添加步骤
+                config.stepData.forEach(stepData => {
+                    const step = {
+                        enchantments: stepData.enchantments.map(e => ({
+                            property: propertyManager.getProperty(e.propertyId),
+                            value: e.value
+                        }))
+                    };
+                    tempRecord.addEnchantmentStep(step);
+                });
+
+                // 确定缺失的字段
+                const missingFields = [];
+                if (!parseResult.equipmentType) missingFields.push('equipmentType');
+                if (!parseResult.equipmentPotential) missingFields.push('equipmentPotential');
+                if (!parseResult.baseEquipmentPotential) missingFields.push('baseEquipmentPotential');
+                if (!parseResult.playerLevel) missingFields.push('playerLevel');
+                if (!parseResult.smithingLevel) missingFields.push('smithingLevel');
+                if (!parseResult.anvilLevel) missingFields.push('anvilLevel');
+                if (!parseResult.masterEnhancement2Level) missingFields.push('masterEnhancement2Level');
+                if (!parseResult.understandingSkills) missingFields.push('understandingSkills');
+
+                return {
+                    method: 'formula',
+                    record: tempRecord,
+                    hasFullInfo: missingFields.length === 0,
+                    missingFields: missingFields,
+                    rawData: text
+                };
+            }
         }
     } catch (e) {
         console.log('方法3（附魔公式文本）解析失败:', e.message);
@@ -1115,19 +1162,19 @@ function executeImport() {
             // 重新计算所有步骤
             newRecord._recalculateAllSteps();
         } else {
-            // 其他方法（如附魔公式文本）：创建新记录并应用配置
-            newRecord = new EnchantRecord({
-                equipmentType: equipmentType === 'weapon' ? EquipmentType.EQUIPMENT_TYPE_WEAPON : EquipmentType.EQUIPMENT_TYPE_ARMOR,
-                playerLevel: playerLevel,
-                equipmentPotential: equipmentPotential,
-                baseEquipmentPotential: baseEquipmentPotential,
-                smithingLevel: smithingLevel,
-                anvilLevel: anvilLevel,
-                masterEnhancement2Level: masterEnhancement2Level,
-                understandingSkills: understandingSkills,
-                name: finalName
-            });
-            // TODO: 根据解析结果添加附魔步骤（附魔公式文本解析待实现）
+            // 其他方法（如附魔公式文本）：使用解析出的记录，但覆盖基础配置（用户可能在预览中修改了）
+            newRecord = parsedData.parseResult.record;
+            // 覆盖用户在预览中修改的配置
+            newRecord.setEquipmentType(equipmentType === 'weapon' ? EquipmentType.EQUIPMENT_TYPE_WEAPON : EquipmentType.EQUIPMENT_TYPE_ARMOR);
+            newRecord.playerLevel = playerLevel;
+            newRecord.equipmentPotential = equipmentPotential;
+            newRecord.baseEquipmentPotential = baseEquipmentPotential;
+            newRecord.smithingLevel = smithingLevel;
+            newRecord.anvilLevel = anvilLevel;
+            newRecord.masterEnhancement2Level = masterEnhancement2Level;
+            newRecord.understandingSkills = { ...understandingSkills };
+            // 重新计算所有步骤
+            newRecord._recalculateAllSteps();
         }
 
         // 设置名称
