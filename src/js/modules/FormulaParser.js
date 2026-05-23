@@ -353,11 +353,21 @@ export default class FormulaParser {
             }
         }
 
+        // 用于跟踪每个属性的当前累积值（内部值）
+        const currentValues = {};
+
         // 解析每个步骤行
         for (const stepLine of stepLines) {
-            const step = this._parseSingleStep(stepLine, result);
+            const step = this._parseSingleStep(stepLine, result, currentValues);
             if (step) {
                 steps.push(step);
+                // 更新当前累积值
+                for (const enchant of step.enchantments) {
+                    if (!currentValues[enchant.propertyId]) {
+                        currentValues[enchant.propertyId] = 0;
+                    }
+                    currentValues[enchant.propertyId] += enchant.value;
+                }
             }
         }
 
@@ -367,26 +377,26 @@ export default class FormulaParser {
     /**
      * 解析单个步骤行
      */
-    _parseSingleStep(line, result) {
+    _parseSingleStep(line, result, currentValues) {
         // 移除步骤编号
         let content = line.replace(/^\s*\d+\.\s*/, '').trim();
 
         // 检查是否是分次附步骤
         const repeatMatch = content.match(/^(?:分次附[、，,]\s*)?每次附\s*(.+?)(?:[、，,]\s*直到|，直到|直到)(.+?)(?:[｜|]\s*-?\d+pt)?$/);
         if (repeatMatch) {
-            return this._parseRepeatedStep(repeatMatch[1], repeatMatch[2], result);
+            return this._parseRepeatedStep(repeatMatch[1], repeatMatch[2], result, currentValues);
         }
 
         // 检查是否是普通步骤（附 xxx）
         const normalMatch = content.match(/^附\s+(.+?)(?:[｜|]\s*-?\d+pt)?$/);
         if (normalMatch) {
-            return this._parseNormalStep(normalMatch[1], result);
+            return this._parseNormalStep(normalMatch[1], result, currentValues);
         }
 
         // 尝试直接解析（没有"附"前缀的步骤）
         const directMatch = content.match(/^(.+?)(?:[｜|]\s*-?\d+pt)?$/);
         if (directMatch) {
-            return this._parseNormalStep(directMatch[1], result);
+            return this._parseNormalStep(directMatch[1], result, currentValues);
         }
 
         return null;
@@ -394,8 +404,10 @@ export default class FormulaParser {
 
     /**
      * 解析分次附步骤
+     * 步长部分（每次附xxx）表示每次增加的量
+     * 目标部分（直到yyy）表示"附到yyy"，即目标值，需要减去当前累积值得到最终需要达到的目标
      */
-    _parseRepeatedStep(stepContent, targetContent, result) {
+    _parseRepeatedStep(stepContent, targetContent, result, currentValues) {
         const stepEnchantments = this._parseEnchantments(stepContent, true);
         if (stepEnchantments.length === 0) return null;
 
@@ -410,7 +422,9 @@ export default class FormulaParser {
             if (!targetEnchant) continue;
 
             const stepSize = Math.abs(stepEnchant.value);
-            const targetValue = targetEnchant.value;
+            // 目标值是"附到"的值，需要减去当前累积值得到本次分次附需要达到的最终值
+            const currentAccumulated = currentValues[stepEnchant.propertyId] || 0;
+            const targetValue = targetEnchant.value - currentAccumulated;
             let currentValue = 0;
 
             while (true) {
@@ -448,10 +462,21 @@ export default class FormulaParser {
 
     /**
      * 解析普通步骤
+     * 公式中的属性值表示"附到xxx"，即目标值，需要减去当前累积值得到变化值
      */
-    _parseNormalStep(content, result) {
-        const enchantments = this._parseEnchantments(content, false);
-        if (enchantments.length === 0) return null;
+    _parseNormalStep(content, result, currentValues) {
+        const targetEnchantments = this._parseEnchantments(content, false);
+        if (targetEnchantments.length === 0) return null;
+
+        // 将目标值转换为变化值（目标值 - 当前累积值）
+        const enchantments = targetEnchantments.map(enchant => {
+            const currentValue = currentValues[enchant.propertyId] || 0;
+            const changeValue = enchant.value - currentValue;
+            return {
+                ...enchant,
+                value: changeValue
+            };
+        });
 
         return {
             type: 'normal',
