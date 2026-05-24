@@ -1325,14 +1325,14 @@ export default class FormulaParser {
      */
     convertToConfig(parseResult) {
         const config = {
-            equipmentType: parseResult.equipmentType || EquipmentType.EQUIPMENT_TYPE_WEAPON,
-            playerLevel: parseResult.playerLevel || GameDefaults.PLAYER_LEVEL,
-            equipmentPotential: parseResult.equipmentPotential || GameDefaults.EQUIPMENT_POTENTIAL,
-            baseEquipmentPotential: parseResult.baseEquipmentPotential || GameDefaults.BASE_EQUIPMENT_POTENTIAL,
-            smithingLevel: parseResult.smithingLevel || GameDefaults.SMITHING_LEVEL,
-            anvilLevel: parseResult.anvilLevel || GameDefaults.ANVIL_LEVEL,
-            masterEnhancement2Level: parseResult.masterEnhancement2Level || GameDefaults.MASTER_ENHANCEMENT_2_LEVEL,
-            understandingSkills: parseResult.understandingSkills || {
+            equipmentType: parseResult.equipmentType ?? EquipmentType.EQUIPMENT_TYPE_WEAPON,
+            playerLevel: parseResult.playerLevel ?? GameDefaults.PLAYER_LEVEL,
+            equipmentPotential: parseResult.equipmentPotential ?? GameDefaults.EQUIPMENT_POTENTIAL,
+            baseEquipmentPotential: parseResult.baseEquipmentPotential ?? GameDefaults.BASE_EQUIPMENT_POTENTIAL,
+            smithingLevel: parseResult.smithingLevel ?? GameDefaults.SMITHING_LEVEL,
+            anvilLevel: parseResult.anvilLevel ?? GameDefaults.ANVIL_LEVEL,
+            masterEnhancement2Level: parseResult.masterEnhancement2Level ?? GameDefaults.MASTER_ENHANCEMENT_2_LEVEL,
+            understandingSkills: parseResult.understandingSkills ?? {
                 metal: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
                 cloth: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
                 beast: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
