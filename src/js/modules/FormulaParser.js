@@ -17,7 +17,8 @@ import EnchantProperties from './EnchantProperties.js';
 import EnchantType from './EnchantType.js';
 import EquipmentType from './EquipmentType.js';
 import GameDefaults from './GameDefaults.js';
-import { attrNumToActualNum, calAttrMaxLimit } from './PotentialCalculator.js';
+import PropertyManager from './PropertyManager.js';
+import { attrNumToActualNum, calAttrMaxLimit, calculateMultiplier, calculateIncreasePotentialCost, calculateDecreasePotentialGain } from './PotentialCalculator.js';
 
 export default class FormulaParser {
     constructor() {
@@ -66,6 +67,11 @@ export default class FormulaParser {
                 this.aliasMap[prop.nameEnAbbr] = id;
             }
         }
+
+        // 元素属性名称列表（用于属性觉醒识别）
+        // 布偶等附魔模拟器输出具体元素名（如"水属性"），需要根据剩余潜力值判断是原属性还是非原属性
+        this.elementNames = ['火属性', '水属性', '地属性', '风属性', '光属性', '暗属性',
+            '火', '水', '地', '风', '光', '暗'];
 
         // 补充额外的常用别名（简称、英文名等，不区分大小写）
         const extraAliases = {
@@ -181,6 +187,10 @@ export default class FormulaParser {
             "evasion_regenerate": "Avoid",
             "仇恨": "Hate",
             "aggro": "Hate",
+
+            // ===== 属性觉醒（Element Awakening） =====
+            "原属性": "OriginalElement",
+            "非原属性": "OtherElement",
         };
 
         Object.assign(this.aliasMap, extraAliases);
@@ -227,7 +237,9 @@ export default class FormulaParser {
                 understandingSkills: null,
                 steps: [],
                 // 记录解析到的属性及其最终值，用于反推玩家等级
-                finalPropertyValues: {}
+                finalPropertyValues: {},
+                // 标记是否有未解决的元素觉醒问题
+                unresolvedElementAwakening: false
             };
 
             // 分步解析
@@ -238,6 +250,9 @@ export default class FormulaParser {
 
             // 反推玩家等级
             this._inferPlayerLevel(result);
+
+            // 解析后处理：通过剩余潜力值判断元素觉醒类型
+            this._resolveElementAwakening(result);
 
             // 验证解析结果
             if (result.steps.length === 0) {
@@ -529,22 +544,43 @@ export default class FormulaParser {
         // 移除步骤编号
         let content = line.replace(/^\s*\d+\.\s*/, '').trim();
 
+        // 提取剩余潜力值（格式：｜-156pt 或 |-156pt 在行尾）
+        let remainingPotential = null;
+        const ptMatch = content.match(/[｜|]\s*(-?\d+)pt\s*$/);
+        if (ptMatch) {
+            remainingPotential = parseInt(ptMatch[1]);
+            // 移除末尾的｜-156pt部分，保留附魔内容
+            content = content.substring(0, ptMatch.index);
+        }
+
         // 检查是否是分次附步骤
-        const repeatMatch = content.match(/^(?:分次附[、，,]\s*)?每次附\s*(.+?)(?:[、，,]\s*直到|，直到|直到)(.+?)(?:[｜|]\s*-?\d+pt)?$/);
+        const repeatMatch = content.match(/^(?:分次附[、，,]\s*)?每次附\s*(.+?)(?:[、，,]\s*直到|，直到|直到)(.+?)$/);
         if (repeatMatch) {
-            return this._parseRepeatedStep(repeatMatch[1], repeatMatch[2], result, currentValues);
+            const stepResult = this._parseRepeatedStep(repeatMatch[1], repeatMatch[2], result, currentValues);
+            if (stepResult) {
+                stepResult.remainingPotential = remainingPotential;
+            }
+            return stepResult;
         }
 
         // 检查是否是普通步骤（附 xxx，附字后面可能有空格也可能没有）
-        const normalMatch = content.match(/^附\s*(.+?)(?:[｜|]\s*-?\d+pt)?$/);
+        const normalMatch = content.match(/^附\s*(.+)$/);
         if (normalMatch) {
-            return this._parseNormalStep(normalMatch[1], result, currentValues);
+            const stepResult = this._parseNormalStep(normalMatch[1], result, currentValues);
+            if (stepResult) {
+                stepResult.remainingPotential = remainingPotential;
+            }
+            return stepResult;
         }
 
         // 尝试直接解析（没有"附"前缀的步骤）
-        const directMatch = content.match(/^(.+?)(?:[｜|]\s*-?\d+pt)?$/);
+        const directMatch = content.match(/^(.+)$/);
         if (directMatch) {
-            return this._parseNormalStep(directMatch[1], result, currentValues);
+            const stepResult = this._parseNormalStep(directMatch[1], result, currentValues);
+            if (stepResult) {
+                stepResult.remainingPotential = remainingPotential;
+            }
+            return stepResult;
         }
 
         return null;
@@ -658,6 +694,14 @@ export default class FormulaParser {
      * 解析单个附魔属性
      */
     _parseSingleEnchantment(text, isStepValue) {
+        // 先检查是否是元素觉醒文本（没有数值的属性觉醒）
+        // 属性觉醒在文本中不带数值，如"水属性"、"原属性"、"非原属性"等
+        const elementAwakeningCheck = this._tryParseElementAwakening(text);
+        if (elementAwakeningCheck) {
+            return elementAwakeningCheck;
+        }
+
+        // 标准格式：属性名 + 符号 + 数值 + 可选%
         const match = text.match(/^(.+?)([+-])(\d+)(%)?$/);
         if (!match) return null;
 
@@ -665,6 +709,9 @@ export default class FormulaParser {
         const sign = match[2];
         const value = parseInt(match[3]);
         const hasPercent = match[4] !== undefined;
+
+        // 检查属性名中是否含有元素名字（如"水属性+1"可能在某些格式中不会出现，但以防万一）
+        // 实际上带数值的元素名不应被当作属性觉醒处理，但还是走正常属性查找流程
 
         const propertyId = this._findPropertyId(name, hasPercent);
         if (!propertyId) return null;
@@ -681,6 +728,61 @@ export default class FormulaParser {
             displayValue: sign === '+' ? value : -value,
             hasPercent: hasPercent
         };
+    }
+
+    /**
+     * 尝试解析元素觉醒文本
+     * 元素觉醒没有数值，文本如"原属性"、"非原属性"、"水属性"、"光属性"等
+     * 
+     * @param {string} text - 要解析的文本
+     * @returns {Object|null} 解析结果或null
+     */
+    _tryParseElementAwakening(text) {
+        const trimmed = text.trim();
+        if (!trimmed) return null;
+
+        // 检查是否是"原属性"或"非原属性"
+        if (trimmed === "原属性") {
+            return {
+                propertyId: "OriginalElement",
+                value: 1,
+                displayName: "原属性",
+                displayValue: 1,
+                hasPercent: false,
+                isElementAwakening: true,
+                elementAwakeningResolved: true
+            };
+        }
+        if (trimmed === "非原属性") {
+            return {
+                propertyId: "OtherElement",
+                value: 1,
+                displayName: "非原属性",
+                displayValue: 1,
+                hasPercent: false,
+                isElementAwakening: true,
+                elementAwakeningResolved: true
+            };
+        }
+
+        // 检查是否是具体的元素名称（不带数值）
+        // 格式：火属性, 水属性, 地属性, 风属性, 光属性, 暗属性
+        // 或简写：火, 水, 地, 风, 光, 暗
+        const elementMatch = trimmed.match(/^(火属性|水属性|地属性|风属性|光属性|暗属性|火|水|地|风|光|暗)$/);
+        if (elementMatch) {
+            return {
+                propertyId: null, // 暂时未知，需要在解析后通过剩余潜力值判断
+                value: 1,
+                displayName: elementMatch[1],
+                displayValue: 1,
+                hasPercent: false,
+                isElementAwakening: true,
+                elementAwakeningResolved: false,
+                elementName: elementMatch[1] // 记录元素名，用于后续判断
+            };
+        }
+
+        return null;
     }
 
     /**
@@ -803,6 +905,247 @@ export default class FormulaParser {
             const excessInternal = Math.round(excessDisplay / property.postAttenuationIncrement);
             return (property.attenuationThreshold + excessInternal) * sign;
         }
+    }
+
+    // ==================== 元素觉醒（Element Awakening）解析 ====================
+
+    /**
+     * 解析后处理：通过剩余潜力值判断布偶格式的元素觉醒类型
+     * 
+     * 布偶（或其他格式）的属性不会显式说明是原属性还是非原属性，
+     * 需要通过该步执行之后的剩余潜力值来判断。
+     * 
+     * 判断方法：
+     * 1. 计算如果用原属性（OriginalElement）执行后，剩余潜力值是多少
+     * 2. 计算如果用非原属性（OtherElement）执行后，剩余潜力值是多少
+     * 3. 哪个匹配给定的剩余潜力值，就是哪个
+     * 4. 如果都不匹配，标记为 unresolvedElementAwakening
+     */
+    _resolveElementAwakening(result) {
+        // 检查是否有任何步骤有未解析的元素觉醒
+        let hasUnresolved = false;
+        for (const step of result.steps) {
+            for (const enchant of step.enchantments) {
+                if (enchant.isElementAwakening && !enchant.elementAwakeningResolved) {
+                    hasUnresolved = true;
+                }
+            }
+        }
+
+        if (!hasUnresolved) return;
+
+        // 需要先有玩家等级、装备类型等信息
+        // 如果玩家等级未知，使用默认值
+        const playerLevel = result.playerLevel || GameDefaults.PLAYER_LEVEL;
+        const equipmentType = result.equipmentType || EquipmentType.EQUIPMENT_TYPE_WEAPON;
+
+        // 获取原属性和非原属性的配置
+        const originalElementProp = EnchantProperties.getPropertyById('OriginalElement');
+        const otherElementProp = EnchantProperties.getPropertyById('OtherElement');
+
+        if (!originalElementProp || !otherElementProp) {
+            // 如果没有找到属性配置，无法判断
+            for (const step of result.steps) {
+                for (const enchant of step.enchantments) {
+                    if (enchant.isElementAwakening && !enchant.elementAwakeningResolved) {
+                        enchant.elementAwakeningResolved = true;
+                        // 默认使用非原属性
+                        enchant.propertyId = 'OtherElement';
+                    }
+                }
+            }
+            return;
+        }
+
+        // 模拟执行每一步，计算每一步后的累计变化
+        let currentPotential = result.equipmentPotential || GameDefaults.EQUIPMENT_POTENTIAL;
+        const allEnchantedIds = [];
+
+        for (const step of result.steps) {
+            // 收集这一步中所有非元素觉醒的属性ID（用于倍率计算）
+            const currentStepIds = [];
+            for (const enchant of step.enchantments) {
+                if (!enchant.isElementAwakening && enchant.propertyId) {
+                    currentStepIds.push(enchant.propertyId);
+                }
+            }
+
+            // 合并到总列表
+            const stepAllIds = [...new Set([...allEnchantedIds, ...currentStepIds])];
+
+            for (const enchant of step.enchantments) {
+                if (enchant.isElementAwakening && !enchant.elementAwakeningResolved) {
+                    if (step.remainingPotential !== null) {
+                        // 获取本步执行前所有属性值
+                        const preValues = this._getPreStepPropertyValues(result, step);
+
+                        // 计算整步分别使用原属性/非原属性时的潜力变化
+                        const originalStepChange = this._calcStepPotentialChange(
+                            step, 'OriginalElement', preValues, allEnchantedIds, equipmentType
+                        );
+                        const otherStepChange = this._calcStepPotentialChange(
+                            step, 'OtherElement', preValues, allEnchantedIds, equipmentType
+                        );
+
+                        const originalRemaining = currentPotential + originalStepChange;
+                        const otherRemaining = currentPotential + otherStepChange;
+
+                        // 判断哪个匹配给定的剩余潜力值
+                        const originalDiff = Math.abs(originalRemaining - step.remainingPotential);
+                        const otherDiff = Math.abs(otherRemaining - step.remainingPotential);
+
+                        const tolerance = 1; // 允许1点误差
+
+                        if (originalDiff <= tolerance && otherDiff > tolerance) {
+                            // 原属性匹配
+                            enchant.propertyId = 'OriginalElement';
+                            enchant.elementAwakeningResolved = true;
+                        } else if (otherDiff <= tolerance && originalDiff > tolerance) {
+                            // 非原属性匹配
+                            enchant.propertyId = 'OtherElement';
+                            enchant.elementAwakeningResolved = true;
+                        } else if (originalDiff <= tolerance && otherDiff <= tolerance) {
+                            // 都匹配，默认使用原属性（消耗更少）
+                            enchant.propertyId = 'OriginalElement';
+                            enchant.elementAwakeningResolved = true;
+                        } else {
+                            // 都不匹配
+                            enchant.elementAwakeningResolved = false;
+                            result.unresolvedElementAwakening = true;
+                        }
+                    } else {
+                        // 没有剩余潜力值信息，无法判断
+                        enchant.elementAwakeningResolved = false;
+                        result.unresolvedElementAwakening = true;
+                    }
+                }
+            }
+
+            // 更新 allEnchantedIds（合并已解析的属性ID，无论是否元素觉醒）
+            for (const enchant of step.enchantments) {
+                if (enchant.propertyId) {
+                    if (!allEnchantedIds.includes(enchant.propertyId)) {
+                        allEnchantedIds.push(enchant.propertyId);
+                    }
+                }
+            }
+
+            // 更新当前潜力值
+            // 如果有步骤提供了剩余潜力值，直接使用；否则按已解析结果估算
+            if (step.remainingPotential !== null) {
+                currentPotential = step.remainingPotential;
+            }
+        }
+
+        // 检查是否有未解析的元素觉醒
+        for (const step of result.steps) {
+            for (const enchant of step.enchantments) {
+                if (enchant.isElementAwakening && !enchant.elementAwakeningResolved) {
+                    result.unresolvedElementAwakening = true;
+                }
+            }
+        }
+    }
+
+    /**
+     * 获取某步骤执行前的属性值
+     */
+    _getPreStepPropertyValues(result, targetStep) {
+        const values = {};
+        for (const step of result.steps) {
+            if (step === targetStep) break;
+            for (const enchant of step.enchantments) {
+                if (!enchant.propertyId) continue;
+                if (!values[enchant.propertyId]) {
+                    values[enchant.propertyId] = 0;
+                }
+                values[enchant.propertyId] += enchant.value;
+            }
+        }
+        return values;
+    }
+
+    /**
+     * 计算某一步骤在指定元素觉醒类型下的潜力变化
+     * @param {Object} step - 步骤对象
+     * @param {string} elementPropertyId - 用于替换未解析元素觉醒的属性ID ('OriginalElement' 或 'OtherElement')
+     * @param {Object} preValues - 步骤执行前的各属性值
+     * @param {Array} allEnchantedIds - 到目前为止所有已附魔的属性ID（含本步非元素部分）
+     * @param {Object} equipmentType - 装备类型
+     * @returns {number} 潜力变化值（正=获得，负=消耗）
+     */
+    _calcStepPotentialChange(step, elementPropertyId, preValues, allEnchantedIds, equipmentType) {
+        // 构建本步所有属性ID集合
+        const stepIds = [];
+        for (const enchant of step.enchantments) {
+            if (enchant.isElementAwakening && !enchant.elementAwakeningResolved) {
+                stepIds.push(elementPropertyId);
+            } else if (enchant.propertyId) {
+                stepIds.push(enchant.propertyId);
+            }
+        }
+
+        // 合并到总列表
+        const mergedIds = [...new Set([...allEnchantedIds, ...stepIds])];
+        const multiplier = calculateMultiplier(mergedIds);
+
+        let totalChange = 0;
+
+        for (const enchant of step.enchantments) {
+            if (!enchant.propertyId && !enchant.isElementAwakening) continue;
+
+            let propId = enchant.propertyId;
+            if (enchant.isElementAwakening && !enchant.elementAwakeningResolved) {
+                propId = elementPropertyId;
+            }
+
+            const prop = this.properties[propId];
+            if (!prop) continue;
+
+            const preValue = preValues[propId] || 0;
+            const postValue = preValue + enchant.value;
+
+            let change = 0;
+            if (postValue > preValue) {
+                change = -calculateIncreasePotentialCost(prop, preValue, postValue, equipmentType);
+            } else if (postValue < preValue) {
+                change = calculateDecreasePotentialGain(prop, preValue, postValue, equipmentType);
+            }
+
+            totalChange += change;
+        }
+
+        return Math.trunc((totalChange * multiplier).toFixed(2));
+    }
+
+    /**
+     * 计算某一步骤在已解析完成的情况下的潜力变化
+     */
+    _calcStepPotentialChangeResolved(step, preValues, allEnchantedIds, equipmentType) {
+        const multiplier = calculateMultiplier(allEnchantedIds);
+
+        let totalChange = 0;
+
+        for (const enchant of step.enchantments) {
+            if (!enchant.propertyId) continue;
+
+            const prop = this.properties[enchant.propertyId];
+            if (!prop) continue;
+
+            const preValue = preValues[enchant.propertyId] || 0;
+            const postValue = preValue + enchant.value;
+
+            let change = 0;
+            if (postValue > preValue) {
+                change = -calculateIncreasePotentialCost(prop, preValue, postValue, equipmentType);
+            } else if (postValue < preValue) {
+                change = calculateDecreasePotentialGain(prop, preValue, postValue, equipmentType);
+            }
+
+            totalChange += change;
+        }
+
+        return Math.trunc((totalChange * multiplier).toFixed(2));
     }
 
     /**
