@@ -75,6 +75,7 @@ export default class FormulaParser {
             "vit": "耐力",
             "agi": "敏捷",
             "dex": "灵巧",
+            "能力": "力量",
 
             // ===== HP/MP =====
             "体力值": "体力值上限",
@@ -108,9 +109,9 @@ export default class FormulaParser {
             "稳定": "稳定率",
             "stability": "稳定率",
             "物贯": "物理贯穿",
-            "physical_pierce": "物理贯穿",
+            "physical pierce": "物理贯穿",
             "魔贯": "魔法贯穿",
-            "magic_pierce": "魔法贯穿",
+            "magic pierce": "魔法贯穿",
 
             // ===== 防御 =====
             "物防": "物理防御",
@@ -120,11 +121,11 @@ export default class FormulaParser {
             "法术防御": "魔法防御",
             "mdef": "魔法防御",
             "物抗": "物理抗性",
-            "physical_resistance": "物理抗性",
+            "physical resistance": "物理抗性",
             "魔抗": "魔法抗性",
             "法抗": "魔法抗性",
             "法术抗性": "魔法抗性",
-            "magic_resistance": "魔法抗性",
+            "magic resistance": "魔法抗性",
 
             // ===== 命中/回避 =====
             "accuracy": "命中",
@@ -142,11 +143,14 @@ export default class FormulaParser {
             "暴击": "暴击率",
             "爆击": "暴击率",
             "爆击率": "暴击率",
-            "critical_rate": "暴击率",
+            "critical": "暴击率",
+            "c": "暴击率",
+            "critical rate": "暴击率",
             "暴伤": "暴击伤害",
             "爆伤": "暴击伤害",
             "爆击伤害": "暴击伤害",
-            "critical_damage": "暴击伤害",
+            "cd": "暴击伤害",
+            "critical damage": "暴击伤害",
 
             // ===== 属性伤害 =====
             "对火": "对火属性伤害",
@@ -166,17 +170,17 @@ export default class FormulaParser {
 
             // ===== 特殊 =====
             "异抗": "异常抗性",
-            "ailment_resistance": "异常抗性",
+            "ailment resistance": "异常抗性",
             "格挡率": "格挡回复",
             "阻挡率": "格挡回复",
             "阻挡回复": "格挡回复",
-            "guard_regenerate": "格挡回复",
+            "guard regenerate": "格挡回复",
             "阻挡": "格挡力",
             "阻挡力": "格挡力",
             "格挡": "格挡力",
-            "guard_power": "格挡力",
+            "guard power": "格挡力",
             "闪躲率": "闪躲回复",
-            "evasion_regenerate": "闪躲回复",
+            "evasion regenerate": "闪躲回复",
             "仇恨": "仇恨值",
             "恨意": "仇恨值",
             "恨意值": "仇恨值",
