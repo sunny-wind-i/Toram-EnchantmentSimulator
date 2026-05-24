@@ -880,6 +880,21 @@ function tryParseImportText(text) {
                 // 保存原始解析结果中的 understandingSkills 供后续逐字段判断使用
                 window._importParsedUnderstandingSkills = parseResult.understandingSkills;
 
+                // 覆盖 tempRecord 中的 understandingSkills 为原始解析结果（保留 null 值）
+                // 因为 EnchantRecord 构造函数会将 null 替换为默认值 10
+                if (parseResult.understandingSkills) {
+                    tempRecord.understandingSkills = {
+                        metal: parseResult.understandingSkills.metal ?? null,
+                        cloth: parseResult.understandingSkills.cloth ?? null,
+                        beast: parseResult.understandingSkills.beast ?? null,
+                        wood: parseResult.understandingSkills.wood ?? null,
+                        medicine: parseResult.understandingSkills.medicine ?? null,
+                        mana: parseResult.understandingSkills.mana ?? null
+                    };
+                } else {
+                    tempRecord.understandingSkills = null;
+                }
+
                 console.log('方法3 解析成功');
                 return {
                     method: 'formula',
@@ -912,14 +927,14 @@ function getImportDefaultConfig() {
         smithingLevel: GameDefaults.SMITHING_LEVEL,
         anvilLevel: GameDefaults.ANVIL_LEVEL,
         masterEnhancement2Level: GameDefaults.MASTER_ENHANCEMENT_2_LEVEL,
-        // 导入预览中的理解素材默认值（表示未点），与实际附魔计算中的默认值分开
+        // 导入预览中的理解素材默认值（方法1和方法2使用实际附魔计算默认值）
         understandingSkills: {
-            metal: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL,
-            cloth: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL,
-            beast: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL,
-            wood: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL,
-            medicine: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL,
-            mana: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL
+            metal: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            cloth: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            beast: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            wood: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            medicine: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            mana: GameDefaults.UNDERSTANDING_SKILL_LEVEL
         }
     };
 }
@@ -1055,17 +1070,20 @@ function fillImportPreview(parseResult) {
         // 对于方法3（formula），使用 _importParsedUnderstandingSkills 中的原始 null 值判断
         // 对于其他方法，使用 record.understandingSkills 中的值判断
         let isFieldParsed = false;
-        if (parseResult.method === 'formula' && window._importParsedUnderstandingSkills) {
+        let defaultValue = defaults.understandingSkills[field.key];
+        if (parseResult.method === 'formula') {
             // 方法3：检查原始解析结果中该字段是否为 null
             isFieldParsed = window._importParsedUnderstandingSkills !== null
                 && window._importParsedUnderstandingSkills[field.key] !== null;
+            // 方法3未解析到的字段使用公式导入默认值（表示未点技能）
+            defaultValue = GameDefaults.FORMULA_IMPORT_UNDERSTANDING_SKILL_LEVEL;
         } else {
             // 其他方法：使用 record 中的值判断
             isFieldParsed = record && record.understandingSkills
                 && record.understandingSkills[field.key] !== undefined
                 && !missingFields.includes('understandingSkills');
         }
-        input.value = isFieldParsed ? record.understandingSkills[field.key] : defaults.understandingSkills[field.key];
+        input.value = isFieldParsed ? record.understandingSkills[field.key] : defaultValue;
         updateImportPreviewStatus(statusId, isFieldParsed, `未解析到理解${field.label}等级，将使用默认值`);
     });
 
@@ -1279,12 +1297,12 @@ function updateImportPreviewResult() {
         const masterEnhancement2Level = parseInt(document.getElementById('importPreviewMasterEnhancement2Level').value) || GameDefaults.MASTER_ENHANCEMENT_2_LEVEL;
 
         const understandingSkills = {
-            metal: parseInt(document.getElementById('importPreviewUnderstandingMetal').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-            cloth: parseInt(document.getElementById('importPreviewUnderstandingCloth').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-            beast: parseInt(document.getElementById('importPreviewUnderstandingBeast').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-            wood: parseInt(document.getElementById('importPreviewUnderstandingWood').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-            medicine: parseInt(document.getElementById('importPreviewUnderstandingMedicine').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-            mana: parseInt(document.getElementById('importPreviewUnderstandingMana').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL
+            metal: parseInt(document.getElementById('importPreviewUnderstandingMetal').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            cloth: parseInt(document.getElementById('importPreviewUnderstandingCloth').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            beast: parseInt(document.getElementById('importPreviewUnderstandingBeast').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            wood: parseInt(document.getElementById('importPreviewUnderstandingWood').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            medicine: parseInt(document.getElementById('importPreviewUnderstandingMedicine').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            mana: parseInt(document.getElementById('importPreviewUnderstandingMana').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL
         };
 
         // 从已解析的记录中获取步骤数据和选中属性
@@ -1487,12 +1505,12 @@ function executeImport() {
     const masterEnhancement2Level = parseInt(document.getElementById('importPreviewMasterEnhancement2Level').value) || GameDefaults.MASTER_ENHANCEMENT_2_LEVEL;
 
     const understandingSkills = {
-        metal: parseInt(document.getElementById('importPreviewUnderstandingMetal').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-        cloth: parseInt(document.getElementById('importPreviewUnderstandingCloth').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-        beast: parseInt(document.getElementById('importPreviewUnderstandingBeast').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-        wood: parseInt(document.getElementById('importPreviewUnderstandingWood').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-        medicine: parseInt(document.getElementById('importPreviewUnderstandingMedicine').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-        mana: parseInt(document.getElementById('importPreviewUnderstandingMana').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL
+        metal: parseInt(document.getElementById('importPreviewUnderstandingMetal').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+        cloth: parseInt(document.getElementById('importPreviewUnderstandingCloth').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+        beast: parseInt(document.getElementById('importPreviewUnderstandingBeast').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+        wood: parseInt(document.getElementById('importPreviewUnderstandingWood').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+        medicine: parseInt(document.getElementById('importPreviewUnderstandingMedicine').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+        mana: parseInt(document.getElementById('importPreviewUnderstandingMana').value) ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL
     };
 
     try {

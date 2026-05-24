@@ -1340,12 +1340,12 @@ export default class FormulaParser {
             anvilLevel: parseResult.anvilLevel ?? GameDefaults.ANVIL_LEVEL,
             masterEnhancement2Level: parseResult.masterEnhancement2Level ?? GameDefaults.MASTER_ENHANCEMENT_2_LEVEL,
             understandingSkills: {
-                metal: parseResult.understandingSkills?.metal ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-                cloth: parseResult.understandingSkills?.cloth ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-                beast: parseResult.understandingSkills?.beast ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-                wood: parseResult.understandingSkills?.wood ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-                medicine: parseResult.understandingSkills?.medicine ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-                mana: parseResult.understandingSkills?.mana ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL
+                metal: parseResult.understandingSkills?.metal ?? null,
+                cloth: parseResult.understandingSkills?.cloth ?? null,
+                beast: parseResult.understandingSkills?.beast ?? null,
+                wood: parseResult.understandingSkills?.wood ?? null,
+                medicine: parseResult.understandingSkills?.medicine ?? null,
+                mana: parseResult.understandingSkills?.mana ?? null
             },
             stepData: []
         };

@@ -27,8 +27,8 @@ const GameDefaults = {
     /** 理解技能默认等级（实际附魔计算用） */
     UNDERSTANDING_SKILL_LEVEL: 10,
 
-    /** 导入预览中理解素材的默认等级（未解析到时使用，表示未点技能） */
-    IMPORT_UNDERSTANDING_SKILL_LEVEL: 0,
+    /** 公式导入预览中理解素材的默认等级（未解析到时使用，表示未点技能） */
+    FORMULA_IMPORT_UNDERSTANDING_SKILL_LEVEL: 0,
 
     /** 装备类型（默认武器） */
     EQUIPMENT_TYPE: null, // 由调用方根据 EquipmentType 设置
