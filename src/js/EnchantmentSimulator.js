@@ -955,10 +955,13 @@ function fillImportPreview(parseResult) {
     let record = parseResult.record;
     let missingFields = parseResult.missingFields || [];
 
-    // 附魔名称 - 留空让用户自己填，显示⚠提示
+    // 附魔名称
+    // 方法3（附魔公式文本）解析时不会包含名称，保持输入框为空让用户自己填
+    // 方法1（原本格式）和方法2（布偶JSON）可能包含名称，有则填入
     const nameInput = document.getElementById('importPreviewName');
     const nameStatus = document.getElementById('importPreviewNameStatus');
-    if (record && record.getName) {
+    const isFormulaMethod = parseResult.method === 'formula';
+    if (record && record.getName && !isFormulaMethod) {
         nameInput.value = record.getName();
         nameStatus.className = 'import-status-icon has-data';
         nameStatus.textContent = '✓';
