@@ -688,16 +688,26 @@ export default class FormulaParser {
      * 匹配策略：别名映射（不区分大小写）> 精确匹配 > 包含匹配（按名称长度降序，长名称优先）
      */
     _findPropertyId(name, hasPercent) {
-        // 1. 先检查别名映射（精确匹配）
+        // 1. 先检查别名映射（精确匹配），同时检查百分比匹配
         if (this.aliasMap[name]) {
-            return this.aliasMap[name];
+            const propId = this.aliasMap[name];
+            const prop = this.properties[propId];
+            if (prop && prop.isPercentage === hasPercent) {
+                return propId;
+            }
+            // 百分比不匹配，继续到精确匹配
         }
 
-        // 2. 别名映射（不区分大小写匹配）
+        // 2. 别名映射（不区分大小写匹配），同时检查百分比匹配
         const lowerName = name.toLowerCase();
         for (const [alias, propId] of Object.entries(this.aliasMap)) {
             if (alias.toLowerCase() === lowerName) {
-                return propId;
+                const prop = this.properties[propId];
+                if (prop && prop.isPercentage === hasPercent) {
+                    return propId;
+                }
+                // 百分比不匹配，继续到精确匹配
+                break;
             }
         }
 
