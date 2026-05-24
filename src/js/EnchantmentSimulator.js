@@ -635,6 +635,7 @@ function tryParseImportText(text) {
         const tempRecord = new EnchantRecord({});
         tempRecord.importCustomData(text);
         // 解析成功，返回结果
+        console.log('方法1 解析成功');
         return {
             method: 'original',
             record: tempRecord,
@@ -643,7 +644,7 @@ function tryParseImportText(text) {
         };
     } catch (e) {
         // 解析失败，继续尝试下一种方法
-        console.log('方法1（原本方法）解析失败:', e.message);
+        console.log('方法1 解析失败:', e.message);
     }
 
     // 方法2: 尝试用布偶的魔法书 JSON 格式解析
@@ -814,6 +815,7 @@ function tryParseImportText(text) {
             missingFields.push('masterEnhancement2Level');
             missingFields.push('understandingSkills');
 
+            console.log('方法2 解析成功');
             return {
                 method: 'cyteria',
                 record: tempRecord,
@@ -823,7 +825,7 @@ function tryParseImportText(text) {
             };
         }
     } catch (e) {
-        console.log('方法2（布偶的魔法书格式）解析失败:', e.message);
+        console.log('方法2 解析失败:', e.message);
     }
 
     // 方法3: 尝试用附魔公式文本解析
@@ -876,6 +878,7 @@ function tryParseImportText(text) {
                 if (!parseResult.masterEnhancement2Level) missingFields.push('masterEnhancement2Level');
                 if (!parseResult.understandingSkills) missingFields.push('understandingSkills');
 
+                console.log('方法3 解析成功');
                 return {
                     method: 'formula',
                     record: tempRecord,
@@ -886,10 +889,11 @@ function tryParseImportText(text) {
             }
         }
     } catch (e) {
-        console.log('方法3（附魔公式文本）解析失败:', e.message);
+        console.log('方法3 解析失败:', e.message);
     }
 
     // 所有方法都失败
+    console.log('所有3种解析方法均失败，无法识别导入数据格式');
     return null;
 }
 

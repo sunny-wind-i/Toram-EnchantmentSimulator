@@ -25,7 +25,7 @@ const GameDefaults = {
     MASTER_ENHANCEMENT_2_LEVEL: 10,
 
     /** 理解技能默认等级 */
-    UNDERSTANDING_SKILL_LEVEL: 0,
+    UNDERSTANDING_SKILL_LEVEL: 10,
 
     /** 装备类型（默认武器） */
     EQUIPMENT_TYPE: null, // 由调用方根据 EquipmentType 设置
