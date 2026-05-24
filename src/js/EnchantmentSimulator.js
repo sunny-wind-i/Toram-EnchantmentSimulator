@@ -1921,9 +1921,9 @@ function bindEvents() {
     // ==================== 导入弹窗事件绑定 ====================
     // 关闭导入弹窗
     document.querySelector('#importModal .close').addEventListener('click', closeImportModal);
-    document.getElementById('importModal').addEventListener('click', function (event) {
-        if (event.target === this) closeImportModal();
-    });
+    // document.getElementById('importModal').addEventListener('click', function (event) {
+    //     if (event.target === this) closeImportModal();
+    // });
 
     // 浏览文件按钮
     document.getElementById('importBrowseBtn').addEventListener('click', function () {
