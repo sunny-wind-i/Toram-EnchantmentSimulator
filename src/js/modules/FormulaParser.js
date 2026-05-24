@@ -695,7 +695,13 @@ export default class FormulaParser {
             if (prop && prop.isPercentage === hasPercent) {
                 return propId;
             }
-            // 百分比不匹配，继续到精确匹配
+            // 百分比不匹配，尝试查找对应的带%/不带%版本
+            if (prop) {
+                const counterpartId = hasPercent ? propId.replace(/(Rate)?$/, 'Rate') : propId.replace(/Rate$/, '');
+                if (this.properties[counterpartId] && this.properties[counterpartId].isPercentage === hasPercent) {
+                    return counterpartId;
+                }
+            }
         }
 
         // 2. 别名映射（不区分大小写匹配），同时检查百分比匹配
@@ -706,8 +712,13 @@ export default class FormulaParser {
                 if (prop && prop.isPercentage === hasPercent) {
                     return propId;
                 }
-                // 百分比不匹配，继续到精确匹配
-                break;
+                // 百分比不匹配，尝试查找对应的带%/不带%版本
+                if (prop) {
+                    const counterpartId = hasPercent ? propId.replace(/(Rate)?$/, 'Rate') : propId.replace(/Rate$/, '');
+                    if (this.properties[counterpartId] && this.properties[counterpartId].isPercentage === hasPercent) {
+                        return counterpartId;
+                    }
+                }
             }
         }
 
