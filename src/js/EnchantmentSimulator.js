@@ -912,13 +912,14 @@ function getImportDefaultConfig() {
         smithingLevel: GameDefaults.SMITHING_LEVEL,
         anvilLevel: GameDefaults.ANVIL_LEVEL,
         masterEnhancement2Level: GameDefaults.MASTER_ENHANCEMENT_2_LEVEL,
+        // 导入预览中的理解素材默认值（表示未点），与实际附魔计算中的默认值分开
         understandingSkills: {
-            metal: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-            cloth: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-            beast: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-            wood: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-            medicine: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-            mana: GameDefaults.UNDERSTANDING_SKILL_LEVEL
+            metal: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL,
+            cloth: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL,
+            beast: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL,
+            wood: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL,
+            medicine: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL,
+            mana: GameDefaults.IMPORT_UNDERSTANDING_SKILL_LEVEL
         }
     };
 }

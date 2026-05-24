@@ -777,7 +777,7 @@ export default class FormulaParser {
         if (!trimmed) return null;
 
         // 检查是否是"原属性"或"非原属性"
-        if (trimmed === "原属性") {
+        if (trimmed === "原属性" || trimmed === "原属") {
             return {
                 propertyId: "OriginalElement",
                 value: 1,
@@ -788,7 +788,7 @@ export default class FormulaParser {
                 elementAwakeningResolved: true
             };
         }
-        if (trimmed === "非原属性") {
+        if (trimmed === "非原属性" || trimmed === "非原属") {
             return {
                 propertyId: "OtherElement",
                 value: 1,
