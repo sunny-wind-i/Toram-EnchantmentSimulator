@@ -1387,7 +1387,7 @@ export default class EnchantRecord {
             // 重新计算所有步骤
             this._recalculateAllSteps();
         } catch (error) {
-            console.error('导入自定义数据失败:', error);
+            // console.log('导入自定义数据失败:', error.message);
             throw new Error('导入数据格式错误');
         }
     }

@@ -514,6 +514,9 @@ function importData() {
     document.getElementById('importDropZone').classList.remove('drag-over');
     document.getElementById('importDragOverlay').classList.add('hidden');
 
+    // 重置预览输入字段为默认值
+    resetImportPreviewFields();
+
     // 清除之前存储的解析数据
     window._importParsedData = null;
 
@@ -521,6 +524,85 @@ function importData() {
     const modalContent = modal.querySelector('.modal-content');
     if (modalContent) {
         modalContent.scrollTop = 0;
+    }
+}
+
+/**
+ * 重置导入预览中的所有输入字段为默认值
+ */
+function resetImportPreviewFields() {
+    const defaults = getImportDefaultConfig();
+
+    // 附魔名称
+    const nameInput = document.getElementById('importPreviewName');
+    if (nameInput) {
+        nameInput.value = '';
+        nameInput.placeholder = '请输入附魔名称（必填）';
+    }
+    const nameStatus = document.getElementById('importPreviewNameStatus');
+    if (nameStatus) {
+        nameStatus.className = 'import-status-icon no-data';
+        nameStatus.textContent = '⚠';
+        nameStatus.dataset.tooltip = '未解析到附魔名称，请手动输入（必填）';
+    }
+
+    // 装备类型
+    const equipmentTypeSelect = document.getElementById('importPreviewEquipmentType');
+    if (equipmentTypeSelect) {
+        equipmentTypeSelect.value = defaults.equipmentType === EquipmentType.EQUIPMENT_TYPE_WEAPON ? 'weapon' : 'armor';
+    }
+    updateImportPreviewStatus('importPreviewEquipmentTypeStatus', false, '未解析到装备类型，将使用默认值');
+
+    // 玩家等级
+    const playerLevelInput = document.getElementById('importPreviewPlayerLevel');
+    if (playerLevelInput) playerLevelInput.value = defaults.playerLevel;
+    updateImportPreviewStatus('importPreviewPlayerLevelStatus', false, '未解析到玩家等级，将使用默认值');
+
+    // 装备潜力
+    const potentialInput = document.getElementById('importPreviewEquipmentPotential');
+    if (potentialInput) potentialInput.value = defaults.equipmentPotential;
+    updateImportPreviewStatus('importPreviewEquipmentPotentialStatus', false, '未解析到装备潜力，将使用默认值');
+
+    // 基础潜力
+    const basePotentialInput = document.getElementById('importPreviewBasePotential');
+    if (basePotentialInput) basePotentialInput.value = defaults.baseEquipmentPotential;
+    updateImportPreviewStatus('importPreviewBasePotentialStatus', false, '未解析到基础潜力，将使用默认值');
+
+    // 锻冶熟练度
+    const smithingInput = document.getElementById('importPreviewSmithingLevel');
+    if (smithingInput) smithingInput.value = defaults.smithingLevel;
+    updateImportPreviewStatus('importPreviewSmithingLevelStatus', false, '未解析到锻冶熟练度，将使用默认值');
+
+    // 铁砧技能等级
+    const anvilInput = document.getElementById('importPreviewAnvilLevel');
+    if (anvilInput) anvilInput.value = defaults.anvilLevel;
+    updateImportPreviewStatus('importPreviewAnvilLevelStatus', false, '未解析到铁砧技能等级，将使用默认值');
+
+    // 大师II等级
+    const masterInput = document.getElementById('importPreviewMasterEnhancement2Level');
+    if (masterInput) masterInput.value = defaults.masterEnhancement2Level;
+    updateImportPreviewStatus('importPreviewMasterEnhancement2LevelStatus', false, '未解析到大师II等级，将使用默认值');
+
+    // 理解技能
+    const understandingFields = [
+        { id: 'importPreviewUnderstandingMetal', key: 'metal', label: '金属' },
+        { id: 'importPreviewUnderstandingCloth', key: 'cloth', label: '布料' },
+        { id: 'importPreviewUnderstandingBeast', key: 'beast', label: '兽品' },
+        { id: 'importPreviewUnderstandingWood', key: 'wood', label: '木材' },
+        { id: 'importPreviewUnderstandingMedicine', key: 'medicine', label: '药品' },
+        { id: 'importPreviewUnderstandingMana', key: 'mana', label: '魔素' }
+    ];
+
+    understandingFields.forEach(field => {
+        const input = document.getElementById(field.id);
+        if (input) input.value = defaults.understandingSkills[field.key];
+        updateImportPreviewStatus(field.id + 'Status', false, `未解析到理解${field.label}等级，将使用默认值`);
+    });
+
+    // 重置最终结果预览
+    const finalResultContainer = document.getElementById('importPreviewFinalResult');
+    if (finalResultContainer) {
+        finalResultContainer.textContent = '';
     }
 }
 
@@ -885,19 +967,22 @@ function fillImportPreview(parseResult) {
         nameStatus.dataset.tooltip = '未解析到附魔名称，请手动输入（必填）';
     }
 
-    // 监听名称输入变化，实时更新状态
-    nameInput.addEventListener('input', function onNameInput() {
-        const status = document.getElementById('importPreviewNameStatus');
-        if (this.value.trim()) {
-            status.className = 'import-status-icon has-data';
-            status.textContent = '✓';
-            delete status.dataset.tooltip;
-        } else {
-            status.className = 'import-status-icon no-data';
-            status.textContent = '⚠';
-            status.dataset.tooltip = '附魔名称不能为空，请手动输入';
-        }
-    });
+    // 监听名称输入变化，实时更新状态（使用命名函数避免重复绑定）
+    if (!nameInput._nameInputBound) {
+        nameInput.addEventListener('input', function onNameInput() {
+            const status = document.getElementById('importPreviewNameStatus');
+            if (this.value.trim()) {
+                status.className = 'import-status-icon has-data';
+                status.textContent = '✓';
+                delete status.dataset.tooltip;
+            } else {
+                status.className = 'import-status-icon no-data';
+                status.textContent = '⚠';
+                status.dataset.tooltip = '附魔名称不能为空，请手动输入';
+            }
+        });
+        nameInput._nameInputBound = true;
+    }
 
     // 装备类型
     const equipmentTypeSelect = document.getElementById('importPreviewEquipmentType');
