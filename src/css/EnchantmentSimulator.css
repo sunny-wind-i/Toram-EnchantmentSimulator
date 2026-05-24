@@ -501,6 +501,7 @@ body {
     max-width: 600px;
     max-height: 80vh;
     overflow-y: auto;
+    overflow-x: hidden;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     position: relative;
 }
@@ -2354,6 +2355,7 @@ body {
 /* ==================== 导入弹窗样式 ==================== */
 .import-modal {
     max-width: 700px;
+    overflow-x: hidden;
 }
 
 .import-modal h2 {
