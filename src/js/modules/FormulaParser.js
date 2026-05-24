@@ -22,20 +22,168 @@ import { attrNumToActualNum, calAttrMaxLimit } from './PotentialCalculator.js';
 export default class FormulaParser {
     constructor() {
         this.properties = EnchantProperties.getProperties();
-        // 属性别名映射表（用户后续自行填写）
-        this.aliasMap = {};
+        // 属性别名映射表（包含所有属性的中文全称、中文简称、英文名等）
+        this.aliasMap = {
+
+        };
         // 初始化别名映射
         this._initAliasMap();
     }
 
     /**
      * 初始化属性别名映射
-     * 用户后续可以自行添加别名
+     * 从 EnchantProperties 中读取 nameChsFull、nameChsAbbr、nameEnFull、nameEnAbbr 作为基础别名，
+     * 再补充额外的常用别名（如"暴伤"、"物攻"等简称）
+     * 带百分号和不带百分号的属性分开处理
+     * 用户后续可以自行添加其他别名
      */
     _initAliasMap() {
-        // 这里先留空，用户后续自行填写
-        // 格式: { "别名": "属性ID" }
-        // 例如: { "暴伤": "CriticalDmgRate", "暴击伤害": "CriticalDmgRate", ... }
+        // 从 EnchantProperties 中读取基础名称作为别名
+        // 注意：nameChsFull 和 nameChsAbbr 可能在不同属性间重复（如 Str 和 StrRate 都是"力量"），
+        // 这些重复的名称由 _findPropertyId 中的精确匹配步骤处理，不写入 aliasMap
+        const seenNames = new Set();
+        for (const [id, prop] of Object.entries(this.properties)) {
+            // nameChsFull（仅当不与其他属性重复时才加入别名映射）
+            if (prop.nameChsFull && prop.nameChsFull !== "") {
+                if (!seenNames.has(prop.nameChsFull)) {
+                    seenNames.add(prop.nameChsFull);
+                    this.aliasMap[prop.nameChsFull] = id;
+                }
+            }
+            // nameChsAbbr（仅当不与其他属性重复时才加入别名映射）
+            if (prop.nameChsAbbr && prop.nameChsAbbr !== "") {
+                if (!seenNames.has(prop.nameChsAbbr)) {
+                    seenNames.add(prop.nameChsAbbr);
+                    this.aliasMap[prop.nameChsAbbr] = id;
+                }
+            }
+            // nameEnFull
+            if (prop.nameEnFull && prop.nameEnFull !== "") {
+                this.aliasMap[prop.nameEnFull] = id;
+            }
+            // nameEnAbbr
+            if (prop.nameEnAbbr && prop.nameEnAbbr !== "") {
+                this.aliasMap[prop.nameEnAbbr] = id;
+            }
+        }
+
+        // 补充额外的常用别名（简称、英文名等，不区分大小写）
+        const extraAliases = {
+            // ===== 能力值 =====
+            "str": "Str",
+            "str%": "StrRate",
+            "int": "Int",
+            "int%": "IntRate",
+            "vit": "Vit",
+            "vit%": "VitRate",
+            "agi": "Agi",
+            "agi%": "AgiRate",
+            "dex": "Dex",
+            "dex%": "DexRate",
+
+            // ===== HP/MP =====
+            "hp": "MaxHp",
+            "max_hp": "MaxHp",
+            "hp%": "MaxHpRate",
+            "max_hp%": "MaxHpRate",
+            "mp": "MaxMp",
+            "max_mp": "MaxMp",
+            "hp回复": "HpRecovery",
+            "hp自然回复": "HpRecovery",
+            "natural_hp_regen": "HpRecovery",
+            "hp回复%": "HpRecoveryRate",
+            "hp自然回复%": "HpRecoveryRate",
+            "natural_hp_regen%": "HpRecoveryRate",
+            "mp回复": "MpRecovery",
+            "mp自然回复": "MpRecovery",
+            "natural_mp_regen": "MpRecovery",
+            "mp回复%": "MpRecoveryRate",
+            "mp自然回复%": "MpRecoveryRate",
+            "natural_mp_regen%": "MpRecoveryRate",
+
+            // ===== 攻击 =====
+            "物攻": "Atk",
+            "atk": "Atk",
+            "物攻%": "AtkRate",
+            "atk%": "AtkRate",
+            "魔攻": "Matk",
+            "matk": "Matk",
+            "魔攻%": "MatkRate",
+            "matk%": "MatkRate",
+            "稳定": "Sta",
+            "stability": "Sta",
+            "物贯": "DefBreaker",
+            "physical_pierce": "DefBreaker",
+            "魔贯": "MdefBreaker",
+            "magic_pierce": "MdefBreaker",
+
+            // ===== 防御 =====
+            "物防": "Def",
+            "def": "Def",
+            "物防%": "DefRate",
+            "def%": "DefRate",
+            "魔防": "Mdef",
+            "mdef": "Mdef",
+            "魔防%": "MdefRate",
+            "mdef%": "MdefRate",
+            "物抗": "PowerResist",
+            "physical_resistance": "PowerResist",
+            "魔抗": "MagicResist",
+            "magic_resistance": "MagicResist",
+
+            // ===== 命中/回避 =====
+            "accuracy": "Hit",
+            "accuracy%": "HitRate",
+            "dodge": "Flee",
+            "dodge%": "FleeRate",
+
+            // ===== 速度 =====
+            "攻速": "Aspd",
+            "aspd": "Aspd",
+            "攻速%": "AspdRate",
+            "aspd%": "AspdRate",
+            "唱速": "Cspd",
+            "cspd": "Cspd",
+            "唱速%": "CspdRate",
+            "cspd%": "CspdRate",
+
+            // ===== 暴击 =====
+            "暴击": "Critical",
+            "critical_rate": "Critical",
+            "暴击%": "CriticalRate",
+            "critical_rate%": "CriticalRate",
+            "暴伤": "CriticalDmg",
+            "critical_damage": "CriticalDmg",
+            "暴伤%": "CriticalDmgRate",
+            "critical_damage%": "CriticalDmgRate",
+
+            // ===== 属性伤害 =====
+            "对火": "FireKiller",
+            "对地": "EarthKiller",
+            "对风": "WindKiller",
+            "对水": "WaterKiller",
+            "对光": "LightKiller",
+            "对暗": "DarkKiller",
+
+            // ===== 属性抗性 =====
+            "抗火": "FireShield",
+            "抗地": "EarthShield",
+            "抗风": "WindShield",
+            "抗水": "WaterShield",
+            "抗光": "LightShield",
+            "抗暗": "DarkShield",
+
+            // ===== 特殊 =====
+            "异抗": "AntiVirus",
+            "ailment_resistance": "AntiVirus",
+            "guard_regenerate": "Guard",
+            "guard_power": "GardPower",
+            "evasion_regenerate": "Avoid",
+            "仇恨": "Hate",
+            "aggro": "Hate",
+        };
+
+        Object.assign(this.aliasMap, extraAliases);
     }
 
     /**
@@ -387,8 +535,8 @@ export default class FormulaParser {
             return this._parseRepeatedStep(repeatMatch[1], repeatMatch[2], result, currentValues);
         }
 
-        // 检查是否是普通步骤（附 xxx）
-        const normalMatch = content.match(/^附\s+(.+?)(?:[｜|]\s*-?\d+pt)?$/);
+        // 检查是否是普通步骤（附 xxx，附字后面可能有空格也可能没有）
+        const normalMatch = content.match(/^附\s*(.+?)(?:[｜|]\s*-?\d+pt)?$/);
         if (normalMatch) {
             return this._parseNormalStep(normalMatch[1], result, currentValues);
         }
@@ -537,15 +685,23 @@ export default class FormulaParser {
 
     /**
      * 查找属性ID
-     * 匹配策略：精确匹配 > 特殊别名 > 包含匹配（按名称长度降序，长名称优先）
+     * 匹配策略：别名映射（不区分大小写）> 精确匹配 > 包含匹配（按名称长度降序，长名称优先）
      */
     _findPropertyId(name, hasPercent) {
-        // 1. 先检查别名映射
+        // 1. 先检查别名映射（精确匹配）
         if (this.aliasMap[name]) {
             return this.aliasMap[name];
         }
 
-        // 2. 精确匹配
+        // 2. 别名映射（不区分大小写匹配）
+        const lowerName = name.toLowerCase();
+        for (const [alias, propId] of Object.entries(this.aliasMap)) {
+            if (alias.toLowerCase() === lowerName) {
+                return propId;
+            }
+        }
+
+        // 3. 精确匹配
         for (const [id, prop] of Object.entries(this.properties)) {
             if (prop.nameChsFull === name) {
                 if (hasPercent && prop.isPercentage) return id;
@@ -557,91 +713,43 @@ export default class FormulaParser {
             }
         }
 
-        // 3. 特殊别名
-        const specialAliases = this._getSpecialAliases(name, hasPercent);
-        if (specialAliases) {
-            return specialAliases;
-        }
-
         // 4. 包含匹配（按名称长度降序，长名称优先匹配）
         // 收集所有匹配的属性，按名称长度排序
         const matches = [];
         for (const [id, prop] of Object.entries(this.properties)) {
             // 检查 name 是否包含属性名，或属性名是否包含 name
-            if (prop.nameChsFull.includes(name) || name.includes(prop.nameChsFull)) {
-                if (hasPercent && prop.isPercentage) {
-                    matches.push({ id, length: prop.nameChsFull.length });
-                } else if (!hasPercent && !prop.isPercentage) {
-                    matches.push({ id, length: prop.nameChsFull.length });
+            // 对于 nameChsFull，使用 includes 匹配
+            if (prop.nameChsFull && prop.nameChsFull !== "") {
+                if (prop.nameChsFull.includes(name) || name.includes(prop.nameChsFull)) {
+                    if (hasPercent && prop.isPercentage) {
+                        matches.push({ id, length: prop.nameChsFull.length, priority: 0 });
+                    } else if (!hasPercent && !prop.isPercentage) {
+                        matches.push({ id, length: prop.nameChsFull.length, priority: 0 });
+                    }
                 }
-            } else if (prop.nameChsAbbr.includes(name) || name.includes(prop.nameChsAbbr)) {
-                if (hasPercent && prop.isPercentage) {
-                    matches.push({ id, length: prop.nameChsAbbr.length });
-                } else if (!hasPercent && !prop.isPercentage) {
-                    matches.push({ id, length: prop.nameChsAbbr.length });
+            }
+            // 对于 nameChsAbbr，要求 name 以简称开头或简称以 name 开头（更严格的匹配）
+            if (prop.nameChsAbbr && prop.nameChsAbbr !== "") {
+                if (name.startsWith(prop.nameChsAbbr) || prop.nameChsAbbr.startsWith(name)) {
+                    if (hasPercent && prop.isPercentage) {
+                        matches.push({ id, length: prop.nameChsAbbr.length, priority: 1 });
+                    } else if (!hasPercent && !prop.isPercentage) {
+                        matches.push({ id, length: prop.nameChsAbbr.length, priority: 1 });
+                    }
                 }
             }
         }
 
-        // 按名称长度降序排序（长名称优先匹配）
+        // 按优先级（full优先于abbr）和名称长度降序排序
         if (matches.length > 0) {
-            matches.sort((a, b) => b.length - a.length);
+            matches.sort((a, b) => {
+                if (a.priority !== b.priority) return a.priority - b.priority;
+                return b.length - a.length;
+            });
             return matches[0].id;
         }
 
         return null;
-    }
-
-    /**
-     * 获取特殊别名映射
-     */
-    _getSpecialAliases(name, hasPercent) {
-        const aliases = {
-            '暴伤': hasPercent ? 'CriticalDmgRate' : 'CriticalDmg',
-            '暴击伤害': hasPercent ? 'CriticalDmgRate' : 'CriticalDmg',
-            '暴击': hasPercent ? 'CriticalRate' : 'Critical',
-            '暴击率': hasPercent ? 'CriticalRate' : 'Critical',
-            '物攻': hasPercent ? 'AtkRate' : 'Atk',
-            '魔攻': hasPercent ? 'MatkRate' : 'Matk',
-            '物贯': 'DefBreaker',
-            '魔贯': 'MdefBreaker',
-            '物防': hasPercent ? 'DefRate' : 'Def',
-            '魔防': hasPercent ? 'MdefRate' : 'Mdef',
-            '物抗': 'PowerResist',
-            '魔抗': 'MagicResist',
-            'HP': hasPercent ? 'MaxHpRate' : 'MaxHp',
-            'MP': hasPercent ? 'MaxMpRate' : 'MaxMp',
-            'HP回复': hasPercent ? 'HpRecoveryRate' : 'HpRecovery',
-            'MP回复': hasPercent ? 'MpRecoveryRate' : 'MpRecovery',
-            'HP自然回复': hasPercent ? 'HpRecoveryRate' : 'HpRecovery',
-            'MP自然回复': hasPercent ? 'MpRecoveryRate' : 'MpRecovery',
-            '体力自然回复': hasPercent ? 'HpRecoveryRate' : 'HpRecovery',
-            '魔法自然回复': hasPercent ? 'MpRecoveryRate' : 'MpRecovery',
-            '攻速': hasPercent ? 'AspdRate' : 'Aspd',
-            '唱速': hasPercent ? 'CspdRate' : 'Cspd',
-            '对火': 'FireKiller',
-            '对地': 'EarthKiller',
-            '对风': 'WindKiller',
-            '对水': 'WaterKiller',
-            '对光': 'LightKiller',
-            '对暗': 'DarkKiller',
-            '抗火': 'FireShield',
-            '抗地': 'EarthShield',
-            '抗风': 'WindShield',
-            '抗水': 'WaterShield',
-            '抗光': 'LightShield',
-            '抗暗': 'DarkShield',
-            'ATK': hasPercent ? 'AtkRate' : 'Atk',
-            'MATK': hasPercent ? 'MatkRate' : 'Matk',
-            '命中': hasPercent ? 'HitRate' : 'Hit',
-            '回避': hasPercent ? 'FleeRate' : 'Flee',
-            '稳定': 'Sta',
-            '异抗': 'AntiVirus',
-            '仇恨': 'Hate',
-            '能力': hasPercent ? 'StrRate' : 'Str',
-        };
-
-        return aliases[name] || null;
     }
 
     /**
