@@ -1105,8 +1105,255 @@ function fillImportPreview(parseResult) {
         parseResult: parseResult,
         defaults: defaults
     };
+
+    // 绑定实时预览更新事件
+    bindImportPreviewEvents();
 }
 
+/**
+ * 绑定导入预览中的实时更新事件
+ * 当用户修改任何参数时，实时重新生成附魔结果预览
+ */
+function bindImportPreviewEvents() {
+    // 需要监听变化的输入框ID列表
+    const previewFieldIds = [
+        'importPreviewName',
+        'importPreviewEquipmentType',
+        'importPreviewPlayerLevel',
+        'importPreviewEquipmentPotential',
+        'importPreviewBasePotential',
+        'importPreviewSmithingLevel',
+        'importPreviewAnvilLevel',
+        'importPreviewMasterEnhancement2Level',
+        'importPreviewUnderstandingMetal',
+        'importPreviewUnderstandingCloth',
+        'importPreviewUnderstandingBeast',
+        'importPreviewUnderstandingWood',
+        'importPreviewUnderstandingMedicine',
+        'importPreviewUnderstandingMana'
+    ];
+
+    // 为每个字段绑定input和change事件
+    previewFieldIds.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            // 使用input事件实现实时更新（每次按键都触发）
+            element.addEventListener('input', function () {
+                updateImportPreviewResult();
+            });
+            // 使用change事件确保最终值被捕获（特别是select和手动输入完成时）
+            element.addEventListener('change', function () {
+                updateImportPreviewResult();
+            });
+        }
+    });
+}
+
+/**
+ * 根据导入预览中当前修改后的参数值，实时重新生成附魔结果预览
+ */
+function updateImportPreviewResult() {
+    const parsedData = window._importParsedData;
+    if (!parsedData || !parsedData.parseResult || !parsedData.parseResult.record) {
+        return;
+    }
+
+    const finalResultContainer = document.getElementById('importPreviewFinalResult');
+    if (!finalResultContainer) return;
+
+    try {
+        // 获取预览中用户修改后的值
+        const equipmentType = document.getElementById('importPreviewEquipmentType').value;
+        const playerLevel = parseInt(document.getElementById('importPreviewPlayerLevel').value) || GameDefaults.PLAYER_LEVEL;
+        const equipmentPotential = parseInt(document.getElementById('importPreviewEquipmentPotential').value) || GameDefaults.EQUIPMENT_POTENTIAL;
+        const baseEquipmentPotential = parseInt(document.getElementById('importPreviewBasePotential').value) || GameDefaults.BASE_EQUIPMENT_POTENTIAL;
+        const smithingLevel = parseInt(document.getElementById('importPreviewSmithingLevel').value) || GameDefaults.SMITHING_LEVEL;
+        const anvilLevel = parseInt(document.getElementById('importPreviewAnvilLevel').value) || GameDefaults.ANVIL_LEVEL;
+        const masterEnhancement2Level = parseInt(document.getElementById('importPreviewMasterEnhancement2Level').value) || GameDefaults.MASTER_ENHANCEMENT_2_LEVEL;
+
+        const understandingSkills = {
+            metal: parseInt(document.getElementById('importPreviewUnderstandingMetal').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            cloth: parseInt(document.getElementById('importPreviewUnderstandingCloth').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            beast: parseInt(document.getElementById('importPreviewUnderstandingBeast').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            wood: parseInt(document.getElementById('importPreviewUnderstandingWood').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            medicine: parseInt(document.getElementById('importPreviewUnderstandingMedicine').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+            mana: parseInt(document.getElementById('importPreviewUnderstandingMana').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL
+        };
+
+        // 从已解析的记录中获取步骤数据和选中属性
+        const originalRecord = parsedData.parseResult.record;
+
+        // 创建一个临时记录用于预览计算
+        const tempConfig = {
+            equipmentType: equipmentType === 'weapon' ? EquipmentType.EQUIPMENT_TYPE_WEAPON : EquipmentType.EQUIPMENT_TYPE_ARMOR,
+            playerLevel: playerLevel,
+            equipmentPotential: equipmentPotential,
+            baseEquipmentPotential: baseEquipmentPotential,
+            smithingLevel: smithingLevel,
+            anvilLevel: anvilLevel,
+            masterEnhancement2Level: masterEnhancement2Level,
+            understandingSkills: { ...understandingSkills }
+        };
+
+        const tempRecord = new EnchantRecord(tempConfig);
+
+        // 复制选中的属性
+        const selectedProps = originalRecord.getSelectedProperties();
+        tempRecord.setSelectedProperties(selectedProps);
+
+        // 复制步骤数据
+        if (originalRecord.enchantmentSteps && originalRecord.enchantmentSteps.length > 0) {
+            originalRecord.enchantmentSteps.forEach(step => {
+                // 跳过空步骤
+                if (step.enchantments.every(e => e.value === 0)) return;
+
+                const stepData = {
+                    enchantments: step.enchantments.map(enchant => ({
+                        property: enchant.property,
+                        value: enchant.value
+                    })),
+                    isIgnored: step.isIgnored
+                };
+                tempRecord.addEnchantmentStep(stepData);
+            });
+        }
+
+        // 生成结果预览文本（复用与 fillImportPreview 中相同的逻辑）
+        let resultText = '';
+
+        // 顶部属性总览
+        const finalProperties = tempRecord.getFinalProperties();
+        let propertyOverview = '附魔结果';
+        const allProperties = tempRecord.getSelectedProperties();
+        allProperties.forEach(property => {
+            const value = finalProperties[property.id];
+            if (value !== 0) {
+                const actualValue = attrNumToActualNum(property, value);
+                if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                    propertyOverview += `｜${property.nameChsAbbr}`;
+                } else {
+                    const sign = actualValue > 0 ? '+' : '';
+                    propertyOverview += `｜${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
+                }
+            }
+        });
+        resultText += propertyOverview + '\n\n';
+
+        // 附魔步骤（与 updateResultDisplay 中相同的逻辑）
+        let validStepIndex = 1;
+        let i = 0;
+        while (i < tempRecord.enchantmentSteps.length) {
+            const currentStep = tempRecord.enchantmentSteps[i];
+
+            // 跳过空步骤、无效步骤和被忽略的步骤
+            if (!currentStep.isValid || currentStep.enchantments.every(e => e.value === 0) || currentStep.isIgnored) {
+                i++;
+                continue;
+            }
+
+            // 预读后续步骤，查找连续的重复步骤
+            let repeatCount = 1;
+            let j = i + 1;
+            while (j < tempRecord.enchantmentSteps.length) {
+                const nextStep = tempRecord.enchantmentSteps[j];
+                if (!nextStep.isValid || nextStep.enchantments.every(e => e.value === 0) || nextStep.isIgnored) {
+                    j++;
+                    continue;
+                }
+                if (areStepsEqual(currentStep, nextStep)) {
+                    repeatCount++;
+                    j++;
+                } else {
+                    break;
+                }
+            }
+
+            if (repeatCount > 1) {
+                // 分次附
+                resultText += `${validStepIndex}. 分次附、每次附`;
+                const enchantments = currentStep.enchantments.filter(enchant => enchant.value !== 0);
+                const enchantmentText = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        const actualValue = attrNumToActualNum(property, enchant.value);
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            const sign = actualValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('、');
+                resultText += enchantmentText;
+
+                resultText += `、直到`;
+                let lastValidStep = null;
+                for (let k = j - 1; k >= i; k--) {
+                    const step = tempRecord.enchantmentSteps[k];
+                    if (step.isValid && !step.isIgnored && !step.enchantments.every(e => e.value === 0)) {
+                        lastValidStep = step;
+                        break;
+                    }
+                }
+                const finalEnchantments = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        const finalValue = lastValidStep.currentProperties[property.id] || 0;
+                        const actualFinalValue = attrNumToActualNum(property, finalValue);
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            const sign = actualFinalValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualFinalValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('、');
+                resultText += finalEnchantments;
+                resultText += `｜${lastValidStep.postEnchantmentPotential}pt\n`;
+                validStepIndex++;
+                i = j;
+            } else {
+                // 单个步骤
+                resultText += `${validStepIndex}. 附 `;
+                const enchantments = currentStep.enchantments.filter(enchant => enchant.value !== 0);
+                const enchantmentText = enchantments
+                    .map(enchant => {
+                        const property = enchant.property;
+                        const currentValue = currentStep.currentProperties[property.id] || 0;
+                        const actualCurrentValue = attrNumToActualNum(property, currentValue);
+                        if (property.enchantType === EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION) {
+                            return `${property.nameChsAbbr}`;
+                        } else {
+                            const sign = actualCurrentValue >= 0 ? '+' : '';
+                            return `${property.nameChsAbbr}${sign}${actualCurrentValue}${property.isPercentage ? '%' : ''}`;
+                        }
+                    })
+                    .join('｜');
+                resultText += enchantmentText;
+                resultText += `｜${currentStep.postEnchantmentPotential}pt\n`;
+                validStepIndex++;
+                i++;
+            }
+        }
+
+        // 成功率
+        resultText += '\n';
+        if (tempRecord.finalSingleSuccessRate !== null) {
+            let singleRateText = Math.round(tempRecord.finalSingleSuccessRate);
+            if (singleRateText > 999) {
+                singleRateText = '>999';
+            }
+            resultText += `单条成功率｜${singleRateText}%`;
+        } else {
+            resultText += `单条成功率｜N/A`;
+        }
+
+        finalResultContainer.textContent = resultText;
+    } catch (error) {
+        console.error('更新导入预览结果时出错:', error);
+        finalResultContainer.textContent = '（预览生成失败，请检查参数设置）';
+    }
+}
 /**
  * 执行导入操作
  */
@@ -1125,20 +1372,20 @@ function executeImport() {
         return;
     }
     const equipmentType = document.getElementById('importPreviewEquipmentType').value;
-    const playerLevel = parseInt(document.getElementById('importPreviewPlayerLevel').value) || 290;
-    const equipmentPotential = parseInt(document.getElementById('importPreviewEquipmentPotential').value) || 100;
-    const baseEquipmentPotential = parseInt(document.getElementById('importPreviewBasePotential').value) || 1;
-    const smithingLevel = parseInt(document.getElementById('importPreviewSmithingLevel').value) || 0;
-    const anvilLevel = parseInt(document.getElementById('importPreviewAnvilLevel').value) || 40;
-    const masterEnhancement2Level = parseInt(document.getElementById('importPreviewMasterEnhancement2Level').value) || 10;
+    const playerLevel = parseInt(document.getElementById('importPreviewPlayerLevel').value) || GameDefaults.PLAYER_LEVEL;
+    const equipmentPotential = parseInt(document.getElementById('importPreviewEquipmentPotential').value) || GameDefaults.EQUIPMENT_POTENTIAL;
+    const baseEquipmentPotential = parseInt(document.getElementById('importPreviewBasePotential').value) || GameDefaults.BASE_EQUIPMENT_POTENTIAL;
+    const smithingLevel = parseInt(document.getElementById('importPreviewSmithingLevel').value) || GameDefaults.SMITHING_LEVEL;
+    const anvilLevel = parseInt(document.getElementById('importPreviewAnvilLevel').value) || GameDefaults.ANVIL_LEVEL;
+    const masterEnhancement2Level = parseInt(document.getElementById('importPreviewMasterEnhancement2Level').value) || GameDefaults.MASTER_ENHANCEMENT_2_LEVEL;
 
     const understandingSkills = {
-        metal: parseInt(document.getElementById('importPreviewUnderstandingMetal').value) || 0,
-        cloth: parseInt(document.getElementById('importPreviewUnderstandingCloth').value) || 0,
-        beast: parseInt(document.getElementById('importPreviewUnderstandingBeast').value) || 0,
-        wood: parseInt(document.getElementById('importPreviewUnderstandingWood').value) || 0,
-        medicine: parseInt(document.getElementById('importPreviewUnderstandingMedicine').value) || 0,
-        mana: parseInt(document.getElementById('importPreviewUnderstandingMana').value) || 0
+        metal: parseInt(document.getElementById('importPreviewUnderstandingMetal').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+        cloth: parseInt(document.getElementById('importPreviewUnderstandingCloth').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+        beast: parseInt(document.getElementById('importPreviewUnderstandingBeast').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+        wood: parseInt(document.getElementById('importPreviewUnderstandingWood').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+        medicine: parseInt(document.getElementById('importPreviewUnderstandingMedicine').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+        mana: parseInt(document.getElementById('importPreviewUnderstandingMana').value) || GameDefaults.UNDERSTANDING_SKILL_LEVEL
     };
 
     try {
