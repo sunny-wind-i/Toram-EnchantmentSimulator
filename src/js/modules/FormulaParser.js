@@ -346,19 +346,23 @@ export default class FormulaParser {
 
     /**
      * 解析理解素材/了解素材技能等级
+     * 
+     * 未在公式文本中出现的素材类型，其等级设为 null，
+     * 后续由 convertToConfig 使用 GameDefaults 中的默认值填充。
      */
     _parseUnderstandingSkills(text, result) {
+        // 初始所有素材等级为 null（表示未解析）
         const skills = {
-            metal: 0,
-            cloth: 0,
-            beast: 0,
-            wood: 0,
-            medicine: 0,
-            mana: 0
+            metal: null,
+            cloth: null,
+            beast: null,
+            wood: null,
+            medicine: null,
+            mana: null
         };
 
         const lines = text.split('\n');
-        let foundUnderstandingLine = false;
+        let foundAnySkill = false;
 
         for (let i = 0; i < lines.length; i++) {
             const trimmed = lines[i].trim();
@@ -370,16 +374,17 @@ export default class FormulaParser {
             // 匹配理解素材/了解素材行（可能后面没有｜分隔符，素材等级在下一行）
             const understandingMatch = cleanLine.match(/^(?:理解素材|了解素材技能等级|了解素材)/);
             if (understandingMatch) {
-                foundUnderstandingLine = true;
                 // 检查当前行是否有素材等级内容（有｜分隔符）
                 const inlineMatch = cleanLine.match(/^(?:理解素材|了解素材技能等级|了解素材)[｜|]\s*(.+)/);
                 if (inlineMatch) {
                     this._parseMaterialLevels(inlineMatch[1], skills);
+                    foundAnySkill = true;
                 } else {
                     // 素材等级可能在下一行
                     if (i + 1 < lines.length) {
                         const nextLine = lines[i + 1].trim().replace(/^✩\s*/, '');
                         this._parseMaterialLevels(nextLine, skills);
+                        foundAnySkill = true;
                     }
                 }
                 break;
@@ -387,7 +392,7 @@ export default class FormulaParser {
         }
 
         // 如果没有找到明确的理解素材行，尝试在文本中搜索各素材等级
-        if (!foundUnderstandingLine) {
+        if (!foundAnySkill) {
             for (const line of lines) {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
@@ -407,12 +412,14 @@ export default class FormulaParser {
                 const count = [hasMetal, hasBeast, hasWood, hasCloth, hasMedicine, hasMana].filter(Boolean).length;
                 if (count >= 3) {
                     this._parseMaterialLevels(cleanLine, skills);
+                    foundAnySkill = true;
                     break;
                 }
             }
         }
 
-        result.understandingSkills = skills;
+        // 只有确实解析到了素材等级才赋值，否则保持 null（让 convertToConfig 使用默认值）
+        result.understandingSkills = foundAnySkill ? skills : null;
     }
 
     /**
@@ -1332,13 +1339,13 @@ export default class FormulaParser {
             smithingLevel: parseResult.smithingLevel ?? GameDefaults.SMITHING_LEVEL,
             anvilLevel: parseResult.anvilLevel ?? GameDefaults.ANVIL_LEVEL,
             masterEnhancement2Level: parseResult.masterEnhancement2Level ?? GameDefaults.MASTER_ENHANCEMENT_2_LEVEL,
-            understandingSkills: parseResult.understandingSkills ?? {
-                metal: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-                cloth: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-                beast: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-                wood: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-                medicine: GameDefaults.UNDERSTANDING_SKILL_LEVEL,
-                mana: GameDefaults.UNDERSTANDING_SKILL_LEVEL
+            understandingSkills: {
+                metal: parseResult.understandingSkills?.metal ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+                cloth: parseResult.understandingSkills?.cloth ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+                beast: parseResult.understandingSkills?.beast ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+                wood: parseResult.understandingSkills?.wood ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+                medicine: parseResult.understandingSkills?.medicine ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL,
+                mana: parseResult.understandingSkills?.mana ?? GameDefaults.UNDERSTANDING_SKILL_LEVEL
             },
             stepData: []
         };

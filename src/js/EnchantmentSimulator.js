@@ -876,7 +876,9 @@ function tryParseImportText(text) {
                 if (!parseResult.smithingLevel) missingFields.push('smithingLevel');
                 if (!parseResult.anvilLevel) missingFields.push('anvilLevel');
                 if (!parseResult.masterEnhancement2Level) missingFields.push('masterEnhancement2Level');
-                if (!parseResult.understandingSkills) missingFields.push('understandingSkills');
+                // understandingSkills 不再整体判断缺失，改为逐字段判断
+                // 保存原始解析结果中的 understandingSkills 供后续逐字段判断使用
+                window._importParsedUnderstandingSkills = parseResult.understandingSkills;
 
                 console.log('方法3 解析成功');
                 return {
@@ -1048,10 +1050,22 @@ function fillImportPreview(parseResult) {
     understandingFields.forEach(field => {
         const input = document.getElementById(field.id);
         const statusId = field.id + 'Status';
-        const hasSkill = record && record.understandingSkills && record.understandingSkills[field.key] !== undefined
-            && !missingFields.includes('understandingSkills');
-        input.value = hasSkill ? record.understandingSkills[field.key] : defaults.understandingSkills[field.key];
-        updateImportPreviewStatus(statusId, hasSkill, `未解析到理解${field.label}等级，将使用默认值`);
+        // 检查原始解析结果中该字段是否为 null（未解析到）
+        // 对于方法3（formula），使用 _importParsedUnderstandingSkills 中的原始 null 值判断
+        // 对于其他方法，使用 record.understandingSkills 中的值判断
+        let isFieldParsed = false;
+        if (parseResult.method === 'formula' && window._importParsedUnderstandingSkills) {
+            // 方法3：检查原始解析结果中该字段是否为 null
+            isFieldParsed = window._importParsedUnderstandingSkills !== null
+                && window._importParsedUnderstandingSkills[field.key] !== null;
+        } else {
+            // 其他方法：使用 record 中的值判断
+            isFieldParsed = record && record.understandingSkills
+                && record.understandingSkills[field.key] !== undefined
+                && !missingFields.includes('understandingSkills');
+        }
+        input.value = isFieldParsed ? record.understandingSkills[field.key] : defaults.understandingSkills[field.key];
+        updateImportPreviewStatus(statusId, isFieldParsed, `未解析到理解${field.label}等级，将使用默认值`);
     });
 
     // 最终附魔结果预览（包含成功率和步骤）
