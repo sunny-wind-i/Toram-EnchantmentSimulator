@@ -207,7 +207,9 @@ export default class FormulaParser {
 
         try {
             // 清理文本：移除多余空行，统一换行符
-            const cleanText = this._cleanText(text);
+            let cleanText = this._cleanText(text);
+            // 对整个文本做繁转简，确保装备类型、理解素材等基础信息也能被正确识别
+            cleanText = this._traditionalToSimplified(cleanText);
 
             // 解析结果对象
             const result = {
