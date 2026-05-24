@@ -116,6 +116,8 @@ export default class FormulaParser {
             "物防": "物理防御",
             "def": "物理防御",
             "魔防": "魔法防御",
+            "法防": "魔法防御",
+            "法术防御": "魔法防御",
             "mdef": "魔法防御",
             "物抗": "物理抗性",
             "physical_resistance": "物理抗性",
@@ -132,6 +134,8 @@ export default class FormulaParser {
             "攻速": "攻击速度",
             "aspd": "攻击速度",
             "唱速": "咏唱速度",
+            "咏速": "咏唱速度",
+            "咏唱": "咏唱速度",
             "cspd": "咏唱速度",
 
             // ===== 暴击 =====
