@@ -19,14 +19,16 @@ import EquipmentType from './EquipmentType.js';
 import GameDefaults from './GameDefaults.js';
 import PropertyManager from './PropertyManager.js';
 import { attrNumToActualNum, calAttrMaxLimit, calculateMultiplier, calculateIncreasePotentialCost, calculateDecreasePotentialGain } from './PotentialCalculator.js';
+import OpenCC from 'opencc-js';
 
 export default class FormulaParser {
     constructor() {
         this.properties = EnchantProperties.getProperties();
-        // 属性别名映射表（包含所有属性的中文全称、中文简称、英文名等）
-        this.aliasMap = {
-
-        };
+        // 属性别名映射表：{ 别名 → 中文全名 }
+        // 别名统一使用小写（英文）或简体中文
+        this.aliasMap = {};
+        // 繁简转换器（香港繁体 → 大陆简体）
+        this._ccConverter = OpenCC.Converter({ from: 'hk', to: 'cn' });
         // 初始化别名映射
         this._initAliasMap();
     }
@@ -35,36 +37,28 @@ export default class FormulaParser {
      * 初始化属性别名映射
      * 从 EnchantProperties 中读取 nameChsFull、nameChsAbbr、nameEnFull、nameEnAbbr 作为基础别名，
      * 再补充额外的常用别名（如"暴伤"、"物攻"等简称）
-     * 带百分号和不带百分号的属性分开处理
+     * 所有别名映射到中文全名（nameChsFull），后续通过精确匹配确定属性ID
      * 用户后续可以自行添加其他别名
      */
     _initAliasMap() {
         // 从 EnchantProperties 中读取基础名称作为别名
-        // 注意：nameChsFull 和 nameChsAbbr 可能在不同属性间重复（如 Str 和 StrRate 都是"力量"），
-        // 这些重复的名称由 _findPropertyId 中的精确匹配步骤处理，不写入 aliasMap
-        const seenNames = new Set();
         for (const [id, prop] of Object.entries(this.properties)) {
-            // nameChsFull（仅当不与其他属性重复时才加入别名映射）
+            // nameChsFull → 映射到自身的中文全名
             if (prop.nameChsFull && prop.nameChsFull !== "") {
-                if (!seenNames.has(prop.nameChsFull)) {
-                    seenNames.add(prop.nameChsFull);
-                    this.aliasMap[prop.nameChsFull] = id;
-                }
+                // 不检查重复，多个别名可以映射到同一个中文全名
+                this.aliasMap[prop.nameChsFull] = prop.nameChsFull;
             }
-            // nameChsAbbr（仅当不与其他属性重复时才加入别名映射）
+            // nameChsAbbr → 映射到中文全名
             if (prop.nameChsAbbr && prop.nameChsAbbr !== "") {
-                if (!seenNames.has(prop.nameChsAbbr)) {
-                    seenNames.add(prop.nameChsAbbr);
-                    this.aliasMap[prop.nameChsAbbr] = id;
-                }
+                this.aliasMap[prop.nameChsAbbr] = prop.nameChsFull || prop.nameChsAbbr;
             }
-            // nameEnFull
+            // nameEnFull → 转为小写后映射到中文全名
             if (prop.nameEnFull && prop.nameEnFull !== "") {
-                this.aliasMap[prop.nameEnFull] = id;
+                this.aliasMap[prop.nameEnFull.toLowerCase()] = prop.nameChsFull || prop.nameEnFull;
             }
-            // nameEnAbbr
+            // nameEnAbbr → 转为小写后映射到中文全名
             if (prop.nameEnAbbr && prop.nameEnAbbr !== "") {
-                this.aliasMap[prop.nameEnAbbr] = id;
+                this.aliasMap[prop.nameEnAbbr.toLowerCase()] = prop.nameChsFull || prop.nameEnAbbr;
             }
         }
 
@@ -73,124 +67,111 @@ export default class FormulaParser {
         this.elementNames = ['火属性', '水属性', '地属性', '风属性', '光属性', '暗属性',
             '火', '水', '地', '风', '光', '暗'];
 
-        // 补充额外的常用别名（简称、英文名等，不区分大小写）
+        // 补充额外的常用别名（所有 value 改为中文全名）
         const extraAliases = {
             // ===== 能力值 =====
-            "str": "Str",
-            "str%": "StrRate",
-            "int": "Int",
-            "int%": "IntRate",
-            "vit": "Vit",
-            "vit%": "VitRate",
-            "agi": "Agi",
-            "agi%": "AgiRate",
-            "dex": "Dex",
-            "dex%": "DexRate",
+            "str": "力量",
+            "int": "智力",
+            "vit": "耐力",
+            "agi": "敏捷",
+            "dex": "灵巧",
 
             // ===== HP/MP =====
-            "hp": "MaxHp",
-            "max_hp": "MaxHp",
-            "hp%": "MaxHpRate",
-            "max_hp%": "MaxHpRate",
-            "mp": "MaxMp",
-            "max_mp": "MaxMp",
-            "hp回复": "HpRecovery",
-            "hp自然回复": "HpRecovery",
-            "natural_hp_regen": "HpRecovery",
-            "hp回复%": "HpRecoveryRate",
-            "hp自然回复%": "HpRecoveryRate",
-            "natural_hp_regen%": "HpRecoveryRate",
-            "mp回复": "MpRecovery",
-            "mp自然回复": "MpRecovery",
-            "natural_mp_regen": "MpRecovery",
-            "mp回复%": "MpRecoveryRate",
-            "mp自然回复%": "MpRecoveryRate",
-            "natural_mp_regen%": "MpRecoveryRate",
+            "体力值": "体力值上限",
+            "hp": "体力值上限",
+            "魔法值": "魔法值上限",
+            "法力值": "魔法值上限",
+            "mp": "魔法值上限",
+            "hp回复": "体力自然回复",
+            "hp自回": "体力自然回复",
+            "hp自回复": "体力自然回复",
+            "hp自然回复": "体力自然回复",
+            "体力回复": "体力自然回复",
+            "体力自回": "体力自然回复",
+            "体力自回复": "体力自然回复",
+            "mp回复": "魔法自然回复",
+            "mp自回": "魔法自然回复",
+            "mp自回复": "魔法自然回复",
+            "mp自然回复": "魔法自然回复",
+            "魔法回复": "魔法自然回复",
+            "魔法自回": "魔法自然回复",
+            "魔法自回复": "魔法自然回复",
+            "法力回复": "法力自然回复",
+            "法力自回": "法力自然回复",
+            "法力自回复": "法力自然回复",
 
             // ===== 攻击 =====
-            "物攻": "Atk",
-            "atk": "Atk",
-            "物攻%": "AtkRate",
-            "atk%": "AtkRate",
-            "魔攻": "Matk",
-            "matk": "Matk",
-            "魔攻%": "MatkRate",
-            "matk%": "MatkRate",
-            "稳定": "Sta",
-            "stability": "Sta",
-            "物贯": "DefBreaker",
-            "physical_pierce": "DefBreaker",
-            "魔贯": "MdefBreaker",
-            "magic_pierce": "MdefBreaker",
+            "物攻": "物理攻击",
+            "atk": "物理攻击",
+            "魔攻": "魔法攻击",
+            "matk": "魔法攻击",
+            "稳定": "稳定率",
+            "stability": "稳定率",
+            "物贯": "物理贯穿",
+            "physical_pierce": "物理贯穿",
+            "魔贯": "魔法贯穿",
+            "magic_pierce": "魔法贯穿",
 
             // ===== 防御 =====
-            "物防": "Def",
-            "def": "Def",
-            "物防%": "DefRate",
-            "def%": "DefRate",
-            "魔防": "Mdef",
-            "mdef": "Mdef",
-            "魔防%": "MdefRate",
-            "mdef%": "MdefRate",
-            "物抗": "PowerResist",
-            "physical_resistance": "PowerResist",
-            "魔抗": "MagicResist",
-            "magic_resistance": "MagicResist",
+            "物防": "物理防御",
+            "def": "物理防御",
+            "魔防": "魔法防御",
+            "mdef": "魔法防御",
+            "物抗": "物理抗性",
+            "physical_resistance": "物理抗性",
+            "魔抗": "魔法抗性",
+            "法抗": "魔法抗性",
+            "法术抗性": "魔法抗性",
+            "magic_resistance": "魔法抗性",
 
             // ===== 命中/回避 =====
-            "accuracy": "Hit",
-            "accuracy%": "HitRate",
-            "dodge": "Flee",
-            "dodge%": "FleeRate",
+            "accuracy": "命中",
+            "dodge": "回避",
 
             // ===== 速度 =====
-            "攻速": "Aspd",
-            "aspd": "Aspd",
-            "攻速%": "AspdRate",
-            "aspd%": "AspdRate",
-            "唱速": "Cspd",
-            "cspd": "Cspd",
-            "唱速%": "CspdRate",
-            "cspd%": "CspdRate",
+            "攻速": "攻击速度",
+            "aspd": "攻击速度",
+            "唱速": "咏唱速度",
+            "cspd": "咏唱速度",
 
             // ===== 暴击 =====
-            "暴击": "Critical",
-            "critical_rate": "Critical",
-            "暴击%": "CriticalRate",
-            "critical_rate%": "CriticalRate",
-            "暴伤": "CriticalDmg",
-            "critical_damage": "CriticalDmg",
-            "暴伤%": "CriticalDmgRate",
-            "critical_damage%": "CriticalDmgRate",
+            "暴击": "暴击率",
+            "爆击": "暴击率",
+            "爆击率": "暴击率",
+            "critical_rate": "暴击率",
+            "暴伤": "暴击伤害",
+            "爆伤": "暴击伤害",
+            "爆击伤害": "暴击伤害",
+            "critical_damage": "暴击伤害",
 
             // ===== 属性伤害 =====
-            "对火": "FireKiller",
-            "对地": "EarthKiller",
-            "对风": "WindKiller",
-            "对水": "WaterKiller",
-            "对光": "LightKiller",
-            "对暗": "DarkKiller",
+            "对火": "对火属性伤害",
+            "对地": "对地属性伤害",
+            "对风": "对风属性伤害",
+            "对水": "对水属性伤害",
+            "对光": "对光属性伤害",
+            "对暗": "对暗属性伤害",
 
             // ===== 属性抗性 =====
-            "抗火": "FireShield",
-            "抗地": "EarthShield",
-            "抗风": "WindShield",
-            "抗水": "WaterShield",
-            "抗光": "LightShield",
-            "抗暗": "DarkShield",
+            "抗火": "抗火属性",
+            "抗地": "抗地属性",
+            "抗风": "抗风属性",
+            "抗水": "抗水属性",
+            "抗光": "抗光属性",
+            "抗暗": "抗暗属性",
 
             // ===== 特殊 =====
-            "异抗": "AntiVirus",
-            "ailment_resistance": "AntiVirus",
-            "guard_regenerate": "Guard",
-            "guard_power": "GardPower",
-            "evasion_regenerate": "Avoid",
-            "仇恨": "Hate",
-            "aggro": "Hate",
-
-            // ===== 属性觉醒（Element Awakening） =====
-            "原属性": "OriginalElement",
-            "非原属性": "OtherElement",
+            "异抗": "异常抗性",
+            "ailment_resistance": "异常抗性",
+            "格挡率": "格挡回复",
+            "guard_regenerate": "格挡回复",
+            "guard_power": "格挡力",
+            "闪躲率": "闪躲回复",
+            "evasion_regenerate": "闪躲回复",
+            "仇恨": "仇恨值",
+            "恨意": "仇恨值",
+            "恨意值": "仇恨值",
+            "aggro": "仇恨值",
         };
 
         Object.assign(this.aliasMap, extraAliases);
@@ -198,19 +179,22 @@ export default class FormulaParser {
 
     /**
      * 添加属性别名
-     * @param {string} alias - 别名
-     * @param {string} propertyId - 属性ID
+     * @param {string} alias - 别名（不区分大小写，英文建议小写）
+     * @param {string} chineseFullName - 对应的属性中文全名（如"物理攻击"、"暴击伤害"等）
      */
-    addAlias(alias, propertyId) {
-        this.aliasMap[alias] = propertyId;
+    addAlias(alias, chineseFullName) {
+        this.aliasMap[alias.toLowerCase()] = chineseFullName;
     }
 
     /**
      * 批量添加属性别名
-     * @param {Object} aliases - 别名映射对象 { alias: propertyId, ... }
+     * @param {Object} aliases - 别名映射对象 { alias: chineseFullName, ... }
+     *                         alias 不区分大小写，value 应为属性中文全名
      */
     addAliases(aliases) {
-        Object.assign(this.aliasMap, aliases);
+        for (const [alias, fullName] of Object.entries(aliases)) {
+            this.aliasMap[alias.toLowerCase()] = fullName;
+        }
     }
 
     /**
@@ -692,26 +676,70 @@ export default class FormulaParser {
 
     /**
      * 解析单个附魔属性
+     * 
+     * 处理流程：
+     * 1. 先检查是否是元素觉醒文本（没有数值的属性觉醒）
+     * 2. 检测百分号位置，分情况提取属性名、符号、数值、hasPercent
+     * 3. 英文转小写，繁体中文转简体
+     * 4. 调用 _findPropertyId 查找属性ID
+     * 
+     * 百分号规则：
+     * - 0个百分号：标准格式，hasPercent=false
+     * - 1个百分号：
+     *   - 在属性名中（如 "Str%+10"）：去掉%，hasPercent=true
+     *   - 在数值后（如 "Str+10%"）：正常分割，hasPercent=true
+     * - 2个及以上百分号：格式错误，返回null
      */
     _parseSingleEnchantment(text, isStepValue) {
         // 先检查是否是元素觉醒文本（没有数值的属性觉醒）
-        // 属性觉醒在文本中不带数值，如"水属性"、"原属性"、"非原属性"等
         const elementAwakeningCheck = this._tryParseElementAwakening(text);
         if (elementAwakeningCheck) {
             return elementAwakeningCheck;
         }
 
-        // 标准格式：属性名 + 符号 + 数值 + 可选%
-        const match = text.match(/^(.+?)([+-])(\d+)(%)?$/);
-        if (!match) return null;
+        // 检测百分号数量和位置
+        const percentCount = (text.match(/%/g) || []).length;
+        if (percentCount > 1) return null; // 多个%视为格式错误
 
-        const name = match[1].trim();
-        const sign = match[2];
-        const value = parseInt(match[3]);
-        const hasPercent = match[4] !== undefined;
+        let name, sign, value, hasPercent;
 
-        // 检查属性名中是否含有元素名字（如"水属性+1"可能在某些格式中不会出现，但以防万一）
-        // 实际上带数值的元素名不应被当作属性觉醒处理，但还是走正常属性查找流程
+        if (percentCount === 0) {
+            // 无百分号：标准格式 "属性名+数值"
+            const match = text.match(/^(.+?)\s*([+-])\s*(\d+)\s*$/);
+            if (!match) return null;
+            name = match[1].trim();
+            sign = match[2];
+            value = parseInt(match[3]);
+            hasPercent = false;
+        } else {
+            // 有1个百分号：判断位置
+            const percentIndex = text.indexOf('%');
+
+            // 尝试匹配 %在数值后："属性名+数值%"
+            const suffixMatch = text.match(/^(.+?)\s*([+-])\s*(\d+)\s*%\s*$/);
+            if (suffixMatch) {
+                name = suffixMatch[1].trim();
+                sign = suffixMatch[2];
+                value = parseInt(suffixMatch[3]);
+                hasPercent = true;
+            } else {
+                // 尝试匹配 %在属性名中："属性名%+数值"
+                const prefixMatch = text.match(/^(.+?)%\s*([+-])\s*(\d+)\s*$/);
+                if (prefixMatch) {
+                    name = prefixMatch[1].trim();
+                    sign = prefixMatch[2];
+                    value = parseInt(prefixMatch[3]);
+                    hasPercent = true;
+                } else {
+                    // 百分号在其他位置，格式错误
+                    return null;
+                }
+            }
+        }
+
+        // 统一处理：英文转小写，繁体中文转简体
+        name = name.toLowerCase();
+        name = this._traditionalToSimplified(name);
 
         const propertyId = this._findPropertyId(name, hasPercent);
         if (!propertyId) return null;
@@ -786,85 +814,142 @@ export default class FormulaParser {
     }
 
     /**
-     * 查找属性ID
-     * 匹配策略：别名映射（不区分大小写）> 精确匹配 > 包含匹配（按名称长度降序，长名称优先）
+     * 繁体中文转简体中文
+     * @param {string} text - 输入文本
+     * @returns {string} 转换后的简体文本
+     */
+    _traditionalToSimplified(text) {
+        if (!text) return text;
+        try {
+            return this._ccConverter(text);
+        } catch (e) {
+            console.warn('繁简转换失败:', e);
+            return text;
+        }
+    }
+
+    /**
+     * 查找属性ID（重构版）
+     * 
+     * 匹配策略（按顺序执行）：
+     * 第2步：别名映射 — 整个字符串精确匹配 aliasMap，替换为中文全名
+     * 第3步：精确匹配 — 在 PM 中精确匹配 nameChsFull/nameChsAbbr/nameEnFull/nameEnAbbr
+     * 第4步：模糊匹配 — 在 PM 中按包含关系匹配，长名称优先
+     * 第5步：别名替换重试 — 替换 name 中的最长匹配子串后，执行第4步
+     * 
+     * @param {string} name - 已转小写+简体的属性名
+     * @param {boolean} hasPercent - 是否有百分号
+     * @returns {string|null} 属性ID或null
      */
     _findPropertyId(name, hasPercent) {
-        // 1. 先检查别名映射（精确匹配），同时检查百分比匹配
+        // ===== 第2步：别名映射（整个字符串精确匹配） =====
+        let mappedName = name;
         if (this.aliasMap[name]) {
-            const propId = this.aliasMap[name];
-            const prop = this.properties[propId];
-            if (prop && prop.isPercentage === hasPercent) {
-                return propId;
-            }
-            // 百分比不匹配，尝试查找对应的带%/不带%版本
-            if (prop) {
-                const counterpartId = hasPercent ? propId.replace(/(Rate)?$/, 'Rate') : propId.replace(/Rate$/, '');
-                if (this.properties[counterpartId] && this.properties[counterpartId].isPercentage === hasPercent) {
-                    return counterpartId;
-                }
-            }
+            mappedName = this.aliasMap[name];
         }
 
-        // 2. 别名映射（不区分大小写匹配），同时检查百分比匹配
-        const lowerName = name.toLowerCase();
-        for (const [alias, propId] of Object.entries(this.aliasMap)) {
-            if (alias.toLowerCase() === lowerName) {
-                const prop = this.properties[propId];
-                if (prop && prop.isPercentage === hasPercent) {
-                    return propId;
-                }
-                // 百分比不匹配，尝试查找对应的带%/不带%版本
-                if (prop) {
-                    const counterpartId = hasPercent ? propId.replace(/(Rate)?$/, 'Rate') : propId.replace(/Rate$/, '');
-                    if (this.properties[counterpartId] && this.properties[counterpartId].isPercentage === hasPercent) {
-                        return counterpartId;
-                    }
-                }
-            }
+        // ===== 第3步：精确匹配（在 PM 中精确匹配四种名称之一） =====
+        const exactResult = this._exactMatch(mappedName, hasPercent);
+        if (exactResult) return exactResult;
+
+        // ===== 第4步：模糊匹配（包含关系，长名称优先） =====
+        const fuzzyResult = this._fuzzyMatch(mappedName, hasPercent);
+        if (fuzzyResult) return fuzzyResult;
+
+        // ===== 第5步：别名替换重试（替换最长匹配子串后，执行第4步） =====
+        if (mappedName !== name) {
+            // 如果第2步已经做过整串替换，且精确/模糊匹配都失败，则不再尝试
+            // 因为整串替换后的结果已经是最优的了
+            return null;
         }
 
-        // 3. 精确匹配
+        // 在 aliasMap 中查找 name 的最长匹配子串
+        const replacedName = this._aliasSubstringReplace(name);
+        if (replacedName && replacedName !== name) {
+            // 用替换后的名称重新执行第4步（模糊匹配）
+            const retryResult = this._fuzzyMatch(replacedName, hasPercent);
+            if (retryResult) return retryResult;
+        }
+
+        return null;
+    }
+
+    /**
+     * 第3步：精确匹配
+     * 在 PM 中精确匹配 nameChsFull/nameChsAbbr/nameEnFull/nameEnAbbr
+     */
+    _exactMatch(name, hasPercent) {
         for (const [id, prop] of Object.entries(this.properties)) {
-            if (prop.nameChsFull === name) {
-                if (hasPercent && prop.isPercentage) return id;
-                if (!hasPercent && !prop.isPercentage) return id;
+            if (prop.isPercentage !== hasPercent) continue;
+
+            // 检查四种名称
+            if (prop.nameChsFull && prop.nameChsFull !== "" && prop.nameChsFull === name) {
+                return id;
             }
-            if (prop.nameChsAbbr === name) {
-                if (hasPercent && prop.isPercentage) return id;
-                if (!hasPercent && !prop.isPercentage) return id;
+            if (prop.nameChsAbbr && prop.nameChsAbbr !== "" && prop.nameChsAbbr === name) {
+                return id;
+            }
+            if (prop.nameEnFull && prop.nameEnFull !== "") {
+                // 英文名在预处理时已转小写，PM中的英文名也要转小写比较
+                const enFullLower = prop.nameEnFull.toLowerCase();
+                if (enFullLower === name) return id;
+            }
+            if (prop.nameEnAbbr && prop.nameEnAbbr !== "") {
+                const enAbbrLower = prop.nameEnAbbr.toLowerCase();
+                if (enAbbrLower === name) return id;
             }
         }
+        return null;
+    }
 
-        // 4. 包含匹配（按名称长度降序，长名称优先匹配）
-        // 收集所有匹配的属性，按名称长度排序
+    /**
+     * 第4步：模糊匹配
+     * 在 PM 中按包含关系匹配（name 包含属性名 或 属性名包含 name）
+     * 按名称长度降序排列，取最长的匹配
+     */
+    _fuzzyMatch(name, hasPercent) {
         const matches = [];
+
         for (const [id, prop] of Object.entries(this.properties)) {
-            // 检查 name 是否包含属性名，或属性名是否包含 name
-            // 对于 nameChsFull，使用 includes 匹配
+            if (prop.isPercentage !== hasPercent) continue;
+
+            // 检查 nameChsFull
             if (prop.nameChsFull && prop.nameChsFull !== "") {
                 if (prop.nameChsFull.includes(name) || name.includes(prop.nameChsFull)) {
-                    if (hasPercent && prop.isPercentage) {
-                        matches.push({ id, length: prop.nameChsFull.length, priority: 0 });
-                    } else if (!hasPercent && !prop.isPercentage) {
-                        matches.push({ id, length: prop.nameChsFull.length, priority: 0 });
-                    }
+                    matches.push({ id, length: prop.nameChsFull.length, priority: 0 });
+                    continue; // 同一个属性只匹配一次，优先用 nameChsFull
                 }
             }
-            // 对于 nameChsAbbr，要求 name 以简称开头或简称以 name 开头（更严格的匹配）
+
+            // 检查 nameChsAbbr
             if (prop.nameChsAbbr && prop.nameChsAbbr !== "") {
-                if (name.startsWith(prop.nameChsAbbr) || prop.nameChsAbbr.startsWith(name)) {
-                    if (hasPercent && prop.isPercentage) {
-                        matches.push({ id, length: prop.nameChsAbbr.length, priority: 1 });
-                    } else if (!hasPercent && !prop.isPercentage) {
-                        matches.push({ id, length: prop.nameChsAbbr.length, priority: 1 });
-                    }
+                if (prop.nameChsAbbr.includes(name) || name.includes(prop.nameChsAbbr)) {
+                    matches.push({ id, length: prop.nameChsAbbr.length, priority: 1 });
+                    continue;
+                }
+            }
+
+            // 检查 nameEnFull
+            if (prop.nameEnFull && prop.nameEnFull !== "") {
+                const enFullLower = prop.nameEnFull.toLowerCase();
+                if (enFullLower.includes(name) || name.includes(enFullLower)) {
+                    matches.push({ id, length: enFullLower.length, priority: 2 });
+                    continue;
+                }
+            }
+
+            // 检查 nameEnAbbr
+            if (prop.nameEnAbbr && prop.nameEnAbbr !== "") {
+                const enAbbrLower = prop.nameEnAbbr.toLowerCase();
+                if (enAbbrLower.includes(name) || name.includes(enAbbrLower)) {
+                    matches.push({ id, length: enAbbrLower.length, priority: 3 });
+                    continue;
                 }
             }
         }
 
-        // 按优先级（full优先于abbr）和名称长度降序排序
         if (matches.length > 0) {
+            // 按 priority（nameChsFull > nameChsAbbr > nameEnFull > nameEnAbbr）和长度降序排序
             matches.sort((a, b) => {
                 if (a.priority !== b.priority) return a.priority - b.priority;
                 return b.length - a.length;
@@ -873,6 +958,37 @@ export default class FormulaParser {
         }
 
         return null;
+    }
+
+    /**
+     * 第5步：别名替换（子串替换）
+     * 在 name 中查找 aliasMap 的**最长匹配子串**，替换为对应的中文全名
+     * 仅进行一次替换
+     * 
+     * @param {string} name - 输入名称
+     * @returns {string} 替换后的名称，如果没有匹配则返回原名称
+     */
+    _aliasSubstringReplace(name) {
+        // 收集所有能匹配 name 子串的别名，按长度降序排列
+        const candidates = [];
+
+        for (const [alias, fullName] of Object.entries(this.aliasMap)) {
+            if (alias === fullName) continue; // 跳过自身映射（如 "力量"→"力量"）
+            if (name.includes(alias)) {
+                candidates.push({ alias, fullName, length: alias.length });
+            }
+        }
+
+        if (candidates.length === 0) return name;
+
+        // 按别名长度降序排列（长别名优先）
+        candidates.sort((a, b) => b.length - a.length);
+
+        // 取最长的匹配，仅替换一次
+        const best = candidates[0];
+        const replacedName = name.replace(best.alias, best.fullName);
+
+        return replacedName;
     }
 
     /**
