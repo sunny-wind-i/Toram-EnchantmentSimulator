@@ -1,7 +1,7 @@
 import EnchantRecord from './modules/EnchantRecord.js';
 import PropertyManager from './modules/PropertyManager.js';
 import GameDefaults from './modules/GameDefaults.js';
-import { attrNumToActualNum, calAttrMaxLimit, calAttrMinLimit } from './modules/PotentialCalculator.js';
+import { attrNumToActualNum, calAttrMaxLimit, calAttrMinLimit, calDoublePotlAttain } from './modules/PotentialCalculator.js';
 import EquipmentType from './modules/EquipmentType.js';
 import EnchantType from './modules/EnchantType.js';
 import EnchantProperties from './modules/EnchantProperties.js';
@@ -2104,6 +2104,42 @@ function bindEvents() {
     document.getElementById('confirmPropertiesBtn').addEventListener('click', confirmProperties);
     document.querySelector('#propertySelectionModal .close').addEventListener('click', closePropertySelection);
 
+    // 搜索输入事件（实时过滤）
+    const searchInput = document.getElementById('propertySearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            loadPropertyCompactList();
+            setTimeout(restorePreviousSelections, 10);
+        });
+    }
+
+    // 清除搜索按钮
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function () {
+            const input = document.getElementById('propertySearchInput');
+            if (input) {
+                input.value = '';
+                loadPropertyCompactList();
+                setTimeout(restorePreviousSelections, 10);
+            }
+        });
+    }
+
+    // 推荐退潜切换事件
+    const recommendCheckbox = document.getElementById('recommendRetreatCheckbox');
+    if (recommendCheckbox) {
+        recommendCheckbox.addEventListener('change', function () {
+            // 切换推荐退潜时，清空搜索框
+            const searchInput = document.getElementById('propertySearchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            loadPropertyCompactList();
+            setTimeout(restorePreviousSelections, 10);
+        });
+    }
+
     // 属性分类展开/收起和复选框事件
     document.querySelectorAll('#propertyCategoryList .property-category-header').forEach(header => {
         header.addEventListener('click', function () {
@@ -2213,99 +2249,298 @@ function bindEvents() {
 
 }
 
-// 加载属性分类列表
-function loadPropertyCategoryList() {
-    const categoryList = document.getElementById('propertyCategoryList');
-    categoryList.innerHTML = '';
+// 属性别名映射（用于搜索过滤）
+let propertyAliasMap = {};
 
-    // 获取所有附魔类型
-    const enchantTypes = [
-        EnchantType.ENCHANT_TYPE_ABILITY,
-        EnchantType.ENCHANT_TYPE_HPMP,
-        EnchantType.ENCHANT_TYPE_ATK,
-        EnchantType.ENCHANT_TYPE_DEF,
-        EnchantType.ENCHANT_TYPE_HIT,
-        EnchantType.ENCHANT_TYPE_FLEE,
-        EnchantType.ENCHANT_TYPE_SPEED,
-        EnchantType.ENCHANT_TYPE_CRITICAL,
-        EnchantType.ENCHANT_TYPE_ELEMENT,
-        EnchantType.ENCHANT_TYPE_SPECIAL,
-        EnchantType.ENCHANT_TYPE_ELEMENT_ADDITION
-    ];
-
+// 初始化属性别名映射
+function initPropertyAliasMap() {
     const allProperties = propertyManager.getAllProperties();
+    propertyAliasMap = {};
 
-    enchantTypes.forEach(type => {
-        // 筛选出该类型的所有属性
-        const propertiesOfType = allProperties.filter(prop => prop.enchantType.id === type.id);
-
-        if (propertiesOfType.length > 0) {
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'property-category';
-
-            const categoryHeader = document.createElement('div');
-            categoryHeader.className = 'property-category-header';
-            categoryHeader.innerHTML = `
-                <span>${type.nameChsFull}</span>
-                <span>+</span>
-            `;
-
-            const categoryContent = document.createElement('div');
-            categoryContent.className = 'property-category-content';
-
-            const propertyList = document.createElement('div');
-            propertyList.className = 'property-list';
-
-            propertiesOfType.forEach(property => {
-                const propertyItem = document.createElement('div');
-                propertyItem.className = 'property-item';
-                propertyItem.innerHTML = `
-                    <input type="checkbox" id="prop_${property.id}" data-property-id="${property.id}">
-                    <label for="prop_${property.id}">${property.nameChsFull}${property.isPercentage ? '(%)' : ''}</label>
-                `;
-                propertyList.appendChild(propertyItem);
-
-                // 添加点击事件，使点击整个属性项都能切换复选框状态
-                propertyItem.addEventListener('click', function (e) {
-                    // 如果点击的是复选框本身或标签，则不处理（避免重复处理）
-                    if (e.target === this.querySelector('input[type="checkbox"]') ||
-                        e.target === this.querySelector('label')) {
-                        return;
-                    }
-
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    checkbox.checked = !checkbox.checked;
-
-                    // 手动触发change事件
-                    const event = new Event('change', { bubbles: true });
-                    checkbox.dispatchEvent(event);
-
-                    // 阻止事件冒泡
-                    e.stopPropagation();
-                });
-            });
-
-            categoryContent.appendChild(propertyList);
-            categoryDiv.appendChild(categoryHeader);
-            categoryDiv.appendChild(categoryContent);
-            categoryList.appendChild(categoryDiv);
-
-            // 绑定展开/收起事件
-            categoryHeader.addEventListener('click', function () {
-                categoryContent.classList.toggle('expanded');
-                const toggleSymbol = this.querySelector('span:last-child');
-                toggleSymbol.textContent = categoryContent.classList.contains('expanded') ? '−' : '+';
+    allProperties.forEach(prop => {
+        // 中文全名
+        if (prop.nameChsFull) {
+            addAliasEntry(prop.nameChsFull, prop);
+        }
+        // 中文简称
+        if (prop.nameChsAbbr && prop.nameChsAbbr !== prop.nameChsFull) {
+            addAliasEntry(prop.nameChsAbbr, prop);
+        }
+        // 英文全名
+        if (prop.nameEnFull) {
+            addAliasEntry(prop.nameEnFull.toLowerCase(), prop);
+        }
+        // 英文简称
+        if (prop.nameEnAbbr) {
+            addAliasEntry(prop.nameEnAbbr.toLowerCase(), prop);
+        }
+        // description中的别名（逗号分隔）
+        if (prop.description) {
+            prop.description.split(/[,，、]/).forEach(alias => {
+                const trimmed = alias.trim();
+                if (trimmed) {
+                    addAliasEntry(trimmed, prop);
+                }
             });
         }
     });
 
-    // 绑定复选框事件
-    setTimeout(() => {
-        document.querySelectorAll('#propertyCategoryList input[type="checkbox"]').forEach(checkbox => {
-            checkbox.removeEventListener('change', onPropertyCheckboxChange);
-            checkbox.addEventListener('change', onPropertyCheckboxChange);
+    // 从FormulaParser的别名映射中补充常用别名
+    const extraAliases = {
+        "str": "Str", "int": "Int", "vit": "Vit", "agi": "Agi", "dex": "Dex",
+        "hp": "MaxHp", "mp": "MaxMp",
+        "hp回复": "HpRecovery", "hp自回": "HpRecovery", "hp自然回复": "HpRecovery",
+        "体力回复": "HpRecovery", "体力自回": "HpRecovery",
+        "mp回复": "MpRecovery", "mp自回": "MpRecovery", "mp自然回复": "MpRecovery",
+        "魔法回复": "MpRecovery", "魔法自回": "MpRecovery",
+        "物攻": "Atk", "atk": "Atk", "魔攻": "Matk", "matk": "Matk",
+        "稳定": "Sta", "stability": "Sta",
+        "物贯": "DefBreaker", "physical pierce": "DefBreaker",
+        "魔贯": "MdefBreaker", "magic pierce": "MdefBreaker",
+        "物防": "Def", "def": "Def", "魔防": "Mdef", "法防": "Mdef", "mdef": "Mdef",
+        "物抗": "PowerResist", "魔抗": "MagicResist", "法抗": "MagicResist",
+        "accuracy": "Hit", "dodge": "Flee",
+        "攻速": "Aspd", "aspd": "Aspd", "唱速": "Cspd", "咏速": "Cspd", "cspd": "Cspd",
+        "暴击": "Critical", "爆击": "Critical", "critical": "Critical",
+        "c": "Critical", "暴伤": "CriticalDmg", "爆伤": "CriticalDmg",
+        "cd": "CriticalDmg",
+        "对火": "FireKiller", "对地": "EarthKiller", "对风": "WindKiller",
+        "对水": "WaterKiller", "对光": "LightKiller", "对暗": "DarkKiller",
+        "抗火": "FireShield", "抗地": "EarthShield", "抗风": "WindShield",
+        "抗水": "WaterShield", "抗光": "LightShield", "抗暗": "DarkShield",
+        "异抗": "AntiVirus", "仇恨": "Hate", "aggro": "Hate",
+        "格挡": "GardPower", "阻挡": "GardPower",
+        "格挡回复": "Guard", "阻挡回复": "Guard",
+        "闪躲回复": "Avoid",
+        "原属性": "OriginalElement", "非原属性": "OtherElement"
+    };
+
+    for (const [alias, propId] of Object.entries(extraAliases)) {
+        const prop = propertyManager.getProperty(propId);
+        if (prop) {
+            addAliasEntry(alias, prop);
+        }
+    }
+}
+
+function addAliasEntry(alias, prop) {
+    const key = alias.toLowerCase().trim();
+    if (!propertyAliasMap[key]) {
+        propertyAliasMap[key] = [];
+    }
+    if (!propertyAliasMap[key].some(p => p.id === prop.id)) {
+        propertyAliasMap[key].push(prop);
+    }
+}
+
+// 推荐退潜属性ID列表
+const RECOMMEND_RETREAT_WEAPON = [
+    'HpRecovery', 'HpRecoveryRate', 'MpRecovery', 'MpRecoveryRate',
+    'DefRate', 'MdefRate',
+    'Flee', 'FleeRate'
+];
+
+const RECOMMEND_RETREAT_ARMOR = [
+    'AtkRate', 'MatkRate', 'DefBreaker', 'MdefBreaker',
+    'Hit', 'HitRate'
+];
+
+// 获取推荐退潜属性列表
+function getRecommendedRetreatProperties() {
+    const equipType = enchantRecord ? enchantRecord.equipmentType : EquipmentType.EQUIPMENT_TYPE_WEAPON;
+    const ids = equipType === EquipmentType.EQUIPMENT_TYPE_WEAPON
+        ? RECOMMEND_RETREAT_WEAPON
+        : RECOMMEND_RETREAT_ARMOR;
+    return ids.map(id => propertyManager.getProperty(id)).filter(p => p);
+}
+
+// 搜索属性（匹配名称、简称、别名）
+function searchProperties(query) {
+    if (!query || query.trim() === '') {
+        return propertyManager.getAllProperties();
+    }
+
+    const lowerQuery = query.toLowerCase().trim();
+    const matchedIds = new Set();
+
+    // 1. 直接匹配属性字段
+    const allProps = propertyManager.getAllProperties();
+    allProps.forEach(prop => {
+        if (prop.nameChsFull && prop.nameChsFull.toLowerCase().includes(lowerQuery)) {
+            matchedIds.add(prop.id);
+        }
+        if (prop.nameChsAbbr && prop.nameChsAbbr.toLowerCase().includes(lowerQuery)) {
+            matchedIds.add(prop.id);
+        }
+        if (prop.nameEnFull && prop.nameEnFull.toLowerCase().includes(lowerQuery)) {
+            matchedIds.add(prop.id);
+        }
+        if (prop.nameEnAbbr && prop.nameEnAbbr.toLowerCase().includes(lowerQuery)) {
+            matchedIds.add(prop.id);
+        }
+        if (prop.description && prop.description.toLowerCase().includes(lowerQuery)) {
+            matchedIds.add(prop.id);
+        }
+    });
+
+    // 2. 通过别名映射匹配
+    for (const [alias, props] of Object.entries(propertyAliasMap)) {
+        if (alias.includes(lowerQuery) || lowerQuery.includes(alias)) {
+            props.forEach(prop => matchedIds.add(prop.id));
+        }
+    }
+
+    return allProps.filter(prop => matchedIds.has(prop.id));
+}
+
+// 加载紧凑属性列表
+function loadPropertyCompactList() {
+    const container = document.getElementById('propertyCompactList');
+    if (!container) return;
+
+    const searchQuery = document.getElementById('propertySearchInput')?.value || '';
+    const showRecommendOnly = document.getElementById('recommendRetreatCheckbox')?.checked || false;
+
+    let properties;
+    if (showRecommendOnly) {
+        properties = getRecommendedRetreatProperties();
+    } else if (searchQuery.trim()) {
+        properties = searchProperties(searchQuery);
+    } else {
+        properties = propertyManager.getAllProperties();
+    }
+
+    // 按类别分组
+    const grouped = {};
+    properties.forEach(prop => {
+        const catName = prop.enchantType.nameChsFull || '其他';
+        if (!grouped[catName]) {
+            grouped[catName] = [];
+        }
+        grouped[catName].push(prop);
+    });
+
+    container.innerHTML = '';
+
+    // 显示结果数量
+    if (!showRecommendOnly && searchQuery.trim()) {
+        const resultCount = document.createElement('div');
+        resultCount.className = 'search-result-count';
+        resultCount.textContent = `找到 ${properties.length} 个属性`;
+        container.appendChild(resultCount);
+    }
+
+    // 显示推荐退潜提示
+    if (showRecommendOnly) {
+        const equipType = enchantRecord ? enchantRecord.equipmentType : EquipmentType.EQUIPMENT_TYPE_WEAPON;
+        const hint = document.createElement('div');
+        hint.className = 'recommend-hint';
+        hint.textContent = equipType === EquipmentType.EQUIPMENT_TYPE_WEAPON
+            ? '💡 武器推荐退潜：体力魔法值类、防御类、回避类'
+            : '💡 身体装备推荐退潜：攻击类、命中类';
+        container.appendChild(hint);
+    }
+
+    // 按类别顺序显示
+    const categoryOrder = [
+        '能力', 'HP/MP', '攻击', '防御', '命中', '回避',
+        '速度', '暴击', '属性', '特殊', '属性附加'
+    ];
+
+    const sortedCategories = Object.keys(grouped).sort((a, b) => {
+        const idxA = categoryOrder.findIndex(c => a.includes(c));
+        const idxB = categoryOrder.findIndex(c => b.includes(c));
+        return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+    });
+
+    sortedCategories.forEach(catName => {
+        const props = grouped[catName];
+        const section = document.createElement('div');
+        section.className = 'compact-category';
+
+        const header = document.createElement('div');
+        header.className = 'compact-category-header';
+        header.innerHTML = `<span class="cat-name">${catName}</span><span class="cat-count">${props.length}</span>`;
+        section.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'compact-property-list';
+
+        props.forEach(prop => {
+            const item = document.createElement('div');
+            item.className = 'compact-property-item';
+            item.dataset.propertyId = prop.id;
+
+            const isSelected = selectedProperties.some(p => p.id === prop.id);
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `cprop_${prop.id}`;
+            checkbox.dataset.propertyId = prop.id;
+            checkbox.checked = isSelected;
+
+            const label = document.createElement('label');
+            label.htmlFor = `cprop_${prop.id}`;
+            label.className = 'compact-property-label';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'prop-name';
+            nameSpan.textContent = prop.nameChsFull;
+
+            const abbrSpan = document.createElement('span');
+            abbrSpan.className = 'prop-abbr';
+            abbrSpan.textContent = prop.nameChsAbbr !== prop.nameChsFull ? prop.nameChsAbbr : '';
+
+            const percentSpan = document.createElement('span');
+            percentSpan.className = 'prop-percent';
+            percentSpan.textContent = prop.isPercentage ? '%' : '';
+
+            label.appendChild(nameSpan);
+            label.appendChild(abbrSpan);
+            label.appendChild(percentSpan);
+
+            // 如果是推荐退潜模式，显示双倍退潜潜力值
+            if (showRecommendOnly) {
+                const doublePotSpan = document.createElement('span');
+                doublePotSpan.className = 'prop-double-pot';
+                try {
+                    const doublePot = calDoublePotlAttain(prop, enchantRecord.playerLevel);
+                    if (doublePot !== null) {
+                        doublePotSpan.textContent = `退潜${doublePot > 0 ? '+' : ''}${doublePot}`;
+                    }
+                } catch (e) {
+                    doublePotSpan.textContent = '';
+                }
+                label.appendChild(doublePotSpan);
+            }
+
+            item.appendChild(checkbox);
+            item.appendChild(label);
+
+            // 点击整个项切换复选框
+            item.addEventListener('click', function (e) {
+                if (e.target === checkbox || e.target.tagName === 'INPUT') return;
+                checkbox.checked = !checkbox.checked;
+                const event = new Event('change', { bubbles: true });
+                checkbox.dispatchEvent(event);
+            });
+
+            list.appendChild(item);
         });
-    }, 0);
+
+        section.appendChild(list);
+        container.appendChild(section);
+    });
+
+    // 绑定复选框事件
+    container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', onPropertyCheckboxChange);
+    });
+}
+
+// 加载属性分类列表（保留用于兼容，但不再使用）
+function loadPropertyCategoryList() {
+    // 使用新的紧凑列表替代
+    loadPropertyCompactList();
 }
 
 // 属性复选框变化事件
@@ -2357,8 +2592,13 @@ function updateTableHeader() {
 
 // 显示属性选择弹窗
 function showPropertySelection() {
-    // 加载属性分类列表
-    loadPropertyCategoryList();
+    // 初始化别名映射（如果尚未初始化）
+    if (Object.keys(propertyAliasMap).length === 0) {
+        initPropertyAliasMap();
+    }
+
+    // 加载紧凑属性列表
+    loadPropertyCompactList();
 
     // 恢复之前的选择状态
     setTimeout(() => {
@@ -2442,7 +2682,11 @@ function confirmProperties() {
     closePropertySelection();
 }
 
-// 更新已选择属性显示
+// 拖拽排序状态
+let dragSourceIndex = -1;
+let dragOverIndex = -1;
+
+// 更新已选择属性显示（带拖拽排序）
 function updateSelectedPropertiesDisplay() {
     const selectedCountElement = document.getElementById('selectedCount');
     const selectedPropertiesDisplay = document.getElementById('selectedPropertiesDisplay');
@@ -2453,21 +2697,96 @@ function updateSelectedPropertiesDisplay() {
     selectedProperties.forEach((property, index) => {
         const tag = document.createElement('div');
         tag.className = 'selected-property-tag';
+        tag.draggable = true;
+        tag.dataset.index = index;
         tag.innerHTML = `
-            ${property.nameChsFull}${property.isPercentage ? '(%)' : ''}
-            <span class="move-property-left" data-index="${index}">◀</span>
-            <span class="move-property-right" data-index="${index}">▶</span>
+            <span class="drag-handle">⠿</span>
+            <span class="prop-name">${property.nameChsFull}${property.isPercentage ? '(%)' : ''}</span>
             <span class="remove-property" data-property-id="${property.id}">×</span>
         `;
+
+        // 拖拽事件
+        tag.addEventListener('dragstart', function (e) {
+            dragSourceIndex = parseInt(this.dataset.index);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.index);
+        });
+
+        tag.addEventListener('dragend', function (e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.selected-property-tag').forEach(t => {
+                t.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+            });
+            dragSourceIndex = -1;
+            dragOverIndex = -1;
+        });
+
+        tag.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+
+            const currentIndex = parseInt(this.dataset.index);
+            if (currentIndex === dragSourceIndex) return;
+
+            // 清除其他项的样式
+            document.querySelectorAll('.selected-property-tag').forEach(t => {
+                t.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+            });
+
+            // 判断拖拽位置（上方还是下方）
+            const rect = this.getBoundingClientRect();
+            const y = e.clientY - rect.top;
+            const threshold = rect.height / 2;
+
+            if (y < threshold) {
+                this.classList.add('drag-over-top');
+                dragOverIndex = currentIndex;
+            } else {
+                this.classList.add('drag-over-bottom');
+                dragOverIndex = currentIndex + 1;
+            }
+        });
+
+        tag.addEventListener('dragleave', function (e) {
+            this.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+        });
+
+        tag.addEventListener('drop', function (e) {
+            e.preventDefault();
+            document.querySelectorAll('.selected-property-tag').forEach(t => {
+                t.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+            });
+
+            if (dragSourceIndex === -1) return;
+
+            const targetIndex = dragOverIndex !== -1 ? dragOverIndex : parseInt(this.dataset.index);
+
+            if (dragSourceIndex !== targetIndex) {
+                // 执行拖拽排序
+                const item = selectedProperties.splice(dragSourceIndex, 1)[0];
+                const insertIndex = targetIndex > dragSourceIndex ? targetIndex - 1 : targetIndex;
+                selectedProperties.splice(insertIndex, 0, item);
+
+                // 更新显示
+                updateSelectedPropertiesDisplay();
+            }
+
+            dragSourceIndex = -1;
+            dragOverIndex = -1;
+        });
+
         selectedPropertiesDisplay.appendChild(tag);
     });
 
     // 绑定移除事件
     document.querySelectorAll('.remove-property').forEach(button => {
-        button.addEventListener('click', function () {
+        button.addEventListener('click', function (e) {
+            e.stopPropagation();
             const propertyId = this.dataset.propertyId;
-            // 取消对应的复选框选择
-            const checkbox = document.querySelector(`#prop_${propertyId}`);
+
+            // 取消对应的复选框选择（兼容新旧两种复选框ID）
+            const checkbox = document.querySelector(`#prop_${propertyId}, #cprop_${propertyId}`);
             if (checkbox) {
                 checkbox.checked = false;
             }
@@ -2476,32 +2795,6 @@ function updateSelectedPropertiesDisplay() {
             const index = selectedProperties.findIndex(p => p.id === propertyId);
             if (index !== -1) {
                 selectedProperties.splice(index, 1);
-                updateSelectedPropertiesDisplay();
-            }
-        });
-    });
-
-    // 绑定左移事件
-    document.querySelectorAll('.move-property-left').forEach(button => {
-        button.addEventListener('click', function () {
-            const index = parseInt(this.dataset.index);
-            if (index > 0) {
-                // 交换位置
-                [selectedProperties[index], selectedProperties[index - 1]] =
-                    [selectedProperties[index - 1], selectedProperties[index]];
-                updateSelectedPropertiesDisplay();
-            }
-        });
-    });
-
-    // 绑定右移事件
-    document.querySelectorAll('.move-property-right').forEach(button => {
-        button.addEventListener('click', function () {
-            const index = parseInt(this.dataset.index);
-            if (index < selectedProperties.length - 1) {
-                // 交换位置
-                [selectedProperties[index], selectedProperties[index + 1]] =
-                    [selectedProperties[index + 1], selectedProperties[index]];
                 updateSelectedPropertiesDisplay();
             }
         });

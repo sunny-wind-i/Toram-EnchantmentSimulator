@@ -2910,3 +2910,412 @@ body {
         width: 100%;
     }
 }
+
+/* ==================== 紧凑属性选择弹窗样式 ==================== */
+
+/* 搜索栏 */
+.property-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0;
+    position: relative;
+}
+
+.property-search-input {
+    flex: 1;
+    padding: 10px 36px 10px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    background-color: #fafafa;
+    outline: none;
+}
+
+.property-search-input:focus {
+    border-color: #008CBA;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 140, 186, 0.1);
+}
+
+.property-search-input::placeholder {
+    color: #aaa;
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #999;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.clear-search-btn:hover {
+    color: #333;
+    background-color: #f0f0f0;
+}
+
+/* 过滤选项 */
+.property-filter-options {
+    margin: 8px 0 12px 0;
+    display: flex;
+    align-items: center;
+}
+
+/* 推荐退潜切换开关 */
+.recommend-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.recommend-toggle:hover {
+    background-color: #f5f5f5;
+}
+
+.recommend-toggle input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background-color: #ccc;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.toggle-slider::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.recommend-toggle input:checked+.toggle-slider {
+    background-color: #4CAF50;
+}
+
+.recommend-toggle input:checked+.toggle-slider::after {
+    transform: translateX(20px);
+}
+
+.toggle-label {
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+}
+
+/* 紧凑属性列表 */
+.property-compact-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 8px 0;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.property-compact-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.property-compact-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.property-compact-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.property-compact-list::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+/* 搜索结果计数 */
+.search-result-count {
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #888;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #eee;
+}
+
+/* 推荐退潜提示 */
+.recommend-hint {
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #e67e22;
+    background-color: #fef9e7;
+    border-bottom: 1px solid #fdebd0;
+}
+
+/* 紧凑类别 */
+.compact-category {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.compact-category:last-child {
+    border-bottom: none;
+}
+
+.compact-category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+    background-color: #f8f9fa;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.compact-category-header .cat-name {
+    color: #555;
+}
+
+.compact-category-header .cat-count {
+    color: #999;
+    font-size: 12px;
+    background-color: #eee;
+    padding: 1px 8px;
+    border-radius: 10px;
+}
+
+/* 紧凑属性列表 */
+.compact-property-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2px;
+    padding: 4px;
+}
+
+.compact-property-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    gap: 6px;
+}
+
+.compact-property-item:hover {
+    background-color: #e8f4fd;
+}
+
+.compact-property-item input[type="checkbox"] {
+    margin: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+    accent-color: #008CBA;
+}
+
+.compact-property-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.compact-property-label .prop-name {
+    color: #333;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compact-property-label .prop-abbr {
+    color: #999;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.compact-property-label .prop-percent {
+    color: #e67e22;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.compact-property-label .prop-double-pot {
+    margin-left: auto;
+    font-size: 11px;
+    color: #4CAF50;
+    font-weight: 600;
+    background-color: #e8f5e9;
+    padding: 1px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.compact-property-item input:checked~.compact-property-label .prop-name {
+    color: #008CBA;
+    font-weight: 600;
+}
+
+/* 已选择属性标签 - 拖拽排序样式 */
+.selected-properties-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 40px;
+    padding: 4px;
+}
+
+.selected-property-tag {
+    background-color: #008CBA;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    cursor: grab;
+    user-select: none;
+    position: relative;
+}
+
+.selected-property-tag:active {
+    cursor: grabbing;
+}
+
+.selected-property-tag .drag-handle {
+    cursor: grab;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1;
+    padding: 0 2px;
+}
+
+.selected-property-tag .drag-handle:active {
+    cursor: grabbing;
+}
+
+.selected-property-tag .prop-name {
+    flex: 1;
+    white-space: nowrap;
+}
+
+.selected-property-tag .remove-property {
+    cursor: pointer;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.2);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.selected-property-tag .remove-property:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* 拖拽状态样式 */
+.selected-property-tag.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    cursor: grabbing;
+}
+
+/* 拖拽悬停指示器 - 上方 */
+.selected-property-tag.drag-over-top {
+    border-top: 3px solid #4CAF50;
+    border-radius: 20px 20px 4px 4px;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* 拖拽悬停指示器 - 下方 */
+.selected-property-tag.drag-over-bottom {
+    border-bottom: 3px solid #4CAF50;
+    border-radius: 4px 4px 20px 20px;
+    transform: translateY(2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* 属性选择弹窗 - 紧凑模式 */
+.property-selection-modal {
+    max-width: 750px;
+    padding: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.property-selection-modal h2 {
+    font-size: 18px;
+    padding-bottom: 12px;
+    margin-bottom: 0;
+}
+
+/* 响应式 - 紧凑属性列表 */
+@media (max-width: 768px) {
+    .compact-property-list {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+
+    .property-selection-modal {
+        padding: 15px;
+        max-width: 95%;
+    }
+}
+
+@media (max-width: 480px) {
+    .compact-property-list {
+        grid-template-columns: 1fr;
+    }
+
+    .compact-property-item {
+        padding: 8px 10px;
+    }
+
+    .compact-property-label {
+        font-size: 14px;
+    }
+
+    .property-selection-modal {
+        padding: 12px;
+        max-width: 98%;
+        margin: 2% auto;
+    }
+}
