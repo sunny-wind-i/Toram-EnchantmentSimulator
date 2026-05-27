@@ -2443,13 +2443,13 @@ function loadPropertyCompactList() {
 
     // 按类别顺序显示
     const categoryOrder = [
-        '能力', 'HP/MP', '攻击', '防御', '命中', '回避',
-        '速度', '暴击', '属性', '特殊', '属性附加'
+        '能力数值', '体力值·魔法值', '攻击力', '防御力', '命中', '回避',
+        '速度', '暴击', '属性', '特殊强化', '属性觉醒'
     ];
 
     const sortedCategories = Object.keys(grouped).sort((a, b) => {
-        const idxA = categoryOrder.findIndex(c => a.includes(c));
-        const idxB = categoryOrder.findIndex(c => b.includes(c));
+        const idxA = categoryOrder.indexOf(a);
+        const idxB = categoryOrder.indexOf(b);
         return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
     });
 
