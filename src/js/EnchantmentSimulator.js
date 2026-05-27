@@ -2687,6 +2687,8 @@ let dragSourcePropertyId = null;
 let dragSourceElement = null;
 // 缓存当前拖拽悬停的目标元素，避免重复查询
 let dragOverTarget = null;
+// 标记是否正在拖拽中，用于重建DOM后恢复拖拽状态
+let isDragging = false;
 
 // 更新已选择属性显示（带拖拽排序 - 实时重排，无延迟）
 function updateSelectedPropertiesDisplay() {
@@ -2713,21 +2715,22 @@ function updateSelectedPropertiesDisplay() {
         tag.addEventListener('dragstart', function (e) {
             dragSourcePropertyId = this.dataset.propertyId;
             dragSourceElement = this;
+            isDragging = true;
             this.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', this.dataset.index);
         });
 
         tag.addEventListener('dragend', function (e) {
-            this.classList.remove('dragging');
-            // 清除所有拖拽样式
+            // 清除所有标签的拖拽样式（包括可能被重建的标签）
             const tags = document.querySelectorAll('.selected-property-tag');
             for (let i = 0; i < tags.length; i++) {
-                tags[i].classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+                tags[i].classList.remove('dragging', 'drag-over', 'drag-over-top', 'drag-over-bottom');
             }
             dragSourcePropertyId = null;
             dragSourceElement = null;
             dragOverTarget = null;
+            isDragging = false;
         });
 
         tag.addEventListener('dragover', function (e) {
@@ -2819,6 +2822,7 @@ function updateSelectedPropertiesDisplay() {
             dragSourcePropertyId = null;
             dragSourceElement = null;
             dragOverTarget = null;
+            isDragging = false;
         });
 
         fragment.appendChild(tag);
@@ -2827,6 +2831,14 @@ function updateSelectedPropertiesDisplay() {
     // 清空并一次性添加所有标签
     selectedPropertiesDisplay.innerHTML = '';
     selectedPropertiesDisplay.appendChild(fragment);
+
+    // 如果正在拖拽中，恢复拖拽源的样式
+    if (isDragging && dragSourcePropertyId) {
+        const newDragEl = document.querySelector(`.selected-property-tag[data-property-id="${dragSourcePropertyId}"]`);
+        if (newDragEl) {
+            newDragEl.classList.add('dragging');
+        }
+    }
 
     // 绑定移除事件（使用事件委托，只绑定一次）
     if (!selectedPropertiesDisplay._removeDelegate) {
