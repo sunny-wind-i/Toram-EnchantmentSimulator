@@ -3224,6 +3224,14 @@ body {
     opacity: 0.5;
     transform: scale(0.95);
     cursor: grabbing;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+/* 拖拽悬停指示器 - 中间区域（不触发重排） */
+.selected-property-tag.drag-over {
+    background-color: #0099cc;
+    box-shadow: 0 0 0 2px #4CAF50, 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
 /* 拖拽悬停指示器 - 上方 */

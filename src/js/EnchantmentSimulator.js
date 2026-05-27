@@ -2683,19 +2683,20 @@ function confirmProperties() {
 }
 
 // 拖拽排序状态
-let dragSourceIndex = -1;
-let dragOverIndex = -1;
-// 存储拖拽元素的 propertyId，用于在 DOM 重建后重新定位
 let dragSourcePropertyId = null;
+let dragSourceElement = null;
+// 缓存当前拖拽悬停的目标元素，避免重复查询
+let dragOverTarget = null;
 
-// 更新已选择属性显示（带拖拽排序 - 实时重排）
+// 更新已选择属性显示（带拖拽排序 - 实时重排，无延迟）
 function updateSelectedPropertiesDisplay() {
     const selectedCountElement = document.getElementById('selectedCount');
     const selectedPropertiesDisplay = document.getElementById('selectedPropertiesDisplay');
 
     selectedCountElement.textContent = selectedProperties.length;
 
-    selectedPropertiesDisplay.innerHTML = '';
+    // 使用文档片段批量操作，减少重排
+    const fragment = document.createDocumentFragment();
     selectedProperties.forEach((property, index) => {
         const tag = document.createElement('div');
         tag.className = 'selected-property-tag';
@@ -2710,120 +2711,132 @@ function updateSelectedPropertiesDisplay() {
 
         // 拖拽事件
         tag.addEventListener('dragstart', function (e) {
-            dragSourceIndex = parseInt(this.dataset.index);
             dragSourcePropertyId = this.dataset.propertyId;
+            dragSourceElement = this;
             this.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', this.dataset.index);
-            // 延迟隐藏拖拽幽灵图像，让浏览器使用默认效果
-            setTimeout(() => {
-                this.style.opacity = '0.4';
-            }, 0);
         });
 
         tag.addEventListener('dragend', function (e) {
-            this.style.opacity = '';
             this.classList.remove('dragging');
-            document.querySelectorAll('.selected-property-tag').forEach(t => {
-                t.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
-            });
-            dragSourceIndex = -1;
-            dragOverIndex = -1;
+            // 清除所有拖拽样式
+            const tags = document.querySelectorAll('.selected-property-tag');
+            for (let i = 0; i < tags.length; i++) {
+                tags[i].classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+            }
             dragSourcePropertyId = null;
+            dragSourceElement = null;
+            dragOverTarget = null;
         });
 
         tag.addEventListener('dragover', function (e) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
 
-            const currentIndex = parseInt(this.dataset.index);
-            if (currentIndex === dragSourceIndex) return;
+            if (!dragSourcePropertyId) return;
 
-            // 清除其他项的样式
-            document.querySelectorAll('.selected-property-tag').forEach(t => {
-                t.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
-            });
+            const currentPropertyId = this.dataset.propertyId;
+            if (currentPropertyId === dragSourcePropertyId) return;
 
-            // 判断拖拽位置（上方还是下方）
+            // 判断拖拽位置 - 使用50%阈值
             const rect = this.getBoundingClientRect();
             const y = e.clientY - rect.top;
-            const threshold = rect.height / 2;
+            const midPoint = rect.height / 2;
 
-            let targetIndex;
-            if (y < threshold) {
-                this.classList.add('drag-over-top');
-                targetIndex = currentIndex;
+            // 只更新样式，不立即重排
+            if (y < midPoint) {
+                if (!this.classList.contains('drag-over-top')) {
+                    this.classList.add('drag-over-top');
+                    this.classList.remove('drag-over-bottom');
+                }
             } else {
-                this.classList.add('drag-over-bottom');
-                targetIndex = currentIndex + 1;
+                if (!this.classList.contains('drag-over-bottom')) {
+                    this.classList.add('drag-over-bottom');
+                    this.classList.remove('drag-over-top');
+                }
             }
 
-            // 实时重排：在拖拽过程中立即执行排序
-            // 使用 propertyId 来定位拖拽源，避免索引漂移问题
+            // 如果悬停目标变了，清除旧目标的样式
+            if (dragOverTarget && dragOverTarget !== this) {
+                dragOverTarget.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+            }
+            dragOverTarget = this;
+
+            // 立即执行重排，无延迟
             const currentDragSourceIndex = selectedProperties.findIndex(p => p.id === dragSourcePropertyId);
-            if (currentDragSourceIndex === -1) return;
+            const targetIdx = selectedProperties.findIndex(p => p.id === currentPropertyId);
+            if (currentDragSourceIndex === -1 || targetIdx === -1) return;
+
+            // 计算目标插入位置
+            let insertBeforeIndex = targetIdx;
+            if (y >= midPoint) {
+                insertBeforeIndex = targetIdx + 1;
+            }
 
             // 计算调整后的目标索引（考虑移除拖拽项后的偏移）
-            let adjustedTargetIndex = targetIndex;
-            if (targetIndex > currentDragSourceIndex) {
-                adjustedTargetIndex = targetIndex - 1;
+            let adjustedTargetIndex = insertBeforeIndex;
+            if (insertBeforeIndex > currentDragSourceIndex) {
+                adjustedTargetIndex = insertBeforeIndex - 1;
             }
 
             // 只有当目标位置与当前位置不同时才执行重排
             if (adjustedTargetIndex !== currentDragSourceIndex) {
-                // 执行拖拽排序
+                // 直接操作数组，无延迟
                 const item = selectedProperties.splice(currentDragSourceIndex, 1)[0];
                 selectedProperties.splice(adjustedTargetIndex, 0, item);
-
-                // 更新拖拽源索引为新的位置
-                dragSourceIndex = adjustedTargetIndex;
 
                 // 更新显示（保持拖拽状态）
                 updateSelectedPropertiesDisplay();
 
-                // 重新找到当前拖拽的标签并恢复拖拽状态
-                const newTags = document.querySelectorAll('.selected-property-tag');
-                newTags.forEach((t) => {
-                    if (t.dataset.propertyId === dragSourcePropertyId) {
-                        t.classList.add('dragging');
-                        t.style.opacity = '0.4';
-                    }
-                });
+                // 恢复拖拽源的拖拽状态
+                const newDragEl = document.querySelector(`.selected-property-tag[data-property-id="${dragSourcePropertyId}"]`);
+                if (newDragEl) {
+                    newDragEl.classList.add('dragging');
+                }
+                // 重排后悬停目标已变，重置缓存
+                dragOverTarget = null;
             }
         });
 
         tag.addEventListener('dragleave', function (e) {
-            this.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+            // 只有当真正离开这个元素时才清除样式
+            if (e.currentTarget === this) {
+                this.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+                if (dragOverTarget === this) {
+                    dragOverTarget = null;
+                }
+            }
         });
 
         tag.addEventListener('drop', function (e) {
             e.preventDefault();
-            document.querySelectorAll('.selected-property-tag').forEach(t => {
-                t.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
-                t.style.opacity = '';
-            });
-
-            if (dragSourceIndex === -1) return;
-
-            // 拖拽过程中已经实时重排了，drop时只需清理状态
-            dragSourceIndex = -1;
-            dragOverIndex = -1;
+            // 清除所有拖拽样式
+            const tags = document.querySelectorAll('.selected-property-tag');
+            for (let i = 0; i < tags.length; i++) {
+                tags[i].classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+            }
             dragSourcePropertyId = null;
-
-            // 最终更新显示
-            updateSelectedPropertiesDisplay();
+            dragSourceElement = null;
+            dragOverTarget = null;
         });
 
-        selectedPropertiesDisplay.appendChild(tag);
+        fragment.appendChild(tag);
     });
 
-    // 绑定移除事件
-    document.querySelectorAll('.remove-property').forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.stopPropagation();
-            const propertyId = this.dataset.propertyId;
+    // 清空并一次性添加所有标签
+    selectedPropertiesDisplay.innerHTML = '';
+    selectedPropertiesDisplay.appendChild(fragment);
 
-            // 取消对应的复选框选择（兼容新旧两种复选框ID）
+    // 绑定移除事件（使用事件委托，只绑定一次）
+    if (!selectedPropertiesDisplay._removeDelegate) {
+        selectedPropertiesDisplay.addEventListener('click', function (e) {
+            const removeBtn = e.target.closest('.remove-property');
+            if (!removeBtn) return;
+            e.stopPropagation();
+            const propertyId = removeBtn.dataset.propertyId;
+
+            // 取消对应的复选框选择
             const checkbox = document.querySelector(`#prop_${propertyId}, #cprop_${propertyId}`);
             if (checkbox) {
                 checkbox.checked = false;
@@ -2836,7 +2849,8 @@ function updateSelectedPropertiesDisplay() {
                 updateSelectedPropertiesDisplay();
             }
         });
-    });
+        selectedPropertiesDisplay._removeDelegate = true;
+    }
 }
 
 // 更新显示
