@@ -3295,3 +3295,33 @@ body {
         margin: 2% auto;
     }
 }
+
+/* 移动端触摸拖拽克隆元素样式 */
+.touch-drag-clone {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.85;
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    background-color: #008CBA;
+    color: white;
+    padding: 6px 12px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: none;
+}
+
+.touch-drag-clone .drag-handle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.touch-drag-clone .remove-property {
+    display: none;
+}

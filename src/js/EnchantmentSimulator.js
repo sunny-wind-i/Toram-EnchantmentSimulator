@@ -2690,6 +2690,14 @@ let dragOverTarget = null;
 // 标记是否正在拖拽中，用于重建DOM后恢复拖拽状态
 let isDragging = false;
 
+// 移动端触摸拖拽状态
+let touchDragStartY = 0;
+let touchDragStartX = 0;
+let touchDragSourceId = null;
+let touchDragClone = null;
+let touchDragInitialIndex = -1;
+let isTouchDragging = false;
+
 // 更新已选择属性显示（带拖拽排序 - 实时重排，无延迟）
 function updateSelectedPropertiesDisplay() {
     const selectedCountElement = document.getElementById('selectedCount');
@@ -2711,7 +2719,7 @@ function updateSelectedPropertiesDisplay() {
             <span class="remove-property" data-property-id="${property.id}">×</span>
         `;
 
-        // 拖拽事件
+        // 桌面端拖拽事件
         tag.addEventListener('dragstart', function (e) {
             dragSourcePropertyId = this.dataset.propertyId;
             dragSourceElement = this;
@@ -2823,6 +2831,142 @@ function updateSelectedPropertiesDisplay() {
             dragSourceElement = null;
             dragOverTarget = null;
             isDragging = false;
+        });
+
+        // 移动端触摸拖拽事件
+        tag.addEventListener('touchstart', function (e) {
+            // 如果点击的是移除按钮，不启动拖拽
+            if (e.target.closest('.remove-property')) return;
+
+            const touch = e.touches[0];
+            touchDragStartY = touch.clientY;
+            touchDragStartX = touch.clientX;
+            touchDragSourceId = this.dataset.propertyId;
+            touchDragInitialIndex = parseInt(this.dataset.index);
+            isTouchDragging = false;
+
+            // 延迟启动拖拽，避免与滚动冲突
+            this._touchDragTimer = setTimeout(() => {
+                if (!isTouchDragging) {
+                    isTouchDragging = true;
+                    this.classList.add('dragging');
+
+                    // 创建拖拽克隆元素
+                    touchDragClone = this.cloneNode(true);
+                    touchDragClone.classList.add('touch-drag-clone');
+                    touchDragClone.style.position = 'fixed';
+                    touchDragClone.style.width = this.offsetWidth + 'px';
+                    touchDragClone.style.pointerEvents = 'none';
+                    touchDragClone.style.zIndex = '9999';
+                    touchDragClone.style.opacity = '0.8';
+                    touchDragClone.style.transform = 'scale(1.05)';
+                    touchDragClone.style.left = (touch.clientX - this.offsetWidth / 2) + 'px';
+                    touchDragClone.style.top = (touch.clientY - this.offsetHeight / 2) + 'px';
+                    document.body.appendChild(touchDragClone);
+                }
+            }, 200);
+        }, { passive: true });
+
+        tag.addEventListener('touchmove', function (e) {
+            if (!isTouchDragging) {
+                // 如果移动距离超过阈值，取消长按启动拖拽
+                const touch = e.touches[0];
+                const deltaX = Math.abs(touch.clientX - touchDragStartX);
+                const deltaY = Math.abs(touch.clientY - touchDragStartY);
+                if (deltaX > 10 || deltaY > 10) {
+                    if (this._touchDragTimer) {
+                        clearTimeout(this._touchDragTimer);
+                        this._touchDragTimer = null;
+                    }
+                }
+                return;
+            }
+
+            e.preventDefault();
+            const touch = e.touches[0];
+
+            // 更新克隆元素位置
+            if (touchDragClone) {
+                touchDragClone.style.left = (touch.clientX - touchDragClone.offsetWidth / 2) + 'px';
+                touchDragClone.style.top = (touch.clientY - touchDragClone.offsetHeight / 2) + 'px';
+            }
+
+            // 查找当前触摸位置下的目标元素
+            const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+            let targetTag = null;
+            for (const el of elements) {
+                if (el.classList.contains('selected-property-tag') && el.dataset.propertyId !== touchDragSourceId) {
+                    targetTag = el;
+                    break;
+                }
+            }
+
+            if (targetTag) {
+                const rect = targetTag.getBoundingClientRect();
+                const y = touch.clientY - rect.top;
+                const midPoint = rect.height / 2;
+
+                // 清除所有标签的悬停样式
+                document.querySelectorAll('.selected-property-tag').forEach(t => {
+                    t.classList.remove('drag-over-top', 'drag-over-bottom');
+                });
+
+                if (y < midPoint) {
+                    targetTag.classList.add('drag-over-top');
+                } else {
+                    targetTag.classList.add('drag-over-bottom');
+                }
+
+                // 执行重排
+                const currentIdx = selectedProperties.findIndex(p => p.id === touchDragSourceId);
+                const targetIdx = selectedProperties.findIndex(p => p.id === targetTag.dataset.propertyId);
+                if (currentIdx !== -1 && targetIdx !== -1) {
+                    let insertBeforeIndex = targetIdx;
+                    if (y >= midPoint) {
+                        insertBeforeIndex = targetIdx + 1;
+                    }
+
+                    let adjustedTargetIndex = insertBeforeIndex;
+                    if (insertBeforeIndex > currentIdx) {
+                        adjustedTargetIndex = insertBeforeIndex - 1;
+                    }
+
+                    if (adjustedTargetIndex !== currentIdx) {
+                        const item = selectedProperties.splice(currentIdx, 1)[0];
+                        selectedProperties.splice(adjustedTargetIndex, 0, item);
+                        updateSelectedPropertiesDisplay();
+
+                        // 恢复拖拽源的拖拽样式
+                        const newDragEl = document.querySelector(`.selected-property-tag[data-property-id="${touchDragSourceId}"]`);
+                        if (newDragEl) {
+                            newDragEl.classList.add('dragging');
+                        }
+                    }
+                }
+            }
+        }, { passive: false });
+
+        tag.addEventListener('touchend', function (e) {
+            if (this._touchDragTimer) {
+                clearTimeout(this._touchDragTimer);
+                this._touchDragTimer = null;
+            }
+
+            if (isTouchDragging) {
+                // 清除所有样式
+                document.querySelectorAll('.selected-property-tag').forEach(t => {
+                    t.classList.remove('dragging', 'drag-over-top', 'drag-over-bottom');
+                });
+
+                // 移除克隆元素
+                if (touchDragClone && touchDragClone.parentNode) {
+                    touchDragClone.parentNode.removeChild(touchDragClone);
+                }
+                touchDragClone = null;
+                isTouchDragging = false;
+                touchDragSourceId = null;
+                touchDragInitialIndex = -1;
+            }
         });
 
         fragment.appendChild(tag);
