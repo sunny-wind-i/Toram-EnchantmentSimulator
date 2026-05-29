@@ -309,7 +309,7 @@ export default class FormulaParser {
             }
 
             // 初始潜力 / 装备初始潜力值
-            const potentialMatch = cleanLine.match(/(?:初始潜力|装备初始潜力值|初始潜力值|装备潜力)[｜|：:]\s*(\d+)/);
+            const potentialMatch = cleanLine.match(/(?:初始潜力|装备初始潜力值|初始潜力值|装备潜力|装备潜力值)[｜|：:]\s*(\d+)/);
             if (potentialMatch) {
                 result.equipmentPotential = parseInt(potentialMatch[1]);
                 continue;
