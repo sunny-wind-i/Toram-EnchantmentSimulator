@@ -4641,7 +4641,7 @@ function showEditRepeatedStepsModal(groupIndex) {
         const propertyItem = document.createElement('div');
         propertyItem.className = 'property-item';
         propertyItem.innerHTML = `
-            <span class="property-name">${property.nameChsFull}${property.isPercentage ? '(%)' : ''}</span>
+            <span class="property-name">${property.nameChsAbbr}${property.isPercentage ? '(%)' : ''}</span>
             <div class="value-controls">
                 <input type="number" class="property-value-input" 
                        data-property-id="${property.id}" 
