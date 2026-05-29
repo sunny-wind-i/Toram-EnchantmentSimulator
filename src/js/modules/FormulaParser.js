@@ -294,7 +294,7 @@ export default class FormulaParser {
             const cleanLine = trimmed.replace(/^✩\s*/, '');
 
             // 装备类型
-            const equipTypeMatch = cleanLine.match(/装备类型[｜|]\s*(.+)/);
+            const equipTypeMatch = cleanLine.match(/装备类型[｜|：:]\s*(.+)/);
             if (equipTypeMatch) {
                 const type = equipTypeMatch[1].trim();
                 result.equipmentType = this._parseEquipmentType(type);
@@ -309,28 +309,28 @@ export default class FormulaParser {
             }
 
             // 初始潜力 / 装备初始潜力值
-            const potentialMatch = cleanLine.match(/(?:初始潜力|装备初始潜力值|初始潜力值)[｜|]\s*(\d+)/);
+            const potentialMatch = cleanLine.match(/(?:初始潜力|装备初始潜力值|初始潜力值)[｜|：:]\s*(\d+)/);
             if (potentialMatch) {
                 result.equipmentPotential = parseInt(potentialMatch[1]);
                 continue;
             }
 
             // 基础潜力
-            const basePotentialMatch = cleanLine.match(/基础潜力[｜|]\s*(\d+)/);
+            const basePotentialMatch = cleanLine.match(/基础潜力[｜|：:]\s*(\d+)/);
             if (basePotentialMatch) {
                 result.baseEquipmentPotential = parseInt(basePotentialMatch[1]);
                 continue;
             }
 
             // 锻冶熟练度 / 基础锻造熟练度
-            const smithingMatch = cleanLine.match(/(?:锻冶熟练度|基础锻造熟练度)[｜|]\s*(\d+)/);
+            const smithingMatch = cleanLine.match(/(?:锻冶熟练度|基础锻造熟练度)[｜|：:]\s*(\d+)/);
             if (smithingMatch) {
                 result.smithingLevel = parseInt(smithingMatch[1]);
                 continue;
             }
 
             // 装备潜力（简写）
-            const equipPotMatch = cleanLine.match(/装备潜力[｜|]\s*(\d+)/);
+            const equipPotMatch = cleanLine.match(/装备潜力[｜|：:]\s*(\d+)/);
             if (equipPotMatch && result.equipmentPotential === null) {
                 result.equipmentPotential = parseInt(equipPotMatch[1]);
                 continue;
@@ -389,7 +389,7 @@ export default class FormulaParser {
             const understandingMatch = cleanLine.match(/^(?:理解素材|了解素材技能等级|了解素材)/);
             if (understandingMatch) {
                 // 检查当前行是否有素材等级内容（有｜分隔符）
-                const inlineMatch = cleanLine.match(/^(?:理解素材|了解素材技能等级|了解素材)[｜|]\s*(.+)/);
+                const inlineMatch = cleanLine.match(/^(?:理解素材|了解素材技能等级|了解素材)[｜|：:]\s*(.+)/);
                 if (inlineMatch) {
                     this._parseMaterialLevels(inlineMatch[1], skills);
                     foundAnySkill = true;
@@ -475,14 +475,14 @@ export default class FormulaParser {
             const cleanLine = trimmed.replace(/^✩\s*/, '');
 
             // 铁砧技能总等级
-            const anvilMatch = cleanLine.match(/铁砧技能总等级[｜|]\s*Lv\.?\s*(\d+)/i);
+            const anvilMatch = cleanLine.match(/铁砧技能总等级[｜|：:]\s*Lv\.?\s*(\d+)/i);
             if (anvilMatch) {
                 result.anvilLevel = parseInt(anvilMatch[1]);
                 continue;
             }
 
             // 大师级强化技术II
-            const masterMatch = cleanLine.match(/大师级强化技术II[｜|]\s*Lv\.?\s*(\d+)/i);
+            const masterMatch = cleanLine.match(/大师级强化技术II[｜|：:]\s*Lv\.?\s*(\d+)/i);
             if (masterMatch) {
                 result.masterEnhancement2Level = parseInt(masterMatch[1]);
                 continue;
