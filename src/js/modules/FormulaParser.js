@@ -309,14 +309,14 @@ export default class FormulaParser {
             }
 
             // 初始潜力 / 装备初始潜力值
-            const potentialMatch = cleanLine.match(/(?:初始潜力|装备初始潜力值|初始潜力值)[｜|：:]\s*(\d+)/);
+            const potentialMatch = cleanLine.match(/(?:初始潜力|装备初始潜力值|初始潜力值|装备潜力)[｜|：:]\s*(\d+)/);
             if (potentialMatch) {
                 result.equipmentPotential = parseInt(potentialMatch[1]);
                 continue;
             }
 
-            // 基础潜力
-            const basePotentialMatch = cleanLine.match(/基础潜力[｜|：:]\s*(\d+)/);
+            // 基础潜力 / 制作装备基础潜力值 / 基础潜力值 / 装备基础潜力 / 装备基础潜力值
+            const basePotentialMatch = cleanLine.match(/(?:基础潜力|制作装备基础潜力值|基础潜力值|装备基础潜力|装备基础潜力值)[｜|：:]\s*(\d+)/);
             if (basePotentialMatch) {
                 result.baseEquipmentPotential = parseInt(basePotentialMatch[1]);
                 continue;
