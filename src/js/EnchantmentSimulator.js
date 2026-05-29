@@ -4660,7 +4660,7 @@ function showEditRepeatedStepsModal(groupIndex) {
     bindEditRepeatedStepsEvents();
 
     // 显示模态框
-    modal.style.display = 'block';
+    modal.classList.remove('hidden');
 
     // 更新忽略按钮文本
     const toggleIgnoreBtn = document.getElementById('toggleIgnoreRepeatedStepsBtn');
@@ -4684,15 +4684,18 @@ function bindEditRepeatedStepsEvents() {
 
     // 关闭按钮事件
     closeBtn.onclick = function () {
-        modal.style.display = 'none';
+        modal.classList.add('hidden');
     };
 
     // 点击模态框外部关闭
-    window.onclick = function (event) {
+    modal._outsideClickHandler = function (event) {
         if (event.target == modal) {
-            modal.style.display = 'none';
+            modal.classList.add('hidden');
         }
     };
+    // 先移除之前可能绑定的监听器，再添加新的
+    document.removeEventListener('click', modal._outsideClickHandler);
+    document.addEventListener('click', modal._outsideClickHandler);
 
     // 重复次数减少按钮
     decreaseRepeatCountBtn.onclick = function () {
@@ -4731,12 +4734,12 @@ function bindEditRepeatedStepsEvents() {
     // 确认按钮
     confirmBtn.onclick = function () {
         updateRepeatedSteps();
-        modal.style.display = 'none';
+        modal.classList.add('hidden');
     };
 
     // 取消按钮
     cancelBtn.onclick = function () {
-        modal.style.display = 'none';
+        modal.classList.add('hidden');
     };
 
     // 忽略/取消忽略按钮
@@ -4748,7 +4751,7 @@ function bindEditRepeatedStepsEvents() {
     deleteBtn.onclick = function () {
         if (confirm('确定要删除这些重复步骤吗？此操作无法撤销！')) {
             deleteRepeatedSteps();
-            modal.style.display = 'none';
+            modal.classList.add('hidden');
         }
     };
 }
@@ -4874,7 +4877,7 @@ function toggleIgnoreRepeatedSteps() {
 
     // 关闭模态框
     const modal = document.getElementById('editRepeatedStepsModal');
-    modal.style.display = 'none';
+    modal.classList.add('hidden');
 }
 
 // 删除重复步骤
