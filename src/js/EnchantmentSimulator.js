@@ -2286,24 +2286,33 @@ function initPropertyAliasMap() {
     });
 
     // 从FormulaParser的别名映射中补充常用别名
+    // 注意：对于有百分比版本的属性（如Atk/AtkRate），别名同时映射到两个版本
     const extraAliases = {
-        "str": "Str", "int": "Int", "vit": "Vit", "agi": "Agi", "dex": "Dex",
-        "hp": "MaxHp", "mp": "MaxMp",
-        "hp回复": "HpRecovery", "hp自回": "HpRecovery", "hp自然回复": "HpRecovery",
-        "体力回复": "HpRecovery", "体力自回": "HpRecovery",
-        "mp回复": "MpRecovery", "mp自回": "MpRecovery", "mp自然回复": "MpRecovery",
-        "魔法回复": "MpRecovery", "魔法自回": "MpRecovery",
-        "物攻": "Atk", "atk": "Atk", "魔攻": "Matk", "matk": "Matk",
+        "str": ["Str", "StrRate"], "int": ["Int", "IntRate"], "vit": ["Vit", "VitRate"],
+        "agi": ["Agi", "AgiRate"], "dex": ["Dex", "DexRate"],
+        "hp": ["MaxHp", "MaxHpRate"], "mp": ["MaxMp"],
+        "hp回复": ["HpRecovery", "HpRecoveryRate"], "hp自回": ["HpRecovery", "HpRecoveryRate"],
+        "hp自然回复": ["HpRecovery", "HpRecoveryRate"],
+        "体力回复": ["HpRecovery", "HpRecoveryRate"], "体力自回": ["HpRecovery", "HpRecoveryRate"],
+        "mp回复": ["MpRecovery", "MpRecoveryRate"], "mp自回": ["MpRecovery", "MpRecoveryRate"],
+        "mp自然回复": ["MpRecovery", "MpRecoveryRate"],
+        "魔法回复": ["MpRecovery", "MpRecoveryRate"], "魔法自回": ["MpRecovery", "MpRecoveryRate"],
+        "物攻": ["Atk", "AtkRate"], "atk": ["Atk", "AtkRate"],
+        "魔攻": ["Matk", "MatkRate"], "matk": ["Matk", "MatkRate"],
         "稳定": "Sta", "stability": "Sta",
         "物贯": "DefBreaker", "physical pierce": "DefBreaker",
         "魔贯": "MdefBreaker", "magic pierce": "MdefBreaker",
-        "物防": "Def", "def": "Def", "魔防": "Mdef", "法防": "Mdef", "mdef": "Mdef",
+        "物防": ["Def", "DefRate"], "def": ["Def", "DefRate"],
+        "魔防": ["Mdef", "MdefRate"], "法防": ["Mdef", "MdefRate"], "mdef": ["Mdef", "MdefRate"],
         "物抗": "PowerResist", "魔抗": "MagicResist", "法抗": "MagicResist",
-        "accuracy": "Hit", "dodge": "Flee",
-        "攻速": "Aspd", "aspd": "Aspd", "唱速": "Cspd", "咏速": "Cspd", "cspd": "Cspd",
-        "暴击": "Critical", "爆击": "Critical", "critical": "Critical",
-        "c": "Critical", "暴伤": "CriticalDmg", "爆伤": "CriticalDmg",
-        "cd": "CriticalDmg",
+        "hit": ["Hit", "HitRate"], "flee": ["Flee", "FleeRate"],
+        "攻速": ["Aspd", "AspdRate"], "aspd": ["Aspd", "AspdRate"],
+        "唱速": ["Cspd", "CspdRate"], "咏速": ["Cspd", "CspdRate"], "cspd": ["Cspd", "CspdRate"],
+        "暴击": ["Critical", "CriticalRate"], "爆击": ["Critical", "CriticalRate"],
+        "critical": ["Critical", "CriticalRate"],
+        "c": ["Critical", "CriticalRate"],
+        "暴伤": ["CriticalDmg", "CriticalDmgRate"], "爆伤": ["CriticalDmg", "CriticalDmgRate"],
+        "cd": ["CriticalDmg", "CriticalDmgRate"],
         "对火": "FireKiller", "对地": "EarthKiller", "对风": "WindKiller",
         "对水": "WaterKiller", "对光": "LightKiller", "对暗": "DarkKiller",
         "抗火": "FireShield", "抗地": "EarthShield", "抗风": "WindShield",
@@ -2315,11 +2324,15 @@ function initPropertyAliasMap() {
         "原属性": "OriginalElement", "非原属性": "OtherElement"
     };
 
-    for (const [alias, propId] of Object.entries(extraAliases)) {
-        const prop = propertyManager.getProperty(propId);
-        if (prop) {
-            addAliasEntry(alias, prop);
-        }
+    for (const [alias, propIds] of Object.entries(extraAliases)) {
+        // 支持单个属性ID或属性ID数组（用于同时匹配数值版和百分比版）
+        const ids = Array.isArray(propIds) ? propIds : [propIds];
+        ids.forEach(propId => {
+            const prop = propertyManager.getProperty(propId);
+            if (prop) {
+                addAliasEntry(alias, prop);
+            }
+        });
     }
 }
 
@@ -2361,33 +2374,46 @@ function searchProperties(query) {
     }
 
     const lowerQuery = query.toLowerCase().trim();
+    // 去除百分号进行匹配，以便"atk%"能匹配到"Atk"等属性
+    // 同时也去除百分号前后的空格，处理"atk %"等情况
+    const queryWithoutPercent = lowerQuery.replace(/%\s*|\s*%/g, '').trim();
     const matchedIds = new Set();
+
+    // 构建匹配关键词列表：始终包含去除百分号后的查询，如果原始查询不同则也包含原始查询
+    const matchQueries = [queryWithoutPercent];
+    if (lowerQuery !== queryWithoutPercent) {
+        matchQueries.push(lowerQuery);
+    }
 
     // 1. 直接匹配属性字段
     const allProps = propertyManager.getAllProperties();
     allProps.forEach(prop => {
-        if (prop.nameChsFull && prop.nameChsFull.toLowerCase().includes(lowerQuery)) {
-            matchedIds.add(prop.id);
-        }
-        if (prop.nameChsAbbr && prop.nameChsAbbr.toLowerCase().includes(lowerQuery)) {
-            matchedIds.add(prop.id);
-        }
-        if (prop.nameEnFull && prop.nameEnFull.toLowerCase().includes(lowerQuery)) {
-            matchedIds.add(prop.id);
-        }
-        if (prop.nameEnAbbr && prop.nameEnAbbr.toLowerCase().includes(lowerQuery)) {
-            matchedIds.add(prop.id);
-        }
-        if (prop.description && prop.description.toLowerCase().includes(lowerQuery)) {
-            matchedIds.add(prop.id);
-        }
+        matchQueries.forEach(q => {
+            if (prop.nameChsFull && prop.nameChsFull.toLowerCase().includes(q)) {
+                matchedIds.add(prop.id);
+            }
+            if (prop.nameChsAbbr && prop.nameChsAbbr.toLowerCase().includes(q)) {
+                matchedIds.add(prop.id);
+            }
+            if (prop.nameEnFull && prop.nameEnFull.toLowerCase().includes(q)) {
+                matchedIds.add(prop.id);
+            }
+            if (prop.nameEnAbbr && prop.nameEnAbbr.toLowerCase().includes(q)) {
+                matchedIds.add(prop.id);
+            }
+            if (prop.description && prop.description.toLowerCase().includes(q)) {
+                matchedIds.add(prop.id);
+            }
+        });
     });
 
     // 2. 通过别名映射匹配
     for (const [alias, props] of Object.entries(propertyAliasMap)) {
-        if (alias.includes(lowerQuery) || lowerQuery.includes(alias)) {
-            props.forEach(prop => matchedIds.add(prop.id));
-        }
+        matchQueries.forEach(q => {
+            if (alias.includes(q) || q.includes(alias)) {
+                props.forEach(prop => matchedIds.add(prop.id));
+            }
+        });
     }
 
     return allProps.filter(prop => matchedIds.has(prop.id));

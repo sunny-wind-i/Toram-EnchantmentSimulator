@@ -128,8 +128,8 @@ export default class FormulaParser {
             "magic resistance": "魔法抗性",
 
             // ===== 命中/回避 =====
-            "accuracy": "命中",
-            "dodge": "回避",
+            "hit": "命中",
+            "flee": "回避",
 
             // ===== 速度 =====
             "攻速": "攻击速度",
