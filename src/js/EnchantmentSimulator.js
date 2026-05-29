@@ -4786,9 +4786,14 @@ function updateRepeatedSteps() {
 
     // 调整步骤数量
     if (newCount > stepsInGroup.length) {
-        // 需要增加步骤
+        // 需要增加步骤 - 在组末尾插入新步骤
         const stepsToAdd = newCount - stepsInGroup.length;
         const templateStep = stepsInGroup[0];
+
+        // 获取组中最后一个步骤在 enchantRecord.enchantmentSteps 中的索引
+        const lastStepInGroup = stepsInGroup[stepsInGroup.length - 1];
+        const lastIndex = enchantRecord.enchantmentSteps.findIndex(s => s.id === lastStepInGroup.id);
+        const insertIndex = lastIndex + 1; // 在组末尾之后插入
 
         // 创建新步骤
         for (let i = 0; i < stepsToAdd; i++) {
@@ -4800,10 +4805,21 @@ function updateRepeatedSteps() {
                 isIgnored: templateStep.isIgnored
             };
 
-            // 在组末尾添加新步骤
-            const lastIndex = enchantRecord.enchantmentSteps.indexOf(stepsInGroup[stepsInGroup.length - 1]);
-            enchantRecord.addEnchantmentStep(newStepData, lastIndex + 1 + i);
+            // 使用 splice 在指定位置插入新步骤
+            const steps = enchantRecord.enchantmentSteps;
+            const newStep = {
+                id: 'step_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+                enchantments: newStepData.enchantments.map(enchant => ({
+                    property: enchantRecord.selectedProperties.find(p => p.id === enchant.propertyId),
+                    value: enchant.value
+                })),
+                isIgnored: newStepData.isIgnored !== undefined ? newStepData.isIgnored : false
+            };
+            steps.splice(insertIndex + i, 0, newStep);
         }
+
+        // 重新计算所有步骤
+        enchantRecord._recalculateAllSteps();
     } else if (newCount < stepsInGroup.length) {
         // 需要减少步骤
         const stepsToRemove = stepsInGroup.length - newCount;
