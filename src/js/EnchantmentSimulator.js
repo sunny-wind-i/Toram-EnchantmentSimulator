@@ -1810,7 +1810,7 @@ function doExportCyteriaFormat(elementBase) {
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${enchantRecord.getName()}_布偶的魔法书.txt`;
+        a.download = `${enchantRecord.getName()}_布偶格式.txt`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
