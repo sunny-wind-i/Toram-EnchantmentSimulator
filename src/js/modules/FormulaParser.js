@@ -301,8 +301,8 @@ export default class FormulaParser {
                 continue;
             }
 
-            // 直接匹配 "身体防具" 或 "武器" 等
-            const directEquipMatch = cleanLine.match(/^(身体防具|身体装备|武器|追加装备|特殊装备)$/);
+            // 直接匹配 "身体防具" 或 "武器" 等（含"主手武器"、"副手武器"等变体）
+            const directEquipMatch = cleanLine.match(/^(身体防具|身体装备|主手武器|武器)$/);
             if (directEquipMatch) {
                 result.equipmentType = this._parseEquipmentType(directEquipMatch[1]);
                 continue;
