@@ -353,9 +353,8 @@ export default class FormulaParser {
             return EquipmentType.EQUIPMENT_TYPE_ARMOR;
         } else if (type.includes('武器') || type.includes('weapon') || type.includes('Weapon')) {
             return EquipmentType.EQUIPMENT_TYPE_WEAPON;
-        } else if (type.includes('追加') || type.includes('special') || type.includes('Special')) {
-            return EquipmentType.EQUIPMENT_TYPE_ADDITIONAL;
         }
+        // 追加装备和特殊装备暂未实现，返回null让调用方使用默认值
         return null;
     }
 
